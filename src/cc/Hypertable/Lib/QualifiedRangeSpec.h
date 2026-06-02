@@ -132,6 +132,7 @@ namespace Hypertable {
       table = m_table;
     }
 
+    using QualifiedRangeSpec::operator<;
     bool operator<(const QualifiedRangeSpecManaged &other) const;
 
     friend std::ostream &operator<<(std::ostream &os,

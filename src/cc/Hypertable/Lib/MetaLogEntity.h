@@ -35,6 +35,7 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <atomic>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -108,8 +109,10 @@ namespace Hypertable {
        * persisted to the log, it will be logically removed.
        */
       void mark_for_removal() {
+        std::lock_guard<std::mutex> lock(m_mutex);
         header.flags |= EntityHeader::FLAG_REMOVE;
         header.length = header.checksum = 0;
+        m_removal_flag.store(true, std::memory_order_release);
       }
 
       /** Checks if entity is marked for removal.
@@ -118,10 +121,10 @@ namespace Hypertable {
        * it gets persisted, it will be logically removed removed.
        * @see mark_for_removal()
        * @return <i>true</i> if entity is marked for removal, <i>false</i>
-       * otherwise 
+       * otherwise
        */
       bool marked_for_removal() {
-        return (header.flags & EntityHeader::FLAG_REMOVE) != 0;
+        return m_removal_flag.load(std::memory_order_acquire);
       }
 
       /** Returns the name of the entity.
@@ -160,6 +163,9 @@ namespace Hypertable {
 
       /// %Mutex for serializing access to members
       mutable std::mutex m_mutex;
+
+      /// Atomic removal flag — set by mark_for_removal(), read by marked_for_removal()
+      std::atomic<bool> m_removal_flag {false};
 
       /// %Entity header
       EntityHeader header;

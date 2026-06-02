@@ -42,7 +42,14 @@ configure_file(${SRC_DIR}/test/client2.golden ${DST_DIR}/client2.golden
 configure_file(${SRC_DIR}/test/client3.golden ${DST_DIR}/client3.golden
                COPYONLY)
 
-add_test(Hyperspace hyperspaceTest)
+# hyperspaceTest uses ./ht_hyperspace and ../../../Hyperspace/htHyperspace relative to CWD
+if (NOT IS_SYMLINK "${DST_DIR}/ht_hyperspace")
+  file(CREATE_LINK "${HYPERTABLE_BINARY_DIR}/bin/ht_hyperspace"
+       "${DST_DIR}/ht_hyperspace" SYMBOLIC)
+endif()
+
+add_test(NAME Hyperspace COMMAND $<TARGET_FILE:hyperspaceTest>
+         WORKING_DIRECTORY ${DST_DIR})
 
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_hyperspace RUNTIME DESTINATION bin)

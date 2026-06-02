@@ -38,14 +38,14 @@ using namespace apache::thrift::transport;
 
 // helper to initialize base class of Client
 struct ClientHelper {
-  boost::shared_ptr<TSocket> socket;
-  boost::shared_ptr<TTransport> transport;
-  boost::shared_ptr<TProtocol> protocol;
+  std::shared_ptr<TSocket> socket;
+  std::shared_ptr<TTransport> transport;
+  std::shared_ptr<TProtocol> protocol;
 
   ClientHelper(const std::string &host, int port, int timeout_ms)
-    : socket(new TSocket(host, port)),
-      transport(new TFramedTransport(socket)),
-      protocol(new TBinaryProtocol(transport)) {
+    : socket(std::make_shared<TSocket>(host, port)),
+      transport(std::make_shared<TFramedTransport>(socket)),
+      protocol(std::make_shared<TBinaryProtocol>(transport)) {
 
     socket->setConnTimeout(timeout_ms);
     socket->setSendTimeout(timeout_ms);

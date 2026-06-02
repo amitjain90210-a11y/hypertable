@@ -18,6 +18,7 @@
     <module>common</module>
     <module>apache1</module>
     <module>apache2</module>
+    <module>apache3</module>
     <module>cdh3</module>
     <module>cdh4</module>
   </modules>

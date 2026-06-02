@@ -37,6 +37,7 @@
 #include <Common/Logger.h>
 #include <Common/Time.h>
 
+#include <cstdlib>
 #include <mutex>
 
 extern "C" {
@@ -92,7 +93,7 @@ namespace Hypertable {
       m_poll_interest = 0;
       socklen_t namelen = sizeof(m_local_addr);
       getsockname(m_sd, (sockaddr *)&m_local_addr, &namelen);
-      memset(&m_alias, 0, sizeof(m_alias));
+      m_alias = InetAddr();
     }
 
     /// Constructor.
@@ -107,7 +108,7 @@ namespace Hypertable {
       m_poll_interest = 0;
       socklen_t namelen = sizeof(m_local_addr);
       getsockname(m_sd, (sockaddr *)&m_local_addr, &namelen);
-      memset(&m_alias, 0, sizeof(m_alias));
+      m_alias = InetAddr();
     }
 
     /** Event handler method for Unix <i>poll</i> interface.
@@ -150,7 +151,8 @@ namespace Hypertable {
     /// If #m_socket_internally_created is set to <i>true</i>, closes the socket
     /// descriptor #m_sd.
     virtual ~IOHandler() {
-      HT_ASSERT(m_free_flag != 0xdeadbeef);
+      if (m_free_flag == 0xdeadbeef)
+        std::abort();
       m_free_flag = 0xdeadbeef;
       if (m_socket_internally_created)
         ::close(m_sd);

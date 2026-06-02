@@ -88,7 +88,7 @@ LocalBroker::LocalBroker(PropertiesPtr &cfg) {
   else
     root = Path(cfg->get_str("root", ""));
 
-  if (!root.is_complete()) {
+  if (!root.is_absolute()) {
     Path data_dir = cfg->get_str("Hypertable.DataDirectory");
     root = data_dir / root;
   }
@@ -561,20 +561,10 @@ void LocalBroker::readdir(Response::Callback::Readdir *cb, const char *dname) {
     return;
   }
 
-  struct dirent *dp = (struct dirent *)new uint8_t [sizeof(struct dirent)+1025];
-  struct dirent *result;
-
-  if (readdir_r(dirp, dp, &result) != 0) {
-    report_error(cb);
-    HT_ERRORF("readdir('%s') failed - %s", absdir.c_str(), strerror(errno));
-    (void)closedir(dirp);
-    delete [] (uint8_t *)dp;
-    return;
-  }
-
   String full_entry_path;
   struct stat statbuf;
-  while (result != 0) {
+  struct dirent *result;
+  while ((result = ::readdir(dirp)) != nullptr) {
 
     if (result->d_name[0] != '.' && result->d_name[0] != 0) {
       if (m_no_removal) {
@@ -591,7 +581,7 @@ void LocalBroker::readdir(Response::Callback::Readdir *cb, const char *dname) {
             if (errno != ENOENT) {
               report_error(cb);
               HT_ERRORF("readdir('%s') failed - %s", absdir.c_str(), strerror(errno));
-              delete [] (uint8_t *)dp;
+              (void)closedir(dirp);
               return;
             }
           }
@@ -613,7 +603,7 @@ void LocalBroker::readdir(Response::Callback::Readdir *cb, const char *dname) {
         if (stat(full_entry_path.c_str(), &statbuf) == -1) {
           report_error(cb);
           HT_ERRORF("readdir('%s') failed - %s", absdir.c_str(), strerror(errno));
-          delete [] (uint8_t *)dp;
+          (void)closedir(dirp);
           return;
         }
         entry.length = (uint64_t)statbuf.st_size;
@@ -622,17 +612,8 @@ void LocalBroker::readdir(Response::Callback::Readdir *cb, const char *dname) {
       }
       //HT_INFOF("readdir Adding listing '%s'", result->d_name);
     }
-
-    if (readdir_r(dirp, dp, &result) != 0) {
-      report_error(cb);
-      HT_ERRORF("readdir('%s') failed - %s", absdir.c_str(), strerror(errno));
-      delete [] (uint8_t *)dp;
-      return;
-    }
   }
   (void)closedir(dirp);
-
-  delete [] (uint8_t *)dp;
 
   HT_DEBUGF("Sending back %d listings", (int)listing.size());
 
@@ -729,16 +710,16 @@ void LocalBroker::report_error(ResponseCallback *cb) {
 
   m_metrics_handler->increment_error_count();
 
-  strerror_r(errno, errbuf, 128);
+  const char *errstr = strerror_r(errno, errbuf, 128);
 
   if (errno == ENOTDIR || errno == ENAMETOOLONG || errno == ENOENT)
-    cb->error(Error::FSBROKER_BAD_FILENAME, errbuf);
+    cb->error(Error::FSBROKER_BAD_FILENAME, errstr);
   else if (errno == EACCES || errno == EPERM)
-    cb->error(Error::FSBROKER_PERMISSION_DENIED, errbuf);
+    cb->error(Error::FSBROKER_PERMISSION_DENIED, errstr);
   else if (errno == EBADF)
-    cb->error(Error::FSBROKER_BAD_FILE_HANDLE, errbuf);
+    cb->error(Error::FSBROKER_BAD_FILE_HANDLE, errstr);
   else if (errno == EINVAL)
-    cb->error(Error::FSBROKER_INVALID_ARGUMENT, errbuf);
+    cb->error(Error::FSBROKER_INVALID_ARGUMENT, errstr);
   else
-    cb->error(Error::FSBROKER_IO_ERROR, errbuf);
+    cb->error(Error::FSBROKER_IO_ERROR, errstr);
 }

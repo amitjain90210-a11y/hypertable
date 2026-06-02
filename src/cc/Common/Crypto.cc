@@ -42,8 +42,8 @@ extern "C" {
 
 using namespace Hypertable;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 namespace {
 
@@ -205,7 +205,7 @@ const string Crypto::rsa_signature_encrypt(const char *key, bool key_is_public,
   string encrypted_message;
   encrypted_message.reserve(len+1);
   encrypted_message.append((const char *)buf, len);
-  free(rsa);
+  RSA_free(rsa);
   delete [] buf;
   return encrypted_message;
 }
@@ -234,9 +234,9 @@ const string Crypto::rsa_signature_decrypt(const char *key, bool key_is_public,
   string decrypted_message;
   decrypted_message.reserve(len+1);
   decrypted_message.append((const char *)buf, len);
-  free(rsa);
+  RSA_free(rsa);
   delete [] buf;
   return decrypted_message;
 }
 
-#pragma clang diagnostic pop
+#pragma GCC diagnostic pop

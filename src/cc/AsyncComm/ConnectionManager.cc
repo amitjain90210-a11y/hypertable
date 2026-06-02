@@ -120,7 +120,7 @@ ConnectionManager::add_internal(const CommAddress &addr,
       return;
   }
 
-  conn_state = make_shared<ConnectionState>();
+  conn_state = std::make_shared<ConnectionState>();
   conn_state->addr = addr;
   conn_state->local_addr = local_addr;
   conn_state->timeout_ms = timeout_ms;

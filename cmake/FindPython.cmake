@@ -21,8 +21,13 @@
 #  PYTHON_LIBRARIES   - List of libraries when using python-devel
 #  PYTHON_FOUND       - True if python-devel was found
 
-exec_program(env ARGS python -V OUTPUT_VARIABLE PYTHON_VERSION_STRING
-             RETURN_VALUE PYTHON_RETURN)
+execute_process(COMMAND env python3 -V
+                OUTPUT_VARIABLE PYTHON_VERSION_STRING
+                ERROR_VARIABLE PYTHON_VERSION_ERR
+                RESULT_VARIABLE PYTHON_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_STRIP_TRAILING_WHITESPACE)
+string(APPEND PYTHON_VERSION_STRING "${PYTHON_VERSION_ERR}")
 
 if (PYTHON_RETURN STREQUAL "0")
   message(STATUS "Python Shell Version: ${PYTHON_VERSION_STRING}")

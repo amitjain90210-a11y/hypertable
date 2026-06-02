@@ -184,7 +184,7 @@ namespace Hypertable {
     float m_bloom_bits_per_item {};
     float m_filter_false_positive_prob {};
     KeyCompressorPtr m_key_compressor;
-    bool m_restricted_range;
+    bool m_restricted_range {};
     int64_t *m_column_ttl {};
     bool m_replaced_files_loaded {};
 

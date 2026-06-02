@@ -24,9 +24,14 @@ add_custom_command(
   COMMAND   thrift
   ARGS      -r --gen py:new_style -o ${CMAKE_CURRENT_SOURCE_DIR}
             ${ThriftBroker_IDL_DIR}/Hql.thrift
+  COMMAND   find ${CMAKE_CURRENT_SOURCE_DIR}/gen-py -name "*.py"
+            -exec sed -i
+            "s/else iprot\\.readString()/else iprot.readBinary().decode('utf-8', errors='replace')/g"
+            {} +
   DEPENDS   ${ThriftBroker_IDL_DIR}/Client.thrift
             ${ThriftBroker_IDL_DIR}/Hql.thrift
   COMMENT   "thrift2py"
+  VERBATIM
 )
 
 add_custom_target(ThriftGenPy ALL DEPENDS ${GenPy_SRCS})
@@ -34,7 +39,7 @@ add_custom_target(ThriftGenPy ALL DEPENDS ${GenPy_SRCS})
 if (PYTHONTHRIFT_FOUND)
   add_test(ThriftClient-python env
       PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/gen-py
-      python ${CMAKE_CURRENT_SOURCE_DIR}/client_test.py)
+      python3 ${CMAKE_CURRENT_SOURCE_DIR}/client_test.py)
 endif ()
 
 if (NOT HT_COMPONENT_INSTALL OR PACKAGE_THRIFTBROKER)

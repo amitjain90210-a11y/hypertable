@@ -75,7 +75,10 @@ namespace {
 
     NotificationHandler() : DispatchHandler() { return; }
 
-    void set_pending() { m_pending = true; }
+    void set_pending() {
+      lock_guard<mutex> lock(m_mutex);
+      m_pending = true;
+    }
 
     virtual void handle(EventPtr &event_ptr) {
       lock_guard<mutex> lock(m_mutex);
@@ -196,7 +199,7 @@ int main(int argc, char **argv) {
   if (argc > 1 && (!strcmp(argv[1], "-?") || !strcmp(argv[1], "--help")))
     Usage::dump_and_exit(usage);
 
-  DispatchHandlerPtr dhp = make_shared<NotificationHandler>();
+  DispatchHandlerPtr dhp = std::make_shared<NotificationHandler>();
   g_notify_handler = static_cast<NotificationHandler *>(dhp.get());
 
   System::initialize(argv[0]);

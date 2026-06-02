@@ -33,7 +33,7 @@
 #include <boost/cstdint.hpp>               // intmax_t.
 #include <boost/iostreams/categories.hpp>  // tags.
 #include <boost/iostreams/detail/ios.hpp>  // openmode, seekdir, int types.
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace Hypertable {
 namespace FsBroker {
@@ -166,7 +166,7 @@ namespace Lib {
       size_t m_length;
     };
 
-    boost::shared_ptr<impl> pimpl_;
+    std::shared_ptr<impl> pimpl_;
   };
 
   class FileSource : private FileDevice {

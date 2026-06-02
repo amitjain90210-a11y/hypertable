@@ -1209,7 +1209,7 @@ public:
 
     try {
       Hypertable::Namespace *namespace_ptr = get_namespace(ns);
-      Hypertable::SchemaPtr hschema = make_shared<Hypertable::Schema>();
+      Hypertable::SchemaPtr hschema = std::make_shared<Hypertable::Schema>();
       convert_schema(schema, hschema);
       namespace_ptr->create_table(table, hschema);
     } RETHROW("namespace=" << ns << " table="<< table)
@@ -1223,7 +1223,7 @@ public:
 
     try {
       Hypertable::Namespace *namespace_ptr = get_namespace(ns);
-      Hypertable::SchemaPtr hschema = make_shared<Hypertable::Schema>();
+      Hypertable::SchemaPtr hschema = std::make_shared<Hypertable::Schema>();
       convert_schema(schema, hschema);
       namespace_ptr->alter_table(table, hschema, false);
     } RETHROW("namespace=" << ns << " table="<< table)
@@ -1236,7 +1236,7 @@ public:
     Scanner id;
     LOG_API_START("namespace=" << ns << " table="<< table <<" scan_spec="<< ss);
     try {
-      ScannerInfoPtr si = make_shared<ScannerInfo>(ns, table);
+      ScannerInfoPtr si = std::make_shared<ScannerInfo>(ns, table);
       convert_scan_spec(ss, si->scan_spec_builder);
       id = get_scanner_id(_open_scanner(ns, table, si->scan_spec_builder.get()), si);
     } RETHROW("namespace=" << ns << " table="<< table <<" scan_spec="<< ss)
@@ -3032,7 +3032,7 @@ void HqlCallback<ResultT, CellT>::on_scan(TableScannerPtr &s) {
 
   }
   else {
-    ScannerInfoPtr si = make_shared<ScannerInfo>(ns);
+    ScannerInfoPtr si = std::make_shared<ScannerInfo>(ns);
     si->hql = hql;
     result.scanner = handler.get_scanner_id(s, si);
     result.__isset.scanner = true;
@@ -3159,16 +3159,16 @@ int main(int argc, char **argv) {
     g_metrics_handler = std::make_shared<MetricsHandler>(properties, g_slow_query_log);
     g_metrics_handler->start_collecting();
 
-    boost::shared_ptr<ThriftBroker::Context> context(new ThriftBroker::Context());
+    std::shared_ptr<ThriftBroker::Context> context(new ThriftBroker::Context());
 
     g_context = context.get();
 
     ::uint16_t port = get_i16("port");
-    boost::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
-    boost::shared_ptr<HqlServiceIfFactory> hql_service_factory(new ThriftBrokerIfFactory());
-    boost::shared_ptr<TProcessorFactory> hql_service_processor_factory(new HqlServiceProcessorFactory(hql_service_factory));
+    std::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
+    std::shared_ptr<HqlServiceIfFactory> hql_service_factory(new ThriftBrokerIfFactory());
+    std::shared_ptr<TProcessorFactory> hql_service_processor_factory(new HqlServiceProcessorFactory(hql_service_factory));
 
-    boost::shared_ptr<TServerTransport> serverTransport;
+    std::shared_ptr<TServerTransport> serverTransport;
 
     if (has("thrift-timeout")) {
       int timeout_ms = get_i32("thrift-timeout");
@@ -3177,7 +3177,7 @@ int main(int argc, char **argv) {
     else
       serverTransport.reset( new TServerSocket(port) );
 
-    boost::shared_ptr<TTransportFactory> transportFactory(new TFramedTransportFactory());
+    std::shared_ptr<TTransportFactory> transportFactory(new TFramedTransportFactory());
 
     TThreadedServer server(hql_service_processor_factory, serverTransport,
                            transportFactory, protocolFactory);

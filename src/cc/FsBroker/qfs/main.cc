@@ -80,11 +80,11 @@ int main(int argc, char **argv) {
 
     Comm *comm = Comm::instance();
 
-    ApplicationQueuePtr app_queue = make_shared<ApplicationQueue>(worker_count);
-    BrokerPtr broker = make_shared<QfsBroker>(properties);
+    ApplicationQueuePtr app_queue = std::make_shared<ApplicationQueue>(worker_count);
+    BrokerPtr broker = std::make_shared<QfsBroker>(properties);
 
     ConnectionHandlerFactoryPtr handler_factory =
-      make_shared<FsBroker::Lib::ConnectionHandlerFactory>(comm, app_queue, broker);
+      std::make_shared<FsBroker::Lib::ConnectionHandlerFactory>(comm, app_queue, broker);
     InetAddr listen_addr(INADDR_ANY, port);
 
     comm->listen(listen_addr, handler_factory);

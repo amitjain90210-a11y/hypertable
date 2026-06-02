@@ -50,7 +50,7 @@
 #include <Common/Usage.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/any.hpp>
+#include <any>
 
 #include <iostream>
 #include <string>
@@ -154,17 +154,17 @@ namespace {
     state.base = base;
     state.end = end;
 
-    uint16_t compression_type = boost::any_cast<uint16_t>(state.trailer->get("compression_type"));
+    uint16_t compression_type = std::any_cast<uint16_t>(state.trailer->get("compression_type"));
     state.compressor = CompressorFactory::create_block_codec((BlockCompressionCodec::Type)compression_type);
     state.key_decompressor = new KeyDecompressorPrefix();
   }
   
 
   void read_block_index(State &state) {
-    uint32_t flags = boost::any_cast<uint32_t>(state.trailer->get("flags"));
-    int64_t fix_index_offset = boost::any_cast<int64_t>(state.trailer->get("fix_index_offset"));
-    int64_t var_index_offset = boost::any_cast<int64_t>(state.trailer->get("var_index_offset"));
-    int64_t filter_offset = boost::any_cast<int64_t>(state.trailer->get("filter_offset"));
+    uint32_t flags = std::any_cast<uint32_t>(state.trailer->get("flags"));
+    int64_t fix_index_offset = std::any_cast<int64_t>(state.trailer->get("fix_index_offset"));
+    int64_t var_index_offset = std::any_cast<int64_t>(state.trailer->get("var_index_offset"));
+    int64_t filter_offset = std::any_cast<int64_t>(state.trailer->get("filter_offset"));
 
     BlockHeaderCellStore header(state.block_header_format);
 
@@ -224,11 +224,11 @@ namespace {
   }
 
   void read_bloom_filter(State &state) {
-    int64_t filter_offset = boost::any_cast<int64_t>(state.trailer->get("filter_offset"));
-    int64_t filter_length = boost::any_cast<int64_t>(state.trailer->get("filter_length"));
-    int64_t filter_items_actual = boost::any_cast<int64_t>(state.trailer->get("filter_items_actual"));
-    uint8_t bloom_filter_hash_count = boost::any_cast<uint8_t>(state.trailer->get("bloom_filter_hash_count"));
-    uint8_t bloom_filter_mode = boost::any_cast<uint8_t>(state.trailer->get("bloom_filter_mode"));
+    int64_t filter_offset = std::any_cast<int64_t>(state.trailer->get("filter_offset"));
+    int64_t filter_length = std::any_cast<int64_t>(state.trailer->get("filter_length"));
+    int64_t filter_items_actual = std::any_cast<int64_t>(state.trailer->get("filter_items_actual"));
+    uint8_t bloom_filter_hash_count = std::any_cast<uint8_t>(state.trailer->get("bloom_filter_hash_count"));
+    uint8_t bloom_filter_mode = std::any_cast<uint8_t>(state.trailer->get("bloom_filter_mode"));
 
     if ((BloomFilterMode)bloom_filter_mode == BLOOM_FILTER_DISABLED) {
       state.bloom_filter = 0;
@@ -259,8 +259,8 @@ namespace {
   bool process_blocks (State &state, Operator op) {
     BlockHeaderCellStore header(state.block_header_format);
     int64_t offset = 0;
-    int64_t end_offset = boost::any_cast<int64_t>(state.trailer->get("fix_index_offset"));
-    uint32_t alignment = boost::any_cast<uint32_t>(state.trailer->get("alignment"));
+    int64_t end_offset = std::any_cast<int64_t>(state.trailer->get("fix_index_offset"));
+    uint32_t alignment = std::any_cast<uint32_t>(state.trailer->get("alignment"));
     const uint8_t *ptr = state.base;
     const uint8_t *end = state.base + end_offset;
     size_t remaining;
@@ -394,16 +394,12 @@ namespace {
   }
 
   void describe_block_index_corruption(State &state) {
-    size_t key_mismatches = 0;
     int64_t last_offset = 0;
 
     for (size_t i=0; i<state.reconstructed_block_info.size(); i++) {
       if (!state.reconstructed_block_info[i].matched) {
         cout << "Missing block index entry (offset=" << state.reconstructed_block_info[i].offset;
         cout << ", row=" << state.reconstructed_block_info[i].rowkey << ")" << endl;
-      }
-      else if (state.reconstructed_block_info[i].key_mismatch) {
-        key_mismatches++;
       }
     }    
 
@@ -435,7 +431,7 @@ int main(int argc, char **argv) {
 
     cout << "Checking " << state.fname << " ... " << flush;
 
-    ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_mgr = std::make_shared<ConnectionManager>();
 
     FsBroker::Lib::ClientPtr dfs = std::make_shared<FsBroker::Lib::Client>(conn_mgr, properties);
 

@@ -55,16 +55,16 @@ DiscreteRandomGeneratorFactory::create(const String &spec) {
   }
 
   if (name == "uniform")
-    return make_shared<DiscreteRandomGeneratorUniform>();
+    return std::make_shared<DiscreteRandomGeneratorUniform>();
 
   if (name == "zipf") {
     if (args.empty())
-      return make_shared<DiscreteRandomGeneratorZipf>();
+      return std::make_shared<DiscreteRandomGeneratorZipf>();
     if (starts_with(args[0], "--s=")) {
       String s_str = args[0].substr(4);
       double s_val;
       s_val = strtod(s_str.c_str(), 0);
-      return make_shared<DiscreteRandomGeneratorZipf>(s_val);
+      return std::make_shared<DiscreteRandomGeneratorZipf>(s_val);
     }
   }
 

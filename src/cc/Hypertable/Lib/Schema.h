@@ -444,14 +444,16 @@ namespace Hypertable {
     AccessGroupSpecs m_access_groups;
 
     /// Map of access group specifications
-    typedef std::map<const char*, AccessGroupSpec*, LtCstr, CstrAlloc> CstrAccessGroupMap;
+    typedef std::map<const char*, AccessGroupSpec*, LtCstr,
+        PageArenaAllocator<std::pair<const char* const, AccessGroupSpec*>>> CstrAccessGroupMap;
     CstrAccessGroupMap m_access_group_map;
 
     /// &Column family specifications
     ColumnFamilySpecs m_column_families;
 
     /// Map of column family specifications (key == name)
-    typedef std::map<const char*, ColumnFamilySpec*, LtCstr, CstrAlloc> CstrColumnFamilyMap;
+    typedef std::map<const char*, ColumnFamilySpec*, LtCstr,
+        PageArenaAllocator<std::pair<const char* const, ColumnFamilySpec*>>> CstrColumnFamilyMap;
     CstrColumnFamilyMap m_column_family_map;
 
     /// Map of column family specifications (key == ID)

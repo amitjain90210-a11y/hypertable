@@ -25,7 +25,7 @@
 
 #include "Common/Compat.h"
 
-#include <boost/shared_array.hpp>
+#include <memory>
 
 #include "Escaper.h"
 
@@ -34,7 +34,7 @@ using namespace Hypertable;
 void Hypertable::escape(String &str, const String &escape_chars) {
   if (str.length() > 0 && escape_chars.length() > 0) {
     bool escaped[256];
-    boost::shared_array<char> escaped_str(new char [(2 * str.length()) + 1]);
+    std::unique_ptr<char[]> escaped_str(new char [(2 * str.length()) + 1]);
     char *dst = escaped_str.get();
 
     memset(escaped, 0, 256 * sizeof(bool));
@@ -56,7 +56,7 @@ void Hypertable::escape(String &str, const String &escape_chars) {
 
 void Hypertable::unescape(String &str) {
   if (str.length() > 0) {
-    boost::shared_array<char> escaped_str(new char [str.length() + 1]);
+    std::unique_ptr<char[]> escaped_str(new char [str.length() + 1]);
     char *dst = escaped_str.get();
     for (const char *src = str.c_str(); *src; src++) {
       if (*src == '\\' && *(src + 1) == '\\')

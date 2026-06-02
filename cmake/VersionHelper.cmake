@@ -18,8 +18,11 @@
 # figure out version info from the repository
 
 if (VERSION_ADD_COMMIT_SUFFIX)
-  exec_program(${HYPERTABLE_SOURCE_DIR}/bin/src-utils/ver ${HYPERTABLE_SOURCE_DIR}
-               ARGS "--commit-only" OUTPUT_VARIABLE HT_COMMIT_STRING)
+  execute_process(COMMAND ${HYPERTABLE_SOURCE_DIR}/bin/src-utils/ver "--commit-only"
+                  WORKING_DIRECTORY ${HYPERTABLE_SOURCE_DIR}
+                  OUTPUT_VARIABLE HT_COMMIT_STRING
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
   if (VERSION_MISC_SUFFIX)
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}.${VERSION_PATCH}.${VERSION_MISC_SUFFIX}.${HT_COMMIT_STRING})
   else ()
@@ -34,8 +37,12 @@ else ()
 endif ()
 
 
-exec_program(${HYPERTABLE_SOURCE_DIR}/bin/src-utils/ver ${HYPERTABLE_SOURCE_DIR}
-             OUTPUT_VARIABLE HT_GIT_VERSION RETURN_VALUE GIT_RETURN)
+execute_process(COMMAND ${HYPERTABLE_SOURCE_DIR}/bin/src-utils/ver
+                WORKING_DIRECTORY ${HYPERTABLE_SOURCE_DIR}
+                OUTPUT_VARIABLE HT_GIT_VERSION
+                RESULT_VARIABLE GIT_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
 
 if (GIT_RETURN STREQUAL "0")
   set(HT_VCS_STRING ${HT_GIT_VERSION})

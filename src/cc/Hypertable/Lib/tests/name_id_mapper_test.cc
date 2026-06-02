@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
       {
         properties->set("Hyperspace.Replica.Port", (uint16_t)ntohs(addr.sin_port));
 
-        SessionPtr session = make_shared<Hyperspace::Session>(comm, properties);
+        SessionPtr session = std::make_shared<Hyperspace::Session>(comm, properties);
 
         {
           NameIdMapper mapper(session, "/ht");

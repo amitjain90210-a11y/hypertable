@@ -17,6 +17,8 @@
 # 02110-1301, USA.
 #
 
+cmake_minimum_required(VERSION 3.5)
+
 project(HYPERTABLE)
 
 # Hypertable version components
@@ -26,8 +28,6 @@ set(VERSION_MICRO "8")
 set(VERSION_PATCH "11")
 #set(VERSION_MISC_SUFFIX  "pre6")
 
-# cmake behavior compatibility
-cmake_minimum_required(VERSION 2.8)
 mark_as_advanced(CMAKE_BACKWARDS_COMPATIBILITY)
 
 # saner control structure syntax
@@ -78,6 +78,10 @@ endif ()
 # Enable testing
 enable_testing()
 
+# Place all executables in build/bin/ so the ht wrapper script and test
+# scripts can find them without requiring installation.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${HYPERTABLE_BINARY_DIR}/bin)
+
 # A simple test helper
 set(TEST_DIFF ${HYPERTABLE_SOURCE_DIR}/bin/src-utils/testdiff)
 
@@ -107,18 +111,12 @@ SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_REENTRANT")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
-if (ASAN)
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-omit-frame-pointer")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
-endif ()
- 
-
-# Uncomment the following to build dynamic libraries
-# set (BUILD_SHARED_LIBS ON)
+# Build dynamic libraries and enable Legacy Hadoop support
+set(BUILD_SHARED_LIBS ON)
+set(HADOOP_INCLUDE_PATH /opt/hadoop/include)
+set(HADOOP_LIB_PATH /opt/hadoop/lib/native)
 
 # Locate required packages
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -190,38 +188,6 @@ elseif (NOT USE_GLIBC_MALLOC AND Tcmalloc_FOUND)
   endif ()
 endif ()
 
-# Use llvm instead of gcc
-if (LLVM)
-  message(STATUS "Using llvm: ${LLVM}")
-  SET (CMAKE_C_COMPILER             "${LLVM}/bin/clang")
-  SET (CMAKE_C_FLAGS                "-Wall -Wno-unknown-pragmas -std=c99")
-  if (ADDRESS_SANITIZER)
-    SET (CMAKE_C_FLAGS_DEBUG        "-fsanitize=address -O1 -fno-omit-frame-pointer -g")
-  else ()
-    SET (CMAKE_C_FLAGS_DEBUG        "-g")
-  endif ()
-  SET (CMAKE_C_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-  SET (CMAKE_C_FLAGS_RELEASE        "-O3 -DNDEBUG")
-  SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
-
-  SET (CMAKE_CXX_COMPILER             "${LLVM}/bin/clang++")
-  SET (CMAKE_CXX_FLAGS                "-Wall -Wno-unknown-pragmas")
-  if (ADDRESS_SANITIZER)
-    SET (CMAKE_CXX_FLAGS_DEBUG        "-fsanitize=address -O1 -fno-omit-frame-pointer -g")
-  else ()
-    SET (CMAKE_CXX_FLAGS_DEBUG        "-g")
-  endif ()
-  SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-  SET (CMAKE_CXX_FLAGS_RELEASE        "-O3 -DNDEBUG")
-  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
-
-  if (NOT APPLE)
-    LINK_LIBRARIES(tinfo)
-  endif ()
-
-elseif (ADDRESS_SANITIZER)
-  MESSAGE (FATAL_ERROR "ADDRESS_SANITIZER can only be used in conjunction with LLVM")
-endif ()
 
 if (APPLE)
    SET (CMAKE_EXE_LINKER_FLAGS "-framework IOKit -framework CoreFoundation")
@@ -240,16 +206,13 @@ if (Thrift_FOUND)
   set(ThriftBroker_IDL_DIR ${HYPERTABLE_SOURCE_DIR}/src/cc/ThriftBroker)
 endif ()
 
-if (GCC_VERSION MATCHES "^([4-9]|[1-9][0-9]+)\\.")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-variadic-macros")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-variadic-macros")
-  # turn off deprecated feature warnings for gcc 4.3+
-  if (GCC_VERSION MATCHES "^([4-9]|[1-9][0-9]+)\\.([3-9]|[1-9][0-9]+)")
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
-  endif ()
-elseif (GCC_VERSION MATCHES "^([4-9]|[1-9][0-9]+)\\.")
-  message(STATUS "Ancient gcc detected, hope it finishes despite warnings...")
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-variadic-macros -Wno-deprecated")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-variadic-macros -Wno-deprecated")
+endif ()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-terminate")
 endif ()
 
 include(HadoopHelper)
@@ -273,34 +236,42 @@ if (NOT SKIP_JAVA_BUILD)
   include(JavaHelper)
 endif ()
 
-configure_file(bin/ht.in ht @ONLY)
+configure_file(bin/ht.in bin/ht @ONLY)
 configure_file(bin/postinst.in postinst @ONLY)
 configure_file(bin/prerm.in prerm @ONLY)
 
 file(GLOB CONFS conf/[^.]*)
 install(FILES ${CONFS} DESTINATION conf)
-install(PROGRAMS ${HYPERTABLE_BINARY_DIR}/ht DESTINATION bin)
+install(PROGRAMS ${HYPERTABLE_BINARY_DIR}/bin/ht DESTINATION bin)
 
 # Copy Thrift files
 if (THRIFT_SOURCE_DIR)
   message(STATUS "Copying PHP files into installation")
   file(GLOB PHPFILES ${HYPERTABLE_SOURCE_DIR}/src/php/*.php)
   install(FILES ${PHPFILES} DESTINATION lib/php)
-  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/php/lib/Thrift
-          DESTINATION lib/php USE_SOURCE_PERMISSIONS)
+  if (EXISTS ${THRIFT_SOURCE_DIR}/lib/php/lib/Thrift)
+    install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/php/lib/Thrift
+            DESTINATION lib/php USE_SOURCE_PERMISSIONS)
+  endif ()
   message(STATUS "Copying Perl files into installation")
   file(GLOB PERLFILES ${THRIFT_SOURCE_DIR}/lib/perl/lib/*.pm)
   install(FILES ${PERLFILES} DESTINATION lib/perl)
-  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/perl/lib/Thrift
-          DESTINATION lib/perl USE_SOURCE_PERMISSIONS)
+  if (EXISTS ${THRIFT_SOURCE_DIR}/lib/perl/lib/Thrift)
+    install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/perl/lib/Thrift
+            DESTINATION lib/perl USE_SOURCE_PERMISSIONS)
+  endif ()
   message(STATUS "Copying Python files into installation")
-  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/py/src/
-          DESTINATION lib/py/thrift USE_SOURCE_PERMISSIONS)
+  if (EXISTS ${THRIFT_SOURCE_DIR}/lib/py/src)
+    install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/py/src/
+            DESTINATION lib/py/thrift USE_SOURCE_PERMISSIONS)
+  endif ()
   message(STATUS "Copying Ruby files into installation")
   file(GLOB RUBYFILES ${THRIFT_SOURCE_DIR}/lib/rb/lib/*.rb)
   install(FILES ${RUBYFILES} DESTINATION lib/rb)
-  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/rb/lib/thrift
-          DESTINATION lib/rb USE_SOURCE_PERMISSIONS)
+  if (EXISTS ${THRIFT_SOURCE_DIR}/lib/rb/lib/thrift)
+    install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/rb/lib/thrift
+            DESTINATION lib/rb USE_SOURCE_PERMISSIONS)
+  endif ()
 endif ()
 
 # Copy C++ Thrift files

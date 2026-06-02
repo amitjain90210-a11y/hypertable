@@ -292,7 +292,7 @@ void BalancePlanAuthority::decode_internal(uint8_t version, const uint8_t **bufp
         plans.plans[j] = 0;
         continue;
       }
-      plans.plans[j] = make_shared<RangeServerRecovery::Plan>();
+      plans.plans[j] = std::make_shared<RangeServerRecovery::Plan>();
       plans.plans[j]->decode(bufp, remainp);
     }
     m_map[rs] = plans;
@@ -301,7 +301,7 @@ void BalancePlanAuthority::decode_internal(uint8_t version, const uint8_t **bufp
     size_t count = Serialization::decode_i32(bufp, remainp);
     RangeMoveSpecPtr move_spec;
     for (size_t i=0; i<count; i++) {
-      move_spec = make_shared<RangeMoveSpec>();
+      move_spec = std::make_shared<RangeMoveSpec>();
       move_spec->decode(bufp, remainp);
       m_current_set.insert(move_spec);
     }
@@ -322,7 +322,7 @@ void BalancePlanAuthority::decode_old(const uint8_t **bufp,
         plans.plans[j] = 0;
         continue;
       }
-      plans.plans[j] = make_shared<RangeServerRecovery::Plan>();
+      plans.plans[j] = std::make_shared<RangeServerRecovery::Plan>();
       legacy_decode(bufp, remainp, plans.plans[j].get());
     }
     m_map[rs] = plans;
@@ -331,7 +331,7 @@ void BalancePlanAuthority::decode_old(const uint8_t **bufp,
     size_t count = Serialization::decode_i32(bufp, remainp);
     RangeMoveSpecPtr move_spec;
     for (size_t i=0; i<count; i++) {
-      move_spec = make_shared<RangeMoveSpec>();
+      move_spec = std::make_shared<RangeMoveSpec>();
       legacy_decode(bufp, remainp, move_spec.get());
       m_current_set.insert(move_spec);
     }
@@ -461,7 +461,7 @@ BalancePlanAuthority::create_range_plan(const String &location, int type,
 
   vector<uint32_t> fragments;
 
-  RangeServerRecovery::PlanPtr plan = make_shared<RangeServerRecovery::Plan>(type);
+  RangeServerRecovery::PlanPtr plan = std::make_shared<RangeServerRecovery::Plan>(type);
 
   // read the fragments from the commit log
   String log_dir = m_context->toplevel_dir + "/servers/" + location
@@ -514,7 +514,7 @@ BalancePlanAuthority::update_range_plan(RangeServerRecovery::PlanPtr &plan,
   }
 
   std::set<QualifiedRangeSpec> purge_ranges;
-  for (const auto spec : new_specs)
+  for (const auto &spec : new_specs)
     purge_ranges.insert(spec);
 
   m_active_iter = m_active.begin();
@@ -569,7 +569,7 @@ BalancePlanAuthority::get_balance_destination(const TableIdentifier &table,
   {
     lock_guard<mutex> lock(m_mutex);
 
-    RangeMoveSpecPtr move_spec = make_shared<RangeMoveSpec>();
+    RangeMoveSpecPtr move_spec = std::make_shared<RangeMoveSpec>();
 
     move_spec->table = table;
     move_spec->range = range;
@@ -597,7 +597,7 @@ void
 BalancePlanAuthority::balance_move_complete(const TableIdentifier &table,
                                             const RangeSpec &range) {
   lock_guard<mutex> lock(m_mutex);
-  RangeMoveSpecPtr move_spec = make_shared<RangeMoveSpec>();
+  RangeMoveSpecPtr move_spec = std::make_shared<RangeMoveSpec>();
   std::stringstream sout;
 
   sout << "balance_move_complete for " << table << " " << range;
@@ -608,11 +608,7 @@ BalancePlanAuthority::balance_move_complete(const TableIdentifier &table,
 
   MoveSetT::iterator iter;
 
-  if ((iter = m_current_set.find(move_spec)) != m_current_set.end()) {
-    // the 'complete' and 'error' fields currently are not in use
-    (*iter)->complete = true;
-    (*iter)->error = 0;
+  if ((iter = m_current_set.find(move_spec)) != m_current_set.end())
     m_current_set.erase(iter);
-  }
 
 }

@@ -349,8 +349,8 @@
 #define HT_DECODE_VI32(_ip_, _r_, _v_, _done_) do { \
   HT_DECODE_VINT0(uint32_t, _v_, _ip_, _r_) \
   HT_DECODE_VINT4(uint32_t, _v_, _ip_, _r_, _done_) \
-  HT_DECODE_VINT_(uint32_t, _v_, _ip_, _r_, _done_) \
-  HT_THROW_BAD_VINT("vint32"); \
+  if ((_ip_)[-1] & 0x80) HT_THROW_BAD_VINT("vint32"); \
+  _done_; \
 } while (0)
 
 /*
@@ -366,8 +366,8 @@
   HT_DECODE_VINT4(uint64_t, _v_, _ip_, _r_, _done_) \
   HT_DECODE_VINT4(uint64_t, _v_, _ip_, _r_, _done_) \
   HT_DECODE_VINT_(uint64_t, _v_, _ip_, _r_, _done_) \
-  HT_DECODE_VINT_(uint64_t, _v_, _ip_, _r_, _done_) \
-  HT_THROW_BAD_VINT("vint64"); \
+  if ((_ip_)[-1] & 0x80) HT_THROW_BAD_VINT("vint64"); \
+  _done_; \
 } while (0)
 
 
@@ -380,7 +380,7 @@
  */
 #define HT_ENCODE_BYTES32(_op_, _ip_, _len_) do { \
   HT_ENCODE_I32(_op_, _len_); \
-  memcpy(_op_, _ip_, _len_); \
+  if ((_len_) > 0) { memcpy(_op_, _ip_, _len_); } \
   _op_ += _len_; \
 } while (0)
 

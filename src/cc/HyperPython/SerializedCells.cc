@@ -22,13 +22,14 @@
 #include "../ThriftBroker/SerializedCellsWriter.h"
 
 #include <boost/python.hpp>
+#include <boost/python/make_constructor.hpp>
 
 using namespace Hypertable;
 using namespace boost::python;
 
-typedef bool (SerializedCellsWriter::*addfn)(const char *row, 
-                const char *column_family, const char *column_qualifier, 
-                int64_t timestamp, const char *value, int32_t value_length, 
+typedef bool (SerializedCellsWriter::*addfn)(const char *row,
+                const char *column_family, const char *column_qualifier,
+                int64_t timestamp, const char *value, int32_t value_length,
                 int cell_flag);
 typedef const char *(SerializedCellsWriter::*getfn)();
 typedef int32_t (SerializedCellsWriter::*getlenfn)();
@@ -37,9 +38,25 @@ static addfn afn = &Hypertable::SerializedCellsWriter::add;
 static getlenfn lenfn = &Hypertable::SerializedCellsWriter::get_buffer_length;
 
 static PyObject *convert(const SerializedCellsWriter &scw) {
-  boost::python::object obj(handle<>(PyBuffer_FromMemory(
-                      (void *)scw.get_buffer(), scw.get_buffer_length())));
+  boost::python::object obj(handle<>(PyMemoryView_FromMemory(
+                      (char *)scw.get_buffer(), scw.get_buffer_length(), PyBUF_READ)));
   return boost::python::incref(obj.ptr());
+}
+
+// Python 3 bytes objects don't auto-convert to const char* in Boost.Python
+static SerializedCellsReader *scr_make(boost::python::object buf_obj, uint32_t len) {
+  if (!PyBytes_Check(buf_obj.ptr())) {
+    PyErr_SetString(PyExc_TypeError, "first argument must be bytes");
+    boost::python::throw_error_already_set();
+  }
+  return new SerializedCellsReader(PyBytes_AsString(buf_obj.ptr()), len);
+}
+
+// Return value as bytes with exact length to avoid reading past the buffer
+static boost::python::object scr_value_bytes(SerializedCellsReader &scr) {
+  return boost::python::object(
+      handle<>(PyBytes_FromStringAndSize(
+          static_cast<const char *>(scr.value()), scr.value_len())));
 }
 
 BOOST_PYTHON_MODULE(libHyperPython)
@@ -57,8 +74,8 @@ BOOST_PYTHON_MODULE(libHyperPython)
     .def(self_ns::str(self_ns::self))
     ;
 
-  class_<SerializedCellsReader>("SerializedCellsReader", 
-          init<const char *, uint32_t>())
+  class_<SerializedCellsReader>("SerializedCellsReader", boost::python::no_init)
+    .def("__init__", boost::python::make_constructor(&scr_make))
     .def("has_next", &SerializedCellsReader::next)
     .def("get_cell", &SerializedCellsReader::get_cell,
           return_value_policy<return_by_value>())
@@ -68,11 +85,9 @@ BOOST_PYTHON_MODULE(libHyperPython)
           return_value_policy<return_by_value>())
     .def("column_qualifier", &SerializedCellsReader::column_qualifier,
           return_value_policy<return_by_value>())
-    .def("value", &SerializedCellsReader::value_str,
-          return_value_policy<return_by_value>())
+    .def("value", &scr_value_bytes)
     .def("value_len", &SerializedCellsReader::value_len)
-    .def("value_str", &SerializedCellsReader::value_str,
-          return_value_policy<return_by_value>())
+    .def("value_str", &scr_value_bytes)
     .def("timestamp", &SerializedCellsReader::timestamp)
     .def("cell_flag", &SerializedCellsReader::cell_flag)
     .def("flush", &SerializedCellsReader::flush)

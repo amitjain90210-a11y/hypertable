@@ -212,7 +212,7 @@ void MaintenanceScheduler::schedule() {
 
   // Make a copy of the range statistics array for get_statistics()
   {
-    RangesPtr ranges_copy = make_shared<Ranges>();
+    RangesPtr ranges_copy = std::make_shared<Ranges>();
     ranges_copy->array = ranges.array;
     for (size_t i=0; i<ranges.array.size(); i++) {
       ranges_copy->array[i].data =

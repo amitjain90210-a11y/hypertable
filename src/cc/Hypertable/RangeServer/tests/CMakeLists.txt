@@ -57,9 +57,9 @@ configure_file(${SRC_DIR}/CellStoreScanner_test.golden
 configure_file(${SRC_DIR}/CellStoreScanner_delete_test.golden
                ${DST_DIR}/CellStoreScanner_delete_test.golden)
 
-add_test(FileBlockCache FileBlockCache_test)
-add_test(QueryCache QueryCache_test)
-add_test(CellStoreScanner CellStoreScanner_test)
-add_test(CellStoreScanner-delete CellStoreScanner_delete_test)
+add_test(NAME FileBlockCache COMMAND $<TARGET_FILE:FileBlockCache_test>)
+add_test(NAME QueryCache COMMAND $<TARGET_FILE:QueryCache_test>)
+add_test(NAME CellStoreScanner COMMAND $<TARGET_FILE:CellStoreScanner_test>)
+add_test(NAME CellStoreScanner-delete COMMAND $<TARGET_FILE:CellStoreScanner_delete_test>)
 #add_test(AccessGroup-garbage-tracker AccessGroupGarbageTracker_test)
-add_test(AccessGroup-hints-file access_group_hints_file_test)
+add_test(NAME AccessGroup-hints-file COMMAND $<TARGET_FILE:access_group_hints_file_test>)

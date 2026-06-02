@@ -39,7 +39,7 @@ using namespace Hypertable::Config;
 using namespace boost;
 
 DataGeneratorIterator::DataGeneratorIterator(DataGenerator *generator)
-  : m_generator(generator), m_keys_only(generator->m_keys_only),
+  : m_keys_only(generator->m_keys_only),
     m_amount(0), m_count(0), m_last_data_size(0) {
   RowComponent *row_comp;
   Column *column;

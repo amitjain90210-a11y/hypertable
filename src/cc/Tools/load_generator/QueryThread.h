@@ -28,7 +28,7 @@
 #include <Hypertable/Lib/Table.h>
 #include <Hypertable/Lib/TableMutator.h>
 
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 
 #include <vector>
 
@@ -38,7 +38,7 @@ namespace Hypertable {
 
   public:
   QueryThread(PropertiesPtr &props, TablePtr &table,
-          boost::progress_display *progress, ParallelStateRec &state)
+          boost::timer::progress_display *progress, ParallelStateRec &state)
     : m_props(props), m_table(table), m_progress(progress), m_state(state) {
     }
 
@@ -47,7 +47,7 @@ namespace Hypertable {
   private:
     PropertiesPtr m_props;
     TablePtr m_table;
-    boost::progress_display *m_progress;
+    boost::timer::progress_display *m_progress;
     ParallelStateRec &m_state;
   };
 

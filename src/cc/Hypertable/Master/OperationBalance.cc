@@ -52,7 +52,7 @@ using namespace std;
 OperationBalance::OperationBalance(ContextPtr &context)
   : Operation(context, MetaLog::EntityType::OPERATION_BALANCE) {
   initialize_dependencies();
-  m_plan = make_shared<BalancePlan>();
+  m_plan = std::make_shared<BalancePlan>();
 }
 
 OperationBalance::OperationBalance(ContextPtr &context,
@@ -67,7 +67,7 @@ OperationBalance::OperationBalance(ContextPtr &context, EventPtr &event)
   const uint8_t *ptr = event->payload;
   size_t remaining = event->payload_len;
   m_params.decode(&ptr, &remaining);
-  m_plan = make_shared<BalancePlan>(m_params.plan());
+  m_plan = std::make_shared<BalancePlan>(m_params.plan());
 }
 
 void OperationBalance::initialize_dependencies() {
@@ -195,13 +195,13 @@ void OperationBalance::decode_state(uint8_t version,
                                     const uint8_t **bufp,
                                     size_t *remainp) {
   m_params.decode(bufp, remainp);
-  m_plan = make_shared<BalancePlan>();
+  m_plan = std::make_shared<BalancePlan>();
   m_plan->decode(bufp, remainp);
 }
 
 void OperationBalance::decode_state_old(uint8_t version,
                                         const uint8_t **bufp,
                                         size_t *remainp) {
-  m_plan = make_shared<BalancePlan>();
+  m_plan = std::make_shared<BalancePlan>();
   legacy_decode(bufp, remainp, m_plan.get());
 }

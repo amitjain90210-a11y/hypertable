@@ -20,13 +20,19 @@
 #  NODEJS_FOUND      - True if node.js found
 #  NODEJS_EXECUTABLE - Path to node.js executable
 
-exec_program(env ARGS which node OUTPUT_VARIABLE NODEJS_EXECUTABLE
-             RETURN_VALUE NODEJS_RETURN)
+execute_process(COMMAND env which node
+                OUTPUT_VARIABLE NODEJS_EXECUTABLE
+                RESULT_VARIABLE NODEJS_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
 
 if (NODEJS_RETURN STREQUAL "0")
 
-  exec_program(env ARGS ${NODEJS_EXECUTABLE} --version OUTPUT_VARIABLE NODEJS_VERSION_STRING
-               RETURN_VALUE NODEJS_RETURN)
+  execute_process(COMMAND env ${NODEJS_EXECUTABLE} --version
+                  OUTPUT_VARIABLE NODEJS_VERSION_STRING
+                  RESULT_VARIABLE NODEJS_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
   message(STATUS "Node.js Version: ${NODEJS_VERSION_STRING}")
   set(NODEJS_FOUND TRUE)
 else ()

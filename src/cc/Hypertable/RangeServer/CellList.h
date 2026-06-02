@@ -60,7 +60,7 @@ namespace Hypertable {
     virtual CellListScannerPtr
     create_scanner(ScanContext *scan_ctx) { return CellListScannerPtr(); }
 
-    typedef std::pair<const char *, int64_t> SplitRowDataValue;
+    typedef std::pair<const char * const, int64_t> SplitRowDataValue;
     typedef StlAllocator<SplitRowDataValue> SplitRowDataAlloc;
     typedef std::map<const char *, int64_t, LtCstr,
                      SplitRowDataAlloc> SplitRowDataMapT;

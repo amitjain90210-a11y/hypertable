@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
 
   Config::init(0, 0);
 
-  memset(&client_addr, 0, sizeof(client_addr));
+  client_addr = InetAddr();
 
   for (int i=1; i<argc; i++) {
     if (!strcmp(argv[i], "--help"))
@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
 	}
       }
       else {
-        ConnectionHandlerFactoryPtr handler_factory = make_shared<HandlerFactory>(dhp);
+        ConnectionHandlerFactoryPtr handler_factory = std::make_shared<HandlerFactory>(dhp);
 	comm->listen(local_addr, handler_factory, dhp);
       }
     }

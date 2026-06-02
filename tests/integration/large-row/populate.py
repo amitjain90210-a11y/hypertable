@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import random
 import sys
@@ -85,37 +85,36 @@ have dared to recall them.
 
 M. Myriel had arrived at D---- accompanied by an elderly spinster,
 Mademoiselle Baptistine, who was his sister, and ten years his junior.
-""";
+"""
 
 if (len(sys.argv) < 2):
-  print sys.argv[0], "<amount-to-write>"
+  print(sys.argv[0], "<amount-to-write>")
   sys.exit(1)
 
 try:
-  random.seed(1);
+  random.seed(1)
 
-  story = story.replace("\n", " ");
-  
+  story = story.replace("\n", " ")
+
   client = ThriftClient("localhost", 15867)
-  
+
   namespace = client.namespace_open("/")
 
   mutator = client.mutator_open(namespace, "LargeRowTest", 0, 0)
 
-  iterations = int(sys.argv[1]) / len(story);
+  iterations = int(sys.argv[1]) // len(story)
 
   for x in range(0, iterations):
-    cutoff = random.randint(0, len(story));
-    story_cut = story[cutoff:] + story[:cutoff];
-    client.mutator_set_cell(mutator, Cell(Key(story_cut, "c", None), "dummy"))
+    cutoff = random.randint(0, len(story))
+    story_cut = story[cutoff:] + story[:cutoff]
+    client.mutator_set_cell(mutator, Cell(Key(story_cut, "c", None), b"dummy"))
 
-  client.mutator_flush(mutator);
+  client.mutator_flush(mutator)
 
   client.close_namespace(namespace)
 
-except ClientException, e:
-  print '%s' % (e.message)
+except ClientException as e:
+  print('%s' % (e.message))
   sys.exit(1)
 
 sys.exit(0)
-

@@ -34,12 +34,16 @@ find_library(EDITLINE_LIBRARY NAMES edit PATHS
     /opt/local/lib
     /usr/local/lib
     /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    /usr/lib/aarch64-linux-gnu
     )
 
 find_library(NCURSES_LIBRARY NAMES ncurses PATHS
     /opt/local/lib
     /usr/local/lib
     /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    /usr/lib/aarch64-linux-gnu
     )
 
 if (EDITLINE_LIBRARY AND EDITLINE_INCLUDE_DIR AND NCURSES_LIBRARY)

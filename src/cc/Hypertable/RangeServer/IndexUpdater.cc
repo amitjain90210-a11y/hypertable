@@ -146,7 +146,7 @@ IndexUpdaterPtr IndexUpdaterFactory::create(const String &table_id,
 
   // at least one index table was not cached: load it
   if (!ms_namemap)
-    ms_namemap = make_shared<NameIdMapper>(Global::hyperspace, Global::toplevel_dir);
+    ms_namemap = std::make_shared<NameIdMapper>(Global::hyperspace, Global::toplevel_dir);
 
   String table_name;
   if (!ms_namemap->id_to_name(table_id, table_name)) {
@@ -202,7 +202,7 @@ void IndexUpdaterFactory::clear_cache() {
 TablePtr IndexUpdaterFactory::load_table(const String &table_name)
 {
   ApplicationQueueInterfacePtr aq = Global::app_queue;
-  return make_shared<Table>(Config::properties, Global::range_locator,
+  return std::make_shared<Table>(Config::properties, Global::range_locator,
                             Global::conn_manager, Global::hyperspace, aq,
                             ms_namemap, table_name);
 }

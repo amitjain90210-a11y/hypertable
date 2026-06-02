@@ -92,6 +92,7 @@ namespace Hypertable {
     class Dirent : public Serializable {
 
     public:
+      virtual ~Dirent() = default;
       /// File or directory name
       String name;
       /// Length of file

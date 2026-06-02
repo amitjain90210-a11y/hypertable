@@ -17,13 +17,27 @@
 # 02110-1301, USA.
 #
 
-HT_GLOB(ThriftGen_SRCS
-        gen-cpp/Client_constants.cpp 
-        gen-cpp/ClientService.cpp 
-        gen-cpp/Client_types.cpp
-        gen-cpp/Hql_constants.cpp 
-        gen-cpp/HqlService.cpp 
-        gen-cpp/Hql_types.cpp)
+set(ThriftGen_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/ClientService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/Client_types.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/HqlService.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/Hql_types.cpp)
+
+set(ThriftGen_HDRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/ClientService.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/Client_types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/HqlService.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp/Hql_types.h)
+
+add_custom_command(
+  OUTPUT    ${ThriftGen_SRCS} ${ThriftGen_HDRS}
+  COMMAND   thrift
+  ARGS      -r --gen cpp -o ${CMAKE_CURRENT_SOURCE_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}/Hql.thrift
+  DEPENDS   ${CMAKE_CURRENT_SOURCE_DIR}/Client.thrift
+            ${CMAKE_CURRENT_SOURCE_DIR}/Hql.thrift
+  COMMENT   "thrift2cpp"
+)
 
 set(CMAKE_CXX_FLAGS "-DHAVE_NETINET_IN_H ${CMAKE_CXX_FLAGS}")
 
@@ -34,16 +48,6 @@ add_library(HyperThriftConfig Config.cc)
 target_link_libraries(HyperThriftConfig HyperThrift Hypertable)
 
 set(ThriftBroker_SRCS ThriftBroker.cc MetricsHandler.cc)
-
-add_custom_command(
-  OUTPUT    ${ThriftGen_SRCS}
-  COMMAND   thrift
-  ARGS      -r --gen cpp -o ${CMAKE_CURRENT_SOURCE_DIR}
-            ${CMAKE_CURRENT_SOURCE_DIR}/Hql.thrift
-  DEPENDS   ${CMAKE_CURRENT_SOURCE_DIR}/Client.thrift
-            ${CMAKE_CURRENT_SOURCE_DIR}/Hql.thrift
-  COMMENT   "thrift2cpp"
-)
 
 # Disable tcmalloc for 32-bit systems
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "i386" OR
@@ -61,12 +65,18 @@ target_link_libraries(htThriftBroker HyperThriftConfig HyperAppHelper ${THRIFT_M
 # Basic regression test
 add_executable(client_test tests/client_test.cc)
 target_link_libraries(client_test HyperThrift HyperCommon Hypertable)
-add_test(ThriftClient-cpp client_test)
+add_test(NAME ThriftClient-cpp COMMAND $<TARGET_FILE:client_test>)
+
+# ThriftClient-reconnect-hyperspace cds into build/src/cc/ThriftBroker/ and runs ./client_test
+set(_thrift_dst "${HYPERTABLE_BINARY_DIR}/src/cc/ThriftBroker")
+if (NOT IS_SYMLINK "${_thrift_dst}/client_test")
+  file(CREATE_LINK "${HYPERTABLE_BINARY_DIR}/bin/client_test" "${_thrift_dst}/client_test" SYMBOLIC)
+endif()
 
 # regression test for SerializedCellsWriter/SerializedCellsReader
 add_executable(serialized_test tests/serialized_test.cc)
 target_link_libraries(serialized_test HyperThrift HyperCommon Hypertable)
-add_test(ThriftClient-Serialized-cpp serialized_test)
+add_test(NAME ThriftClient-Serialized-cpp COMMAND $<TARGET_FILE:serialized_test>)
 
 if (NOT HT_COMPONENT_INSTALL OR PACKAGE_THRIFTBROKER)
   install(TARGETS HyperThrift HyperThriftConfig htThriftBroker

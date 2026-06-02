@@ -151,11 +151,11 @@ void LoadBalancer::create_plan(BalancePlanPtr &plan,
     HT_INFOF("LoadBalance(name='%s', args='%s')", name.c_str(), arguments.c_str());
 
     if (name == "offload")
-      algo = make_shared<BalanceAlgorithmOffload>(m_context, m_statistics, arguments);
+      algo = std::make_shared<BalanceAlgorithmOffload>(m_context, m_statistics, arguments);
     else if (name == "table_ranges")
-      algo = make_shared<BalanceAlgorithmEvenRanges>(m_context, m_statistics);
+      algo = std::make_shared<BalanceAlgorithmEvenRanges>(m_context, m_statistics);
     else if (name == "load")
-      algo = make_shared<BalanceAlgorithmLoad>(m_context, m_statistics);
+      algo = std::make_shared<BalanceAlgorithmLoad>(m_context, m_statistics);
     else
       HT_THROWF(Error::MASTER_BALANCE_PREVENTED,
                 "Unrecognized algorithm - %s", name.c_str());

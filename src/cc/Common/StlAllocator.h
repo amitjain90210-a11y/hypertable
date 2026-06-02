@@ -44,7 +44,7 @@ struct StlAllocator : Impl {
  : Impl(other) {}
 
   template <typename U>
-  struct rebind { typedef PageArenaAllocator<U, StlArena> other; };
+  struct rebind { typedef StlAllocator<U> other; };
 
   StlAllocator() {}
   StlAllocator(StlArena &arena) : Impl(arena) {}

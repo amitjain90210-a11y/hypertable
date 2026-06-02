@@ -120,7 +120,7 @@ namespace {
       vector<string> nodes = HostSpecification(m_uber_hostspec);
       m_nodes.reserve(nodes.size());
       for (auto & node : nodes) {
-        m_nodes.push_back(make_unique<Node>(node));
+        m_nodes.push_back(std::make_unique<Node>(node));
         node_map[node] = m_nodes.back().get();
       }
 
@@ -193,7 +193,7 @@ ToJson::ToJson(const string &fname) : m_definition_file(fname) {
 
   stack<TokenizerPtr> definitions;
 
-  definitions.push( make_shared<Tokenizer>(m_definition_file) );
+  definitions.push( std::make_shared<Tokenizer>(m_definition_file) );
 
   Token token;
   Definition def;

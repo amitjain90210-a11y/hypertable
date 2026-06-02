@@ -82,13 +82,13 @@ void Monitoring::add_server(const String &location, const StatsSystem &system_in
   RangeServerMap::iterator iter = m_server_map.find(location);
 
   if (iter != m_server_map.end()) {
-    (*iter).second->system_info = make_shared<StatsSystem>(system_info);
+    (*iter).second->system_info = std::make_shared<StatsSystem>(system_info);
     return;
   }
 
   m_server_map[location] = new RangeServerStatistics();
   m_server_map[location]->location = location;
-  m_server_map[location]->system_info = make_shared<StatsSystem>(system_info);
+  m_server_map[location]->system_info = std::make_shared<StatsSystem>(system_info);
 }
 
 
@@ -215,8 +215,8 @@ void Monitoring::add(std::vector<RangeServerStatistics> &stats) {
       rrd_data.disk_write_iops += (int64_t)stats[i].stats->system.disk_stat[j].writes_rate;
     }
 
-    rrd_data.vm_size = (int64_t)stats[i].stats->system.proc_stat.vm_size * 1024*1024;
-    rrd_data.vm_resident = (int64_t)stats[i].stats->system.proc_stat.vm_resident * 1024*1024;
+    rrd_data.vm_size = (int64_t)(stats[i].stats->system.proc_stat.vm_size * (1024.0 * 1024.0));
+    rrd_data.vm_resident = (int64_t)(stats[i].stats->system.proc_stat.vm_resident * (1024.0 * 1024.0));
     rrd_data.page_in = (int64_t)stats[i].stats->system.swap_stat.page_in;
     rrd_data.page_out = (int64_t)stats[i].stats->system.swap_stat.page_out;
     rrd_data.heap_size = (int64_t)stats[i].stats->system.proc_stat.heap_size;
@@ -387,6 +387,8 @@ void Monitoring::add_table_stats(std::vector<StatsTable> &table_stats,int64_t fe
 }
 
 void Monitoring::compute_clock_skew(int64_t server_timestamp, RangeServerStatistics *stats) {
+  if (stats->fetch_timestamp == TIMESTAMP_MIN || server_timestamp == TIMESTAMP_MIN)
+    return;
   int64_t skew;
   int32_t multiplier = 1;
 
@@ -418,7 +420,7 @@ void Monitoring::create_rangeserver_rrd(const String &filename) {
 
   HT_ASSERT((m_monitoring_interval/1000)>0);
 
-  sprintf(buf, "-s %u", (unsigned)(m_monitoring_interval/1000));
+  sprintf(buf, "--step=%u", (unsigned)(m_monitoring_interval/1000));
   step = String(buf);
 
   /**
@@ -482,7 +484,7 @@ void Monitoring::create_table_rrd(const String &filename) {
 
   HT_ASSERT((m_monitoring_interval/1000)>0);
 
-  sprintf(buf, "-s %u", (unsigned)(m_monitoring_interval/1000));
+  sprintf(buf, "--step=%u", (unsigned)(m_monitoring_interval/1000));
   step = String(buf);
 
   /**

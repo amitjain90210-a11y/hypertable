@@ -100,11 +100,17 @@ namespace Hypertable {
   /**
    * Provides an STL-style iterator on DataGenerator objects.
    */
-  class DataGeneratorIterator : public boost::iterator<forward_iterator_tag, Cell> {
+  class DataGeneratorIterator {
 
     friend class DataGenerator;
 
   public:
+
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Cell;
+    using difference_type = std::ptrdiff_t;
+    using pointer = Cell*;
+    using reference = Cell&;
 
     Cell& operator*() { return m_cell; }
 
@@ -122,8 +128,7 @@ namespace Hypertable {
 
   private:
     DataGeneratorIterator(DataGenerator *generator);
-    DataGeneratorIterator(int64_t amount, int64_t count) : m_generator(0), m_amount(amount), m_count(count) {  }
-    DataGenerator *m_generator;
+    DataGeneratorIterator(int64_t amount, int64_t count) : m_amount(amount), m_count(count) {  }
     std::vector<RowComponent *> m_row_components;
     std::vector<Column *> m_columns;
     bool m_keys_only;

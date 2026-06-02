@@ -57,7 +57,7 @@
 #include <boost/iostreams/device/null.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/tokenizer.hpp>
@@ -221,7 +221,7 @@ Options)";
   uint64_t cumulative_size_divisor = 1;
   time_t cutoff_time = std::numeric_limits<time_t>::max();
   RE2 *path_regex = 0;
-  boost::progress_display *progress = 0;
+  boost::timer::progress_display *progress = 0;
 
   bool verbose = false;
   bool dry_run;
@@ -589,10 +589,10 @@ int main(int argc, char **argv) {
       load_metadata_exclude("metadata.tsv");
     }
 
-    Global::dfs = make_shared<FsBroker::Lib::Client>(host, port, timeout_ms);
+    Global::dfs = std::make_shared<FsBroker::Lib::Client>(host, port, timeout_ms);
     Global::memory_tracker = new MemoryTracker(0, 0);
 
-    hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
+    hyperspace = std::make_shared<Hyperspace::Session>(Comm::instance(), properties);
 
     Timer timer(timeout_ms, true);
 
@@ -663,7 +663,7 @@ int main(int argc, char **argv) {
       cumulative_size_estimate = get_i64("cumulative-size-estimate");
       if (cumulative_size_estimate > 1024*1024*1024)
 	cumulative_size_divisor = 10*1024*1024;
-      progress = new boost::progress_display((size_t)(cumulative_size_estimate /
+      progress = new boost::timer::progress_display((size_t)(cumulative_size_estimate /
 						      cumulative_size_divisor));
     }
 

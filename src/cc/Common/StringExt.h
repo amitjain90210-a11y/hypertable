@@ -87,6 +87,25 @@ inline String operator+(const String &s1, uint64_t llval) {
   return s1 + UInt64Formatter(llval).c_str();
 }
 
+/** Returns a copy of the row key string with non-printable/non-ASCII bytes
+ *  replaced by \\xNN escapes, so log output remains valid UTF-8. */
+inline String format_row_key(const char *row) {
+  static const char hex[] = "0123456789abcdef";
+  if (!row) return "[NULL]";
+  String out;
+  out.reserve(strlen(row));
+  for (const unsigned char *p = (const unsigned char *)row; *p; ++p) {
+    if (*p >= 0x20 && *p < 0x7f) {
+      out += (char)*p;
+    } else {
+      out += "\\x";
+      out += hex[*p >> 4];
+      out += hex[*p & 0xf];
+    }
+  }
+  return out;
+}
+
 /** @} */
 
 #endif // Common_StringExt_h

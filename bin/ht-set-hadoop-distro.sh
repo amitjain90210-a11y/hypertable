@@ -20,7 +20,7 @@
 
 export HT_HOME=$(cd `dirname "$0"`/.. && pwd)
 
-declare -a Distros=('apache1' 'apache2' 'cdh3' 'cdh4' 'cdh5' 'hdp2');
+declare -a Distros=('apache1' 'apache2' 'apache3' 'cdh3' 'cdh4' 'cdh5' 'hdp2');
 
 usage() {
   local REAL_HOME=$HT_HOME

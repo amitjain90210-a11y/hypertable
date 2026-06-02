@@ -37,7 +37,6 @@
 #include <set>
 #include <string>
 
-#include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
 
 #include "Common/Logger.h"
@@ -66,7 +65,10 @@ struct DefaultPageAllocator {
  * entire container repeatedly.
  */
 template <typename CharT = char, class PageAllocatorT = DefaultPageAllocator>
-class PageArena : boost::noncopyable {
+class PageArena {
+ public:
+  PageArena(const PageArena&) = delete;
+  PageArena& operator=(const PageArena&) = delete;
  private:
   /** The default page size is 8 kb */
   enum {
@@ -180,6 +182,15 @@ class PageArena : boost::noncopyable {
     return p->alloc(sz);
   }
 
+  CharT *alloc_big_aligned(size_t sz, size_t align) {
+    Page *p = alloc_page(sz + sizeof(Page) + align - 1, false);
+    uintptr_t addr = (uintptr_t)p->alloc_end;
+    size_t rem = addr % align;
+    if (rem != 0)
+      p->alloc_end += align - rem;
+    return p->alloc(sz);
+  }
+
  public:
   /** Constructor; creates a new PageArena
    *
@@ -249,6 +260,40 @@ class PageArena : boost::noncopyable {
       return m_cur_page->alloc(sz);
     }
     return alloc_big(sz);
+  }
+
+  /** Allocate sz bytes with the given alignment (must be a power of two) */
+  CharT *alloc_aligned(size_t sz, size_t align) {
+    if (align <= 1)
+      return alloc(sz);
+
+    m_used += sz;
+    ensure_cur_page();
+
+    uintptr_t addr = (uintptr_t)m_cur_page->alloc_end;
+    size_t rem = addr % align;
+    size_t pad = rem == 0 ? 0 : (align - rem);
+    size_t needed = sz + pad;
+
+    if (HT_LIKELY(needed <= m_cur_page->remain())) {
+      m_cur_page->alloc_end += pad;
+      return m_cur_page->alloc(sz);
+    }
+
+    if (sz <= m_page_limit) {
+      if (m_cur_page->remain() >= TinyBuffer::SIZE) {
+        m_gappy_pages.insert(m_cur_page);
+        m_gappy_limit = (*m_gappy_pages.rbegin())->remain();
+      }
+      m_cur_page = alloc_page(m_page_size);
+      addr = (uintptr_t)m_cur_page->alloc_end;
+      rem = addr % align;
+      if (rem != 0)
+        m_cur_page->alloc_end += align - rem;
+      return m_cur_page->alloc(sz);
+    }
+
+    return alloc_big_aligned(sz, align);
   }
 
   /** Realloc for newsz bytes */

@@ -147,7 +147,7 @@ namespace Hypertable {
 
     typedef typename __alloc_traits::template rebind_alloc<__directory_node_internal> __node_allocator;
     typedef std::allocator_traits<__node_allocator> __node_traits;
-
+    typedef typename __alloc_traits::template rebind_alloc<pointer> __pointer_allocator;
 
     class pointer_compare
       : public std::binary_function<pointer, pointer, bool> {
@@ -160,16 +160,16 @@ namespace Hypertable {
       _Compare comp;
     };
 
-    using children_set = std::set<pointer, pointer_compare, _Allocator>;
+    using children_set = std::set<pointer, pointer_compare, __pointer_allocator>;
 
     __directory_node_internal() {}
-    __directory_node_internal(_Compare &comp, _Allocator &alloc) 
-      : m_value_allocator(alloc), children(pointer_compare(comp), alloc) {}
+    __directory_node_internal(_Compare &comp, _Allocator &alloc)
+      : m_value_allocator(alloc), children(pointer_compare(comp), __pointer_allocator(alloc)) {}
     __directory_node_internal(const __directory_node_internal &other)
       :  m_value_allocator(__alloc_traits::select_on_container_copy_construction(other.m_value_allocator)),
-         entry(other.entry), children(other.children.key_comp(), other.m_value_allocator) {}
+         entry(other.entry), children(other.children.key_comp(), __pointer_allocator(other.m_value_allocator)) {}
     __directory_node_internal(_Value value, _Compare &comp, _Allocator &alloc)
-      : m_value_allocator(alloc), entry(value), children(pointer_compare(comp), alloc) {}
+      : m_value_allocator(alloc), entry(value), children(pointer_compare(comp), __pointer_allocator(alloc)) {}
 
     ~__directory_node_internal() {
       for (auto &np : children)

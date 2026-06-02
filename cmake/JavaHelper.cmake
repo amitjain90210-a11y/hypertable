@@ -18,6 +18,7 @@
 
 set(APACHE1_VERSION "1.2.1")
 set(APACHE2_VERSION "2.4.1")
+set(APACHE3_VERSION "3.4.3")
 set(CDH3_VERSION "0.20.2-cdh3u5")
 set(CDH4_VERSION "2.0.0-cdh4.2.1")
 
@@ -70,6 +71,14 @@ configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-apache1/pom.xml.in
 # hypertable-apache2/pom.xml
 configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-apache2/pom.xml.in
          ${HYPERTABLE_BINARY_DIR}/java/hypertable-apache2/pom.xml @ONLY)
+
+# runtime-dependencies/apache3/pom.xml
+configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/apache3/pom.xml.in
+         ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/apache3/pom.xml @ONLY)
+
+# hypertable-apache3/pom.xml
+configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-apache3/pom.xml.in
+         ${HYPERTABLE_BINARY_DIR}/java/hypertable-apache3/pom.xml @ONLY)
 
 # hypertable-examples/pom.xml
 configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-examples/pom.xml.in
@@ -138,15 +147,76 @@ add_custom_target(CleanBuild1 ALL rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertabl
 add_custom_target(HypertableHadoopApache2 ALL mvn -f java/pom.xml -Dmaven.test.skip=true -Papache2 package
                   DEPENDS CleanBuild1)
 
-add_custom_target(RuntimeDependencies ALL mvn -f java/runtime-dependencies/pom.xml -Dmaven.test.skip=true package
+add_custom_target(CleanBuild2 ALL rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/target/classes
+                  COMMAND rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/classes
                   DEPENDS HypertableHadoopApache2)
+
+add_custom_target(HypertableHadoopApache3 ALL mvn -f java/pom.xml -Dmaven.test.skip=true -Papache3 package
+                  DEPENDS CleanBuild2)
+
+add_custom_target(RuntimeDependencies ALL mvn -f java/runtime-dependencies/pom.xml -Dmaven.test.skip=true package
+                  DEPENDS HypertableHadoopApache3)
 
 add_custom_target(java)
 add_dependencies(java RuntimeDependencies)
 
+# ---------------------------------------------------------------------------
+# Populate lib/java/ in the build tree so tests run without 'make install'.
+# Mirrors the install() rules below, but uses symlinks at configure time.
+# ---------------------------------------------------------------------------
+string(REPLACE "~" "$ENV{HOME}" _maven_repo "${MAVEN_REPOSITORY}")
+set(_jlib ${HYPERTABLE_BINARY_DIR}/lib/java)
+file(MAKE_DIRECTORY ${_jlib}/common ${_jlib}/apache2 ${_jlib}/apache3 ${_jlib}/specific)
+
+macro(_java_link _src _dst)
+  if(NOT IS_SYMLINK "${_dst}")
+    file(CREATE_LINK "${_src}" "${_dst}" SYMBOLIC)
+  endif()
+endmacro()
+
+# common
+_java_link(${_maven_repo}/org/apache/thrift/libthrift/0.19.0/libthrift-0.19.0.jar                              ${_jlib}/common/libthrift-0.19.0.jar)
+_java_link(${_maven_repo}/commons-cli/commons-cli/1.2/commons-cli-1.2.jar                                      ${_jlib}/common/commons-cli-1.2.jar)
+_java_link(${_maven_repo}/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar          ${_jlib}/common/commons-collections-3.2.1.jar)
+_java_link(${_maven_repo}/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar        ${_jlib}/common/commons-configuration-1.6.jar)
+_java_link(${_maven_repo}/commons-io/commons-io/2.1/commons-io-2.1.jar                                        ${_jlib}/common/commons-io-2.1.jar)
+_java_link(${_maven_repo}/commons-lang/commons-lang/2.6/commons-lang-2.6.jar                                  ${_jlib}/common/commons-lang-2.6.jar)
+_java_link(${_maven_repo}/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar                     ${_jlib}/common/commons-logging-1.1.1.jar)
+_java_link(${_maven_repo}/log4j/log4j/1.2.17/log4j-1.2.17.jar                                                 ${_jlib}/common/log4j-1.2.17.jar)
+_java_link(${_maven_repo}/org/slf4j/slf4j-api/1.7.5/slf4j-api-1.7.5.jar                                       ${_jlib}/common/slf4j-api-1.7.5.jar)
+_java_link(${_maven_repo}/org/slf4j/slf4j-log4j12/1.7.5/slf4j-log4j12-1.7.5.jar                               ${_jlib}/common/slf4j-log4j12-1.7.5.jar)
+_java_link(${_maven_repo}/org/fusesource/sigar/1.6.4/sigar-1.6.4.jar                                          ${_jlib}/common/sigar-1.6.4.jar)
+
+# apache2 — Hadoop JARs from Maven repo + Hypertable JARs from build tree
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-annotations/${APACHE2_VERSION}/hadoop-annotations-${APACHE2_VERSION}.jar               ${_jlib}/apache2/hadoop-annotations-${APACHE2_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-auth/${APACHE2_VERSION}/hadoop-auth-${APACHE2_VERSION}.jar                             ${_jlib}/apache2/hadoop-auth-${APACHE2_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-common/${APACHE2_VERSION}/hadoop-common-${APACHE2_VERSION}.jar                         ${_jlib}/apache2/hadoop-common-${APACHE2_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-hdfs/${APACHE2_VERSION}/hadoop-hdfs-${APACHE2_VERSION}.jar                             ${_jlib}/apache2/hadoop-hdfs-${APACHE2_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-mapreduce-client-core/${APACHE2_VERSION}/hadoop-mapreduce-client-core-${APACHE2_VERSION}.jar  ${_jlib}/apache2/hadoop-mapreduce-client-core-${APACHE2_VERSION}.jar)
+_java_link(${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache2.jar                   ${_jlib}/apache2/hypertable-${VERSION}-apache2.jar)
+_java_link(${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache2.jar ${_jlib}/apache2/hypertable-examples-${VERSION}-apache2.jar)
+
+# apache3 — Hadoop 3 JARs from Maven repo + Hypertable JARs from build tree
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-annotations/${APACHE3_VERSION}/hadoop-annotations-${APACHE3_VERSION}.jar               ${_jlib}/apache3/hadoop-annotations-${APACHE3_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-auth/${APACHE3_VERSION}/hadoop-auth-${APACHE3_VERSION}.jar                             ${_jlib}/apache3/hadoop-auth-${APACHE3_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-common/${APACHE3_VERSION}/hadoop-common-${APACHE3_VERSION}.jar                         ${_jlib}/apache3/hadoop-common-${APACHE3_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-hdfs/${APACHE3_VERSION}/hadoop-hdfs-${APACHE3_VERSION}.jar                             ${_jlib}/apache3/hadoop-hdfs-${APACHE3_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-hdfs-client/${APACHE3_VERSION}/hadoop-hdfs-client-${APACHE3_VERSION}.jar               ${_jlib}/apache3/hadoop-hdfs-client-${APACHE3_VERSION}.jar)
+_java_link(${_maven_repo}/org/apache/hadoop/hadoop-mapreduce-client-core/${APACHE3_VERSION}/hadoop-mapreduce-client-core-${APACHE3_VERSION}.jar  ${_jlib}/apache3/hadoop-mapreduce-client-core-${APACHE3_VERSION}.jar)
+_java_link(${_maven_repo}/com/fasterxml/woodstox/woodstox-core/5.4.0/woodstox-core-5.4.0.jar                  ${_jlib}/apache3/woodstox-core-5.4.0.jar)
+_java_link(${_maven_repo}/org/codehaus/woodstox/stax2-api/4.2.1/stax2-api-4.2.1.jar                           ${_jlib}/apache3/stax2-api-4.2.1.jar)
+_java_link(${_maven_repo}/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar            ${_jlib}/apache3/commons-collections4-4.4.jar)
+_java_link(${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache3.jar                   ${_jlib}/apache3/hypertable-${VERSION}-apache3.jar)
+_java_link(${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache3.jar ${_jlib}/apache3/hypertable-examples-${VERSION}-apache3.jar)
+
+# specific
+_java_link(${_maven_repo}/com/google/protobuf/protobuf-java/2.4.0a/protobuf-java-2.4.0a.jar                    ${_jlib}/specific/protobuf-java-2.4.0a.jar)
+_java_link(${_maven_repo}/com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar                      ${_jlib}/specific/protobuf-java-2.5.0.jar)
+_java_link(${_maven_repo}/com/google/guava/guava/11.0.2/guava-11.0.2.jar                                       ${_jlib}/specific/guava-11.0.2.jar)
+
 
 # Common jars
-install(FILES ${MAVEN_REPOSITORY}/org/apache/thrift/libthrift/0.9.2/libthrift-0.9.2.jar
+install(FILES ${MAVEN_REPOSITORY}/org/apache/thrift/libthrift/0.19.0/libthrift-0.19.0.jar
               DESTINATION lib/java/common)
 install(FILES ${MAVEN_REPOSITORY}/commons-cli/commons-cli/1.2/commons-cli-1.2.jar
               DESTINATION lib/java/common)
@@ -200,6 +270,30 @@ install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSI
               DESTINATION lib/java/apache2)
 install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache2.jar
               DESTINATION lib/java/apache2)
+
+# Apache Hadoop 3 jars
+install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-annotations/${APACHE3_VERSION}/hadoop-annotations-${APACHE3_VERSION}.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-auth/${APACHE3_VERSION}/hadoop-auth-${APACHE3_VERSION}.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-common/${APACHE3_VERSION}/hadoop-common-${APACHE3_VERSION}.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-hdfs/${APACHE3_VERSION}/hadoop-hdfs-${APACHE3_VERSION}.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-hdfs-client/${APACHE3_VERSION}/hadoop-hdfs-client-${APACHE3_VERSION}.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-mapreduce-client-core/${APACHE3_VERSION}/hadoop-mapreduce-client-core-${APACHE3_VERSION}.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/com/fasterxml/woodstox/woodstox-core/5.4.0/woodstox-core-5.4.0.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/org/codehaus/woodstox/stax2-api/4.2.1/stax2-api-4.2.1.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${MAVEN_REPOSITORY}/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache3.jar
+              DESTINATION lib/java/apache3)
+install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache3.jar
+              DESTINATION lib/java/apache3)
 
 # CDH3 jars
 install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-core/${CDH3_VERSION}/hadoop-core-${CDH3_VERSION}.jar

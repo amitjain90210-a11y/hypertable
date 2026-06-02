@@ -22,7 +22,7 @@
 #ifndef HYPERTABLE_CELLSTORETRAILERV2_H
 #define HYPERTABLE_CELLSTORETRAILERV2_H
 
-#include <boost/any.hpp>
+#include <any>
 
 #include "CellStoreTrailer.h"
 
@@ -66,7 +66,7 @@ namespace Hypertable {
 
     enum Flags { INDEX_64BIT = 0x00000001 };
 
-    boost::any get(const String& prop) {
+    std::any get(const String& prop) {
       if     (prop == "version")                return version;
       else if (prop == "fix_index_offset")      return fix_index_offset;
       else if (prop == "var_index_offset")      return var_index_offset;
@@ -88,7 +88,7 @@ namespace Hypertable {
       else if (prop == "compression_type")      return compression_type;
       else if (prop == "bloom_filter_mode")     return bloom_filter_mode;
       else if (prop == "bloom_filter_hash_count") return bloom_filter_hash_count;
-      else                                      return boost::any();
+      else                                      return std::any();
     }
 
   };

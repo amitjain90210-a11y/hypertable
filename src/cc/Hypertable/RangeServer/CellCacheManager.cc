@@ -54,8 +54,8 @@ void CellCacheManager::merge_caches(SchemaPtr &schema) {
 
   Key key;
   ByteString value;
-  CellCachePtr merged_cache = make_shared<CellCache>();
-  ScanContextPtr scan_ctx = make_shared<ScanContext>(schema);
+  CellCachePtr merged_cache = std::make_shared<CellCache>();
+  ScanContextPtr scan_ctx = std::make_shared<ScanContext>(schema);
   CellListScannerPtr scanner = m_immutable_cache->create_scanner(scan_ctx.get());
   while (scanner->get(key, value)) {
     merged_cache->add(key, value);
@@ -126,7 +126,7 @@ int32_t CellCacheManager::delete_count() {
 
 void CellCacheManager::freeze() {
   m_immutable_cache = m_active_cache;
-  m_active_cache = make_shared<CellCache>();
+  m_active_cache = std::make_shared<CellCache>();
 }
 
 void CellCacheManager::populate_key_set(KeySet &keys) {

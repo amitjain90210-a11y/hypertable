@@ -24,6 +24,11 @@ set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Tools/prune_tsv")
 add_executable(ht_prune_tsv prune_tsv.cc)
 target_link_libraries(ht_prune_tsv HyperCommon HyperComm)
 
+# run.sh uses ./ht_prune_tsv relative to DST_DIR
+if (NOT IS_SYMLINK "${DST_DIR}/ht_prune_tsv")
+  file(CREATE_LINK "${HYPERTABLE_BINARY_DIR}/bin/ht_prune_tsv" "${DST_DIR}/ht_prune_tsv" SYMBOLIC)
+endif()
+
 add_test(prune-tsv env INSTALL_DIR=${INSTALL_DIR}
                    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run.sh)
 

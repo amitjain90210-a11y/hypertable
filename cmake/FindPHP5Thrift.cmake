@@ -20,18 +20,20 @@
 # This module defines
 #  PHPTHRIFT_FOUND, If false, do not try to use ant
 
-if (THRIFT_SOURCE_DIR)
-  if (EXISTS ${THRIFT_SOURCE_DIR}/lib/php/src/Thrift.php)
-    set(PHPTHRIFT_FOUND TRUE)
-    set(THRIFT_SOURCE_DIR ${THRIFT_SOURCE_DIR} CACHE PATH "thrift source dir" FORCE)
-  endif ()
-else ()
-  set(PHPTHRIFT_FOUND FALSE)
+set(PHPTHRIFT_FOUND FALSE)
+set(_phpthrift_root)
+
+if (THRIFT_SOURCE_DIR AND EXISTS ${THRIFT_SOURCE_DIR}/lib/php/src/Thrift.php)
+  set(PHPTHRIFT_FOUND TRUE)
+  set(_phpthrift_root "${THRIFT_SOURCE_DIR}/lib/php/src")
+elseif (EXISTS /usr/lib/php/ClassLoader/ThriftClassLoader.php)
+  set(PHPTHRIFT_FOUND TRUE)
+  set(_phpthrift_root /usr/lib/php)
 endif ()
 
 if (PHPTHRIFT_FOUND)
   if (NOT PHPTHRIFT_FIND_QUIETLY)
-    message(STATUS "Found thrift for php: ${THRIFT_SOURCE_DIR}/lib/php/src")
+    message(STATUS "Found thrift for php: ${_phpthrift_root}")
   endif ()
 else ()
   message(STATUS "PHP Thrift files not found. "

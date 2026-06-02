@@ -1,4 +1,5 @@
 boo=true
+config=/dev/null
 i16=1000
 i32=64000
 i64=1000000000

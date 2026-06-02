@@ -241,7 +241,7 @@ void Compiler::make() {
 
   stack<TokenizerPtr> definitions;
 
-  definitions.push( make_shared<Tokenizer>(m_definition_file) );
+  definitions.push( std::make_shared<Tokenizer>(m_definition_file) );
 
   string header;
   string output;
@@ -265,7 +265,7 @@ void Compiler::make() {
         TokenizerTools::substitute_variables(include_file, include_file, environ_map);
         if (include_file[0] != '/')
           include_file = definitions.top()->dirname() + "/" + include_file;
-        definitions.push( make_shared<Tokenizer>(include_file) );      
+        definitions.push( std::make_shared<Tokenizer>(include_file) );      
         header.append(Hypertable::format("# dependency: %s\n", include_file.c_str()));
       }
     }

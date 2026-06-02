@@ -33,11 +33,16 @@ start_master() {
   fi
 }
 
+master_log_files() {
+    echo "$HT_HOME/log/Master.log" \
+        $(ls -t "$HT_HOME/log/archive"/*/*/Master.log 2>/dev/null | head -2)
+}
+
 wait_for_server_connect() {
-    grep RS_METRICS $HT_HOME/log/Master.log
+    grep RS_METRICS $(master_log_files) 2>/dev/null
     while [ $? -ne 0 ] ; do
         sleep 3
-        grep RS_METRICS $HT_HOME/log/Master.log
+        grep RS_METRICS $(master_log_files) 2>/dev/null
     done
 }
 
@@ -49,7 +54,7 @@ wait_for_recovery() {
   else
       s="Leaving RecoverServer [a-zA-Z0-9]+ state=COMPLETE"
   fi
-  egrep "$s" $HT_HOME/log/Master.log
+  egrep "$s" $(master_log_files) 2>/dev/null
   while [ $? -ne "0" ]
   do
     (( n += 1 ))
@@ -59,7 +64,7 @@ wait_for_recovery() {
       exit 1
     fi
     sleep 2
-    egrep "$s" $HT_HOME/log/Master.log
+    egrep "$s" $(master_log_files) 2>/dev/null
   done
 }
 

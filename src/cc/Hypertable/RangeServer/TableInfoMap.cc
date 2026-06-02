@@ -92,7 +92,7 @@ void TableInfoMap::get(const String &table_id, TableInfoPtr &info) {
   table.id = table_id.c_str();
   table.generation = entry.schema->get_generation();
 
-  info = make_shared<TableInfo>(&table, entry.schema, entry.maintenance_disabled);
+  info = std::make_shared<TableInfo>(&table, entry.schema, entry.maintenance_disabled);
 
   m_map[table_id] = info;
 }
@@ -109,7 +109,7 @@ void TableInfoMap::promote_staged_range(const TableIdentifier &table, RangePtr &
 
   if (transfer_log && *transfer_log) {
     CommitLogReaderPtr commit_log_reader =
-      make_shared<CommitLogReader>(Global::log_dfs, transfer_log);
+      std::make_shared<CommitLogReader>(Global::log_dfs, transfer_log);
     if (!commit_log_reader->empty()) {
       CommitLogPtr log;
       if (range->is_root())

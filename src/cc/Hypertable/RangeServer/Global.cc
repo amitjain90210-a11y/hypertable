@@ -60,6 +60,7 @@ namespace Hypertable {
   int32_t                Global::cell_cache_scanner_cache_size = 0;
   FileBlockCache        *Global::block_cache = 0;
   TablePtr               Global::metadata_table = 0;
+  std::atomic<bool>      Global::metadata_table_initialized {};
   TablePtr               Global::rs_metrics_table = 0;
   int64_t                Global::range_metadata_split_size = 0;
   MemoryTracker         *Global::memory_tracker = 0;
@@ -70,7 +71,7 @@ namespace Hypertable {
   int64_t                Global::memory_limit = 0;
   int64_t                Global::memory_limit_ensure_unused = 0;
   int64_t                Global::memory_limit_ensure_unused_current = 0;
-  uint64_t               Global::access_counter = 0;
+  std::atomic<uint64_t>  Global::access_counter {0};
   bool                   Global::enable_shadow_cache = true;
   std::string            Global::toplevel_dir;
   int32_t                Global::metrics_interval = 0;

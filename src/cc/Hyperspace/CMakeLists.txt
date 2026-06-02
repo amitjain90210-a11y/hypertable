@@ -106,7 +106,7 @@ set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Hyperspace/tests")
 set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Hyperspace")
 configure_file(${SRC_DIR}/bdb_fs_test.golden ${DST_DIR}/bdb_fs_test.golden)
 
-add_test(BerkeleyDbFilesystem bdb_fs_test)
+add_test(NAME BerkeleyDbFilesystem COMMAND $<TARGET_FILE:bdb_fs_test>)
 
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB HEADERS *.h)

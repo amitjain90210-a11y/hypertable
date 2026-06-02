@@ -6,8 +6,12 @@ from hyperthrift.gen.ttypes import *
 
 try:
   client = ThriftClient("localhost", 15867)
-  print "SerializedCellsWriter example"
+  print("SerializedCellsWriter example")
 
+  try:
+    client.namespace_create("test")
+  except:
+    pass
   namespace = client.namespace_open("test")
   client.hql_query(namespace, "drop table if exists thrift_test")
   client.hql_query(namespace, "create table thrift_test (col)")
@@ -29,9 +33,9 @@ try:
 
   res = client.hql_query(namespace, "select * from thrift_test")
   for cell in res.cells:
-      print cell.key.row, cell.key.column_family, cell.value
+      print(cell.key.row, cell.key.column_family, cell.value.decode('latin-1'))
 
   client.namespace_close(namespace)
 except:
-  print sys.exc_info()
+  print(sys.exc_info())
   raise

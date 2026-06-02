@@ -30,12 +30,19 @@ rm -rf fs fs_pre
 gen_test_data
 
 wait_for_quorum() {
-  grep "Only 1 servers ready, total servers=5 quorum=2, waiting for servers" \
+  local n=0
+  egrep "Only [0-9]+ servers ready.*waiting for servers" \
       $HT_HOME/log/Master.log
   while [ $? -ne "0" ]
   do
+    (( n += 1 ))
+    if [ "$n" -gt "300" ]; then
+      echo "wait_for_quorum: time exceeded"
+      save_failure_state
+      exit 1
+    fi
     sleep 2
-    grep "Only 1 servers ready, total servers=5 quorum=2, waiting for servers" \
+    egrep "Only [0-9]+ servers ready.*waiting for servers" \
         $HT_HOME/log/Master.log
   done
 }

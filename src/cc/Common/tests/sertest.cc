@@ -134,7 +134,7 @@ void test_bad_vi32() {
   }
   catch (Exception &e) {
     HT_ERROR_OUT << e << HT_END;
-    HT_ASSERT(e.code() == Error::SERIALIZATION_INPUT_OVERRUN);
+    HT_ASSERT(e.code() == Error::SERIALIZATION_BAD_VINT);
   }
 }
 

@@ -38,22 +38,23 @@ find_library(Libssh_LIBRARY NO_DEFAULT_PATH
 
 find_library(Libssh_ssl_LIBRARY NO_DEFAULT_PATH
   NAMES ssl
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/local/lib /usrlocal/lib64 /opt/local/lib
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu /usr/local/lib /usrlocal/lib64 /opt/local/lib
 )
 
 find_library(Libssh_crypto_LIBRARY NO_DEFAULT_PATH
   NAMES crypto
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/local/lib /usrlocal/lib64 /opt/local/lib
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu /usr/local/lib /usrlocal/lib64 /opt/local/lib
 )
 
 if (Libssh_INCLUDE_DIR AND Libssh_LIBRARY)
   set(Libssh_FOUND TRUE)
   set(Libssh_LIBRARIES ${Libssh_LIBRARY} ${Libssh_ssl_LIBRARY} ${Libssh_crypto_LIBRARY})
 
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-               ARGS ${Libssh_LIBRARY}
-               OUTPUT_VARIABLE LDD_OUT
-               RETURN_VALUE LDD_RETURN)
+  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh ${Libssh_LIBRARY}
+                  OUTPUT_VARIABLE LDD_OUT
+                  RESULT_VARIABLE LDD_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
 
   if (LDD_RETURN STREQUAL "0")
     string(REGEX MATCH "[ \t](/[^ ]+/libssl\\.[^ \n]+)" dummy ${LDD_OUT})

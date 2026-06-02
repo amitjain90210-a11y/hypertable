@@ -158,7 +158,7 @@ run_test() {
             --Hypertable.RangeServer.Port=${PORT[$j]} $INDUCER_ARG \
             --Hypertable.RangeServer.CellStore.DefaultBlockSize=1K \
             --Hypertable.RangeServer.MaintenanceThreads=8 \
-            --Hypertable.RangeServer.Maintenance.Interval=100 2>&1 > rangeserver.rs$j.output.$TEST &
+            --Hypertable.RangeServer.Maintenance.Interval=100 > rangeserver.rs$j.output.$TEST 2>&1 &
         if [ $j -eq 1 ] ; then
             sleep 5
         fi

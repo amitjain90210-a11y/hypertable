@@ -76,7 +76,7 @@ void BalanceAlgorithmOffload::compute_plan(BalancePlanPtr &plan,
     if (locations_it == locations.end())
       locations_it = locations.begin();
 
-    RangeMoveSpecPtr move = make_shared<RangeMoveSpec>(root_location.c_str(),
+    RangeMoveSpecPtr move = std::make_shared<RangeMoveSpec>(root_location.c_str(),
                 new_location.c_str(), TableIdentifier::METADATA_ID,
                 "", Key::END_ROOT_ROW);
     plan->moves.push_back(move);
@@ -129,7 +129,7 @@ void BalanceAlgorithmOffload::compute_plan(BalancePlanPtr &plan,
       if (locations_it == locations.end())
         locations_it = locations.begin();
 
-      RangeMoveSpecPtr move = make_shared<RangeMoveSpec>(last_location.c_str(),
+      RangeMoveSpecPtr move = std::make_shared<RangeMoveSpec>(last_location.c_str(),
                                     new_location.c_str(),
                                     table.c_str(), last_start_row.c_str(),
                                     end_row.c_str());

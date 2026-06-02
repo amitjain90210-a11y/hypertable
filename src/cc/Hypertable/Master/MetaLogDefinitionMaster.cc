@@ -62,7 +62,7 @@ EntityPtr DefinitionMaster::create(const EntityHeader &header) {
   OperationPtr operation;
 
   if (header.type == EntityType::RANGE_SERVER_CONNECTION)
-    return make_shared<RangeServerConnection>(header);
+    return std::make_shared<RangeServerConnection>(header);
 
   if ((header.type & 0xF0000L) == 0x20000L) {
 
@@ -72,42 +72,42 @@ EntityPtr DefinitionMaster::create(const EntityHeader &header) {
 
     if (header.type == EntityType::OLD_OPERATION_INITIALIZE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_INITIALIZE;
-      operation = make_shared<OperationInitialize>(m_context, header);
+      operation = std::make_shared<OperationInitialize>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_INITIALIZE);
     }
     else if (header.type == EntityType::OLD_OPERATION_ALTER_TABLE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_ALTER_TABLE;
-      operation = make_shared<OperationAlterTable>(m_context, header);
+      operation = std::make_shared<OperationAlterTable>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_ALTER_TABLE);
     }
     else if (header.type == EntityType::OLD_OPERATION_CREATE_NAMESPACE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_CREATE_NAMESPACE;
-      operation = make_shared<OperationCreateNamespace>(m_context, header);
+      operation = std::make_shared<OperationCreateNamespace>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_CREATE_NAMESPACE);
     }
     else if (header.type == EntityType::OLD_OPERATION_DROP_NAMESPACE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_DROP_NAMESPACE;
-      operation = make_shared<OperationDropNamespace>(m_context, header);
+      operation = std::make_shared<OperationDropNamespace>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_DROP_NAMESPACE);
     }
     else if (header.type == EntityType::OLD_OPERATION_CREATE_TABLE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_CREATE_TABLE;
-      operation = make_shared<OperationCreateTable>(m_context, header);
+      operation = std::make_shared<OperationCreateTable>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_CREATE_TABLE);
     }
     else if (header.type == EntityType::OLD_OPERATION_DROP_TABLE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_DROP_TABLE;
-      operation = make_shared<OperationDropTable>(m_context, header);
+      operation = std::make_shared<OperationDropTable>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_DROP_TABLE);
     }
     else if (header.type == EntityType::OLD_OPERATION_RENAME_TABLE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_RENAME_TABLE;
-      operation = make_shared<OperationRenameTable>(m_context, header);
+      operation = std::make_shared<OperationRenameTable>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_RENAME_TABLE);
     }
     else if (header.type == EntityType::OLD_OPERATION_MOVE_RANGE) {
       ((EntityHeader *)&header)->type = EntityType::OPERATION_MOVE_RANGE;
-      operation = make_shared<OperationMoveRange>(m_context, header);
+      operation = std::make_shared<OperationMoveRange>(m_context, header);
       operation->set_original_type(EntityType::OLD_OPERATION_MOVE_RANGE);
     }
     else if (header.type == EntityType::OLD_OPERATION_BALANCE) {
@@ -116,45 +116,45 @@ EntityPtr DefinitionMaster::create(const EntityHeader &header) {
   }
   else if (header.type == EntityType::BALANCE_PLAN_AUTHORITY) {
     MetaLog::WriterPtr mml_writer = m_context ? m_context->mml_writer : 0;
-    return make_shared<BalancePlanAuthority>(m_context, mml_writer, header);
+    return std::make_shared<BalancePlanAuthority>(m_context, mml_writer, header);
   }
   else {
     if (header.type == EntityType::OPERATION_INITIALIZE)
-      operation = make_shared<OperationInitialize>(m_context, header);
+      operation = std::make_shared<OperationInitialize>(m_context, header);
     else if (header.type == EntityType::OPERATION_ALTER_TABLE)
-      operation = make_shared<OperationAlterTable>(m_context, header);
+      operation = std::make_shared<OperationAlterTable>(m_context, header);
     else if (header.type == EntityType::OPERATION_CREATE_NAMESPACE)
-      operation = make_shared<OperationCreateNamespace>(m_context, header);
+      operation = std::make_shared<OperationCreateNamespace>(m_context, header);
     else if (header.type == EntityType::OPERATION_DROP_NAMESPACE)
-      operation = make_shared<OperationDropNamespace>(m_context, header);
+      operation = std::make_shared<OperationDropNamespace>(m_context, header);
     else if (header.type == EntityType::OPERATION_CREATE_TABLE)
-      operation = make_shared<OperationCreateTable>(m_context, header);
+      operation = std::make_shared<OperationCreateTable>(m_context, header);
     else if (header.type == EntityType::OPERATION_DROP_TABLE)
-      operation = make_shared<OperationDropTable>(m_context, header);
+      operation = std::make_shared<OperationDropTable>(m_context, header);
     else if (header.type == EntityType::OPERATION_RENAME_TABLE)
-      operation = make_shared<OperationRenameTable>(m_context, header);
+      operation = std::make_shared<OperationRenameTable>(m_context, header);
     else if (header.type == EntityType::OPERATION_MOVE_RANGE)
-      operation = make_shared<OperationMoveRange>(m_context, header);
+      operation = std::make_shared<OperationMoveRange>(m_context, header);
     else if (header.type == EntityType::OPERATION_BALANCE_RETIRED)
       return 0;
     else if (header.type == EntityType::OPERATION_RECOVER_SERVER)
-      operation = make_shared<OperationRecover>(m_context, header);
+      operation = std::make_shared<OperationRecover>(m_context, header);
     else if (header.type == EntityType::OPERATION_RECOVER_SERVER_RANGES)
-      operation = make_shared<OperationRecoverRanges>(m_context, header);
+      operation = std::make_shared<OperationRecoverRanges>(m_context, header);
     else if (header.type == EntityType::OPERATION_BALANCE)
-      operation = make_shared<OperationBalance>(m_context, header);
+      operation = std::make_shared<OperationBalance>(m_context, header);
     else if (header.type == EntityType::OPERATION_COMPACT)
-      operation = make_shared<OperationCompact>(m_context, header);
+      operation = std::make_shared<OperationCompact>(m_context, header);
     else if (header.type == EntityType::OPERATION_SET)
-      operation = make_shared<OperationSetState>(m_context, header);
+      operation = std::make_shared<OperationSetState>(m_context, header);
     else if (header.type == EntityType::OPERATION_TOGGLE_TABLE_MAINTENANCE)
-      operation = make_shared<OperationToggleTableMaintenance>(m_context, header);
+      operation = std::make_shared<OperationToggleTableMaintenance>(m_context, header);
     else if (header.type == EntityType::OPERATION_RECREATE_INDEX_TABLES)
-      operation = make_shared<OperationRecreateIndexTables>(m_context, header);
+      operation = std::make_shared<OperationRecreateIndexTables>(m_context, header);
     else if (header.type == EntityType::SYSTEM_STATE)
-      return make_shared<SystemState>(header);
+      return std::make_shared<SystemState>(header);
     else if (header.type == EntityType::RECOVERED_SERVERS)
-      return make_shared<RecoveredServers>(header);
+      return std::make_shared<RecoveredServers>(header);
   }
 
   if (operation)

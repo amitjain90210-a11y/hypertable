@@ -34,7 +34,7 @@ BalancePlan::BalancePlan(const BalancePlan &other) {
   algorithm = other.algorithm;
   duration_millis = other.duration_millis;
   for (auto & move : other.moves)
-    moves.push_back( make_shared<RangeMoveSpec>(*move) );
+    moves.push_back( std::make_shared<RangeMoveSpec>(*move) );
 }
 
 uint8_t BalancePlan::encoding_version() const {
@@ -92,7 +92,7 @@ void BalancePlan::decode_internal(uint8_t version, const uint8_t **bufp,
   size_t count = Serialization::decode_i32(bufp, remainp);
   moves.reserve(count);
   for (size_t i=0; i<count; i++) {
-    move_spec = make_shared<RangeMoveSpec>();
+    move_spec = std::make_shared<RangeMoveSpec>();
     move_spec->decode(bufp, remainp);
     moves.push_back(move_spec);
   }

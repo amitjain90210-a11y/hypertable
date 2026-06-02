@@ -720,10 +720,10 @@ bool SshSocketHandler::verify_knownhost() {
   size_t hlen {};
   int rc;
 
-  int state = ssh_is_server_known(m_ssh_session);
+  enum ssh_known_hosts_e state = ssh_session_is_known_server(m_ssh_session);
 
   ssh_key key;
-  rc = ssh_get_publickey(m_ssh_session, &key);
+  rc = ssh_get_server_publickey(m_ssh_session, &key);
   if (rc != SSH_OK) {
     m_error = string("unable to obtain public key - ") + ssh_get_error(m_ssh_session);
     return false;
@@ -740,30 +740,30 @@ bool SshSocketHandler::verify_knownhost() {
 
   switch (state) {
 
-  case SSH_SERVER_KNOWN_OK:
+  case SSH_KNOWN_HOSTS_OK:
     break;
 
-  case SSH_SERVER_KNOWN_CHANGED:
+  case SSH_KNOWN_HOSTS_CHANGED:
     m_error = "host key has changed";
     free(hash);
     return false;
 
-  case SSH_SERVER_FOUND_OTHER:
+  case SSH_KNOWN_HOSTS_OTHER:
     m_error = "Key mis-match with one in known_hosts";
     free(hash);
     return false;
 
-  case SSH_SERVER_FILE_NOT_FOUND:
-  case SSH_SERVER_NOT_KNOWN:
+  case SSH_KNOWN_HOSTS_NOT_FOUND:
+  case SSH_KNOWN_HOSTS_UNKNOWN:
 
-    if (ssh_write_knownhost(m_ssh_session) < 0) {
+    if (ssh_session_update_known_hosts(m_ssh_session) != SSH_OK) {
       m_error = "problem writing known hosts file";
       free(hash);
       return false;
     }
     break;
 
-  case SSH_SERVER_ERROR:
+  case SSH_KNOWN_HOSTS_ERROR:
     m_error = ssh_get_error(m_ssh_session);
     return false;
   }

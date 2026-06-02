@@ -95,7 +95,7 @@ namespace Hypertable {
           HT_FATAL("Source file not specified for word stream");
         if (size == -1)
           HT_FATAL("Size not specified for word stream");
-        m_word_stream = make_shared<WordStream>(s, seed, size, order == RANDOM);
+        m_word_stream = std::make_shared<WordStream>(s, seed, size, order == RANDOM);
       }
       else {
 
@@ -237,8 +237,8 @@ namespace Hypertable {
     bool m_keys_only;
     const char *m_value;
     std::string m_qualifier;
-    boost::shared_array<char> m_render_buf;
-    boost::shared_array<const char> m_value_data;
+    std::unique_ptr<char[]> m_render_buf;
+    std::unique_ptr<const char[]> m_value_data;
     const char *m_source;
     off_t m_value_data_len;
     off_t m_first_offset;

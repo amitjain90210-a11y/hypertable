@@ -34,10 +34,10 @@ target_link_libraries(HyperAppHelper Hypertable HyperCommon ${BOOST_LIBS} ${Log4
 # tests
 add_executable(unique_test tests/unique_test.cc)
 target_link_libraries(unique_test HyperAppHelper Hypertable HyperComm HyperCommon)
-add_test(HyperAppHelper-Unique unique_test)
+add_test(NAME HyperAppHelper-Unique COMMAND $<TARGET_FILE:unique_test>)
 add_executable(error_test tests/error_test.cc)
 target_link_libraries(error_test HyperAppHelper HyperCommon)
-add_test(HyperAppHelper-Error error_test)
+add_test(NAME HyperAppHelper-Error COMMAND $<TARGET_FILE:error_test>)
 
 configure_file(${HYPERTABLE_SOURCE_DIR}/conf/hypertable.cfg
                ${DST_DIR}/hypertable.cfg)

@@ -43,7 +43,7 @@ add_custom_command(SOURCE ${HYPERTABLE_SOURCE_DIR}/tests/data/words.gz
 
 set(ADDITIONAL_MAKE_CLEAN_FILES ${DST_DIR}/words)
 
-add_test(HyperFsBroker fsTest)
+add_test(NAME HyperFsBroker COMMAND $<TARGET_FILE:fsTest>)
 
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_fsbroker

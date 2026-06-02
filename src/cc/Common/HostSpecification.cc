@@ -434,5 +434,5 @@ HostSpecification::operator std::vector<std::string>() {
   for (auto & ch : frame_stack.top()->hosts)
     hosts.push_back(ch.name);
 
-  return move(hosts);
+  return hosts;
 }

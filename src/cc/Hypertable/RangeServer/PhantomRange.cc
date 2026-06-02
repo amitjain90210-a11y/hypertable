@@ -46,7 +46,7 @@ PhantomRange::PhantomRange(const QualifiedRangeSpec &spec,
     m_outstanding(fragments.size()), m_state(LOADED) {
   for (int32_t fragment : fragments) {
     HT_ASSERT(m_fragments.count(fragment) == 0);
-    m_fragments[fragment] = make_shared<FragmentData>();
+    m_fragments[fragment] = std::make_shared<FragmentData>();
   }
 }
 
@@ -78,7 +78,7 @@ void PhantomRange::create_range(Lib::Master::ClientPtr &master_client,
         TableInfoPtr &table_info, FilesystemPtr &log_dfs) { 
   lock_guard<mutex> lock(m_mutex);
 
-  m_range = make_shared<Range>(master_client, m_range_spec.table, m_schema,
+  m_range = std::make_shared<Range>(master_client, m_range_spec.table, m_schema,
                                m_range_spec.range, table_info.get(),
                                m_range_state, true);
   m_range->deferred_initialization();
@@ -99,7 +99,7 @@ void PhantomRange::populate_range_and_log(FilesystemPtr &log_dfs,
 
   m_phantom_logname = create_log(log_dfs, recovery_id, metalog_entity);
 
-  CommitLogPtr phantom_log = make_shared<CommitLog>(log_dfs, m_phantom_logname,
+  CommitLogPtr phantom_log = std::make_shared<CommitLog>(log_dfs, m_phantom_logname,
                                            m_range_spec.table.is_metadata());
 
   {
@@ -123,7 +123,7 @@ void PhantomRange::populate_range_and_log(FilesystemPtr &log_dfs,
   HT_INFOF("%s", sout.str().c_str());
 
   // Scan log to load blocks and determine if log is empty
-  m_phantom_log = make_shared<CommitLogReader>(log_dfs, m_phantom_logname);
+  m_phantom_log = std::make_shared<CommitLogReader>(log_dfs, m_phantom_logname);
   BlockHeaderCommitLog header;
   const uint8_t *base;
   size_t len;

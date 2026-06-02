@@ -141,7 +141,7 @@ macro(FIND_BOOST_LIBRARY lib libname libroot required)
 
   find_library(${lib} NO_DEFAULT_PATH
     NAMES ${${lib}_NAMES}
-    PATHS "${libroot}/lib" "${libroot}/lib64" /lib /usr/lib /usr/local/lib /opt/local/lib
+    PATHS "${libroot}/lib" "${libroot}/lib64" /lib /usr/lib /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu /usr/local/lib /opt/local/lib
   )
   if (required AND ${lib} MATCHES "NOTFOUND$")
     message(FATAL_ERROR "required boost library: ${lib} not found")
@@ -190,7 +190,22 @@ if (Boost_INCLUDE_DIR)
                      ${Boost_PARENT} true)
   FIND_BOOST_LIBRARY(BOOST_IOSTREAMS_LIB iostreams ${Boost_PARENT} true)
   FIND_BOOST_LIBRARY(BOOST_FILESYSTEM_LIB filesystem ${Boost_PARENT} true)
-  FIND_BOOST_LIBRARY(BOOST_PYTHON_LIB python ${Boost_PARENT} false)
+  # Modern Debian/Ubuntu names the Boost.Python library with the Python version
+  # (e.g. boost_python312 for Python 3.12). Try versioned names first.
+  if (PYTHON_VERSION)
+    string(REPLACE "." "" PYTHON_VERSION_NODOTS ${PYTHON_VERSION})
+    unset(BOOST_PYTHON_LIB CACHE)
+    find_library(BOOST_PYTHON_LIB NO_DEFAULT_PATH
+      NAMES boost_python${PYTHON_VERSION_NODOTS} boost_python${PYTHON_VERSION_NODOTS}-mt
+            boost_python boost_python-mt
+      PATHS "${Boost_PARENT}/lib" "${Boost_PARENT}/lib64"
+            /lib /usr/lib /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu
+            /usr/local/lib /opt/local/lib
+    )
+    mark_as_advanced(BOOST_PYTHON_LIB)
+  else ()
+    FIND_BOOST_LIBRARY(BOOST_PYTHON_LIB python ${Boost_PARENT} false)
+  endif ()
   FIND_BOOST_LIBRARY(BOOST_CHRONO_LIB chrono ${Boost_PARENT} false)
 
   if(Boost_HAS_SYSTEM_LIB)

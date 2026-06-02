@@ -17,8 +17,11 @@
 #
 
 macro(HT_GET_SONAME var fpath)
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/soname.sh ARGS ${fpath}
-               OUTPUT_VARIABLE SONAME_OUT RETURN_VALUE SONAME_RETURN)
+  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/src-utils/soname.sh ${fpath}
+                  OUTPUT_VARIABLE SONAME_OUT
+                  RESULT_VARIABLE SONAME_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
   set(${var})
 
   if (SONAME_RETURN STREQUAL "0")
@@ -34,8 +37,11 @@ macro(HT_GET_SONAME var fpath)
   endif ()
 
   # check if the library is prelinked, if so, warn
-  exec_program(env ARGS objdump -h ${fpath} OUTPUT_VARIABLE ODH_OUT
-               RETURN_VALUE ODH_RETURN)
+  execute_process(COMMAND env objdump -h ${fpath}
+                  OUTPUT_VARIABLE ODH_OUT
+                  RESULT_VARIABLE ODH_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
   if (ODH_RETURN STREQUAL "0")
     string(REGEX MATCH "prelink_undo" match ${ODH_OUT})
     if (match)
@@ -83,14 +89,20 @@ if (NOT PACKAGE_THRIFTBROKER)
 endif ()
 
 # Need to include some "system" libraries as well
-exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-             ARGS ${CMAKE_BINARY_DIR}/CMakeFiles/CompilerIdCXX/a.out
-             OUTPUT_VARIABLE LDD_OUT RETURN_VALUE LDD_RETURN)
+execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
+                        ${CMAKE_BINARY_DIR}/CMakeFiles/CompilerIdCXX/a.out
+                OUTPUT_VARIABLE LDD_OUT
+                RESULT_VARIABLE LDD_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
 
 if (NOT LDD_RETURN STREQUAL "0")
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-               ARGS ${CMAKE_BINARY_DIR}/CMakeFiles/${CMAKE_VERSION}/CompilerIdCXX/a.out
-               OUTPUT_VARIABLE LDD_OUT RETURN_VALUE LDD_RETURN)
+  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
+                          ${CMAKE_BINARY_DIR}/CMakeFiles/${CMAKE_VERSION}/CompilerIdCXX/a.out
+                  OUTPUT_VARIABLE LDD_OUT
+                  RESULT_VARIABLE LDD_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
 endif ()
 
 if (HT_CMAKE_DEBUG)

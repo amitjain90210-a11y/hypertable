@@ -85,7 +85,7 @@ Master::Client::Client(ConnectionManagerPtr &conn_mgr,
     m_timeout_ms(timeout_ms), m_toplevel_dir(toplevel_dir) {
 
   m_comm = m_conn_manager->get_comm();
-  memset(&m_master_addr, 0, sizeof(m_master_addr));
+  m_master_addr = InetAddr();
 
   m_retry_interval = Config::properties->get_i32("Hypertable.Connection.Retry.Interval");
   m_verbose = Config::get_bool("verbose");
@@ -93,7 +93,7 @@ Master::Client::Client(ConnectionManagerPtr &conn_mgr,
   /**
    * Open toplevel_dir + /master Hyperspace file to discover the master.
    */
-  m_master_file_callback = make_shared<HyperspaceCallback>(this, m_app_queue);
+  m_master_file_callback = std::make_shared<HyperspaceCallback>(this, m_app_queue);
 
   // register hyperspace session callback
   m_hyperspace_session_callback.m_client = this;

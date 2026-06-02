@@ -60,7 +60,7 @@ namespace Hypertable {
     uint16_t  compression_type;
     uint16_t  version;
 
-    boost::any get(const String& prop) {
+    std::any get(const String& prop) {
       if     (prop == "version")                return version;
       else if (prop == "fix_index_offset")      return fix_index_offset;
       else if (prop == "var_index_offset")      return var_index_offset;
@@ -77,7 +77,7 @@ namespace Hypertable {
       else if (prop == "compression_ratio")     return compression_ratio;
       else if (prop == "compression_type")      return compression_type;
       else if (prop == "bloom_filter_mode")     return BLOOM_FILTER_DISABLED;
-      else                                      return boost::any();
+      else                                      return std::any();
     }
 
   };

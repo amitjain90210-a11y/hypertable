@@ -20,8 +20,11 @@
 # This module defines
 #  PYTHONTHRIFT_FOUND, If false, do not try to use ant
 
-exec_program(env ARGS python -c'import thrift' OUTPUT_VARIABLE PYTHONTHRIFT_OUT
-             RETURN_VALUE PYTHONTHRIFT_RETURN)
+execute_process(COMMAND env python3 -c "import thrift"
+                OUTPUT_VARIABLE PYTHONTHRIFT_OUT
+                RESULT_VARIABLE PYTHONTHRIFT_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
 
 if (PYTHONTHRIFT_RETURN STREQUAL "0")
   set(PYTHONTHRIFT_FOUND TRUE)

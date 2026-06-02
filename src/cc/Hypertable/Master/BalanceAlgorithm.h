@@ -32,6 +32,7 @@ namespace Hypertable {
 
   class BalanceAlgorithm {
   public:
+    virtual ~BalanceAlgorithm() = default;
     virtual void compute_plan(BalancePlanPtr &plan,
                               std::vector<RangeServerConnectionPtr> &balanced) = 0;
 

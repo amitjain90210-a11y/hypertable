@@ -46,16 +46,16 @@ namespace Hypertable {
     void init_from_trailer() {
 
       try {
-        m_divisor = (boost::any_cast<uint32_t>(cs->get_trailer()->get("flags")) & CellStoreTrailerV6::SPLIT) ? 2 : 1;
+        m_divisor = (std::any_cast<uint32_t>(cs->get_trailer()->get("flags")) & CellStoreTrailerV6::SPLIT) ? 2 : 1;
       }
       catch (std::exception &e) {
         m_divisor = 1;
       }
 
       try {
-        cell_count = boost::any_cast<int64_t>(cs->get_trailer()->get("total_entries")) / m_divisor;
-        timestamp_min = boost::any_cast<int64_t>(cs->get_trailer()->get("timestamp_min"));
-        timestamp_max = boost::any_cast<int64_t>(cs->get_trailer()->get("timestamp_max"));
+        cell_count = std::any_cast<int64_t>(cs->get_trailer()->get("total_entries")) / m_divisor;
+        timestamp_min = std::any_cast<int64_t>(cs->get_trailer()->get("timestamp_min"));
+        timestamp_max = std::any_cast<int64_t>(cs->get_trailer()->get("timestamp_max"));
       }
       catch (std::exception &e) {
         cell_count = 0;
@@ -63,8 +63,8 @@ namespace Hypertable {
         timestamp_max = TIMESTAMP_MIN;
       }
       try {
-        key_bytes = boost::any_cast<int64_t>(cs->get_trailer()->get("key_bytes")) / m_divisor;
-        value_bytes = boost::any_cast<int64_t>(cs->get_trailer()->get("value_bytes")) /m_divisor;
+        key_bytes = std::any_cast<int64_t>(cs->get_trailer()->get("key_bytes")) / m_divisor;
+        value_bytes = std::any_cast<int64_t>(cs->get_trailer()->get("value_bytes")) /m_divisor;
       }
       catch (std::exception &e) {
         key_bytes = value_bytes = 0;
@@ -73,7 +73,7 @@ namespace Hypertable {
 
     int64_t expirable_data() {
       try {
-        return boost::any_cast<int64_t>(cs->get_trailer()->get("expirable_data")) / m_divisor;
+        return std::any_cast<int64_t>(cs->get_trailer()->get("expirable_data")) / m_divisor;
       }
       catch (std::exception &e) {
         return 0;
@@ -82,7 +82,7 @@ namespace Hypertable {
 
     int64_t delete_count() {
       try {
-        return boost::any_cast<int64_t>(cs->get_trailer()->get("delete_count")) / m_divisor;
+        return std::any_cast<int64_t>(cs->get_trailer()->get("delete_count")) / m_divisor;
       }
       catch (std::exception &e) {
         return 0;

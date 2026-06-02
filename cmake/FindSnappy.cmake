@@ -36,6 +36,8 @@ find_library(SNAPPY_LIBRARY NAMES ${SNAPPY_NAMES} NO_DEFAULT_PATH PATHS
     /usr/local/lib
     /opt/local/lib
     /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    /usr/lib/aarch64-linux-gnu
     )
 
 if (SNAPPY_INCLUDE_DIR AND SNAPPY_LIBRARY)

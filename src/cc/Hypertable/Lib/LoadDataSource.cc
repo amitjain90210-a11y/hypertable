@@ -133,7 +133,7 @@ String LoadDataSource::get_header() {
         HT_THROWF(Error::HQL_BAD_LOAD_FILE_FORMAT,
                   "Untable to autodetect format, expected 2 or 3 tabs, "
                   "got %d", (int)tabs);
-        m_first_line_cached = true;
+      m_first_line_cached = true;
     }
   }
 

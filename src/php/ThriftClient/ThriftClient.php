@@ -20,30 +20,34 @@
 # 02110-1301, USA.
 #
 
-//$GLOBALS['THRIFT_ROOT'] = '/Users/luke/Source/thrift/lib/php/src';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/Exception/TException.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/Factory/TStringFuncFactory.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/Protocol/TBinaryProtocol.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/StringFunc/TStringFunc.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/StringFunc/Core.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/Transport/TSocket.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/Transport/TFramedTransport.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/Type/TMessageType.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/Thrift/Type/TType.php';
+$thriftLibDir = '/usr/lib/php';
+$genPhpDir = $GLOBALS['THRIFT_ROOT'] . '/gen-php';
 
-/**
- * Suppress errors in here, which happen because we have not installed into
- * $GLOBALS['THRIFT_ROOT'].'/packages/tutorial' like they assume!
- *
- * Normally we would only have to include HqlService.php which would properly
- * include the other files from their packages/ folder locations, but we
- * include everything here due to the bogus path setup.
- */
-require_once $GLOBALS['THRIFT_ROOT'].'/gen-php/Hypertable_ThriftGen/ClientService.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/gen-php/Hypertable_ThriftGen/Types.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/gen-php/Hypertable_ThriftGen2/HqlService.php';
-require_once $GLOBALS['THRIFT_ROOT'].'/gen-php/Hypertable_ThriftGen2/Types.php';
+spl_autoload_register(function ($class) use ($thriftLibDir, $genPhpDir) {
+  if (strpos($class, 'Thrift\\') === 0) {
+    $relative = substr($class, strlen('Thrift\\'));
+    $file = $thriftLibDir . '/' . str_replace('\\', '/', $relative) . '.php';
+    if (file_exists($file)) {
+      require_once $file;
+      return true;
+    }
+  } elseif (strpos($class, 'Hypertable_ThriftGen2\\') === 0) {
+    $base = substr($class, strlen('Hypertable_ThriftGen2\\'));
+    $file = $genPhpDir . '/Hypertable_ThriftGen2/' . $base . '.php';
+    if (file_exists($file)) {
+      require_once $file;
+      return true;
+    }
+  } elseif (strpos($class, 'Hypertable_ThriftGen\\') === 0) {
+    $base = substr($class, strlen('Hypertable_ThriftGen\\'));
+    $file = $genPhpDir . '/Hypertable_ThriftGen/' . $base . '.php';
+    if (file_exists($file)) {
+      require_once $file;
+      return true;
+    }
+  }
+  return false;
+});
 
 use Thrift\Transport\TSocket;
 use Thrift\Transport\TFramedTransport;

@@ -75,7 +75,7 @@ Range::Range(Lib::Master::ClientPtr &master_client,
     m_hints_file(identifier.id, range.start_row, range.end_row),
     m_schema(schema), m_range_set(range_set),
     m_load_metrics(identifier.id, range.start_row, range.end_row) {
-  m_metalog_entity = make_shared<MetaLogEntityRange>(identifier, range, state, needs_compaction);
+  m_metalog_entity = std::make_shared<MetaLogEntityRange>(identifier, range, state, needs_compaction);
   initialize();
 }
 
@@ -98,7 +98,9 @@ void Range::initialize() {
 
   m_metalog_entity->get_table_identifier(m_table);
 
-  m_name = format("%s[%s..%s]", m_table.id, start_row.c_str(), end_row.c_str());
+  m_name = format("%s[%s..%s]", m_table.id,
+                  format_row_key(start_row.c_str()).c_str(),
+                  format_row_key(end_row.c_str()).c_str());
 
   m_is_metadata = m_table.is_metadata();
 
@@ -165,7 +167,7 @@ void Range::initialize() {
     std::map<String, const AccessGroup::Hints *>::iterator iter = hints_map.find(ag_spec->get_name());
     if (iter != hints_map.end())
       h = iter->second;
-    ag = make_shared<AccessGroup>(&m_table, m_schema, ag_spec, &range_spec, h);
+    ag = std::make_shared<AccessGroup>(&m_table, m_schema, ag_spec, &range_spec, h);
     m_access_group_map[ag_spec->get_name()] = ag;
     m_access_group_vector.push_back(ag);
 
@@ -365,7 +367,7 @@ void Range::load_cell_stores() {
                   Error::get_text(e.code()));
       }
 
-      int64_t revision = boost::any_cast<int64_t>
+      int64_t revision = std::any_cast<int64_t>
         (cellstore->get_trailer()->get("revision"));
       if (revision > m_latest_revision)
         m_latest_revision = revision;
@@ -423,7 +425,7 @@ void Range::update_schema(SchemaPtr &schema) {
     RangeSpecManaged range_spec;
     m_metalog_entity->get_range_spec(range_spec);
     for (auto ag_spec : new_access_groups) {
-      ag = make_shared<AccessGroup>(&m_table, schema, ag_spec, &range_spec);
+      ag = std::make_shared<AccessGroup>(&m_table, schema, ag_spec, &range_spec);
       m_access_group_map[ag_spec->get_name()] = ag;
       m_access_group_vector.push_back(ag);
       for (auto cf_spec : ag_spec->columns()) {
@@ -566,7 +568,7 @@ Range::get_maintenance_data(ByteArena &arena, time_t now,
   int64_t size=0;
   int64_t starting_maintenance_generation;
 
-  memset(mdata, 0, sizeof(MaintenanceData));
+  *mdata = MaintenanceData{};
 
   {
     lock_guard<mutex> lock(m_schema_mutex);
@@ -762,7 +764,7 @@ void Range::relinquish_install_log() {
   {
     Barrier::ScopedActivator block_updates(m_update_barrier);
     lock_guard<mutex> lock(m_mutex);
-    m_transfer_log = make_shared<CommitLog>(Global::dfs, logname, !m_table.is_user());
+    m_transfer_log = std::make_shared<CommitLog>(Global::dfs, logname, !m_table.is_user());
     for (size_t i=0; i<ag_vector.size(); i++)
       ag_vector[i]->stage_compaction();
   }
@@ -858,7 +860,7 @@ void Range::relinquish_finalize() {
 
   // Add acknowledge relinquish task
   MetaLog::EntityTaskPtr acknowledge_relinquish_task =
-    make_shared<MetaLog::EntityTaskAcknowledgeRelinquish>(m_metalog_entity->get_source(),
+    std::make_shared<MetaLog::EntityTaskAcknowledgeRelinquish>(m_metalog_entity->get_source(),
                                                           m_metalog_entity->id(),
 							  table_frozen, range_spec);
   entities.push_back(acknowledge_relinquish_task);
@@ -1076,7 +1078,7 @@ void Range::split_install_log() {
     m_split_row = split_row;
     for (size_t i=0; i<ag_vector.size(); i++)
       ag_vector[i]->stage_compaction();
-    m_transfer_log = make_shared<CommitLog>(Global::dfs, logname, !m_table.is_user());
+    m_transfer_log = std::make_shared<CommitLog>(Global::dfs, logname, !m_table.is_user());
   }
 
   HT_MAYBE_FAIL("split-1");
@@ -1249,7 +1251,7 @@ void Range::split_compact_and_shrink() {
 
     m_load_metrics.change_rows(start_row, end_row);
 
-    m_name = String(m_table.id)+"["+start_row+".."+end_row+"]";
+    m_name = String(m_table.id)+"["+format_row_key(start_row.c_str())+".."+format_row_key(end_row.c_str())+"]";
     for (size_t i=0; i<ag_vector.size(); i++)
       ag_vector[i]->shrink(split_row, m_split_off_high, &hints[i]);
 
@@ -1393,7 +1395,7 @@ void Range::split_notify_master() {
 
   // Add acknowledge relinquish task
   acknowledge_relinquish_task = 
-    make_shared<MetaLog::EntityTaskAcknowledgeRelinquish>(m_metalog_entity->get_source(),
+    std::make_shared<MetaLog::EntityTaskAcknowledgeRelinquish>(m_metalog_entity->get_source(),
                                                           m_metalog_entity->id(),
 							  table_frozen, range);
   entities.push_back(acknowledge_relinquish_task);
@@ -1579,13 +1581,13 @@ void Range::recovery_finalize() {
       (state & RangeState::RELINQUISH_LOG_INSTALLED)
       == RangeState::RELINQUISH_LOG_INSTALLED) {
     CommitLogReaderPtr commit_log_reader =
-      make_shared<CommitLogReader>(Global::dfs, m_metalog_entity->get_transfer_log());
+      std::make_shared<CommitLogReader>(Global::dfs, m_metalog_entity->get_transfer_log());
 
     replay_transfer_log(commit_log_reader.get());
 
     commit_log_reader = 0;
 
-    m_transfer_log = make_shared<CommitLog>(Global::dfs, m_metalog_entity->get_transfer_log(),
+    m_transfer_log = std::make_shared<CommitLog>(Global::dfs, m_metalog_entity->get_transfer_log(),
                                    !m_table.is_user());
 
     // re-initiate compaction

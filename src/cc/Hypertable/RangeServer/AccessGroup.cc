@@ -42,6 +42,7 @@
 #include <Common/DynamicBuffer.h>
 #include <Common/Error.h>
 #include <Common/FailureInducer.h>
+#include <Common/StringExt.h>
 #include <Common/md5.h>
 
 #include <algorithm>
@@ -58,14 +59,14 @@ AccessGroup::AccessGroup(const TableIdentifier *identifier,
                          SchemaPtr &schema, AccessGroupSpec *ag_spec,
                          const RangeSpec *range, const Hints *hints)
   : m_identifier(*identifier), m_schema(schema), m_name(ag_spec->get_name()),
-    m_cell_cache_manager {make_shared<CellCacheManager>()},
+    m_cell_cache_manager {std::make_shared<CellCacheManager>()},
     m_file_tracker(identifier, schema, range, ag_spec->get_name()),
     m_garbage_tracker(Config::properties, m_cell_cache_manager, ag_spec) {
 
   m_table_name = m_identifier.id;
   m_start_row = range->start_row;
   m_end_row = range->end_row;
-  m_range_name = m_table_name + "[" + m_start_row + ".." + m_end_row + "]";
+  m_range_name = m_table_name + "[" + format_row_key(m_start_row.c_str()) + ".." + format_row_key(m_end_row.c_str()) + "]";
   m_full_name = m_range_name + "(" + m_name + ")";
 
   range_dir_initialize();
@@ -105,7 +106,7 @@ void AccessGroup::update_schema(SchemaPtr &schema,
 
     m_garbage_tracker.update_schema(ag_spec);
 
-    m_cellstore_props = make_shared<Properties>();
+    m_cellstore_props = std::make_shared<Properties>();
     m_cellstore_props->set("compressor", ag_spec->get_option_compressor());
     m_cellstore_props->set("blocksize", ag_spec->get_option_blocksize());
     if (ag_spec->get_option_replication() != -1)
@@ -213,7 +214,7 @@ MergeScannerAccessGroup *AccessGroup::create_scanner(ScanContext *scan_ctx) {
             scan_ctx->time_interval.second < m_stores[i].timestamp_min)
           continue;
 
-        bloom_filter_disabled = boost::any_cast<uint8_t>(m_stores[i].cs->get_trailer()->get("bloom_filter_mode")) == BLOOM_FILTER_DISABLED;
+        bloom_filter_disabled = std::any_cast<uint8_t>(m_stores[i].cs->get_trailer()->get("bloom_filter_mode")) == BLOOM_FILTER_DISABLED;
 
         initial_bytes_read = m_stores[i].cs->bytes_read();
 
@@ -372,7 +373,10 @@ AccessGroup::get_maintenance_data(ByteArena &arena, time_t now, int flags) {
   mdata->disk_used = m_disk_usage;
   int64_t du = m_in_memory ? 0 : m_disk_usage;
   mdata->disk_estimate = du + (int64_t)(m_compression_ratio * (float)mdata->mem_used);
-  mdata->outstanding_scanners = m_outstanding_scanner_count;
+  {
+    lock_guard<mutex> scanner_lock(m_outstanding_scanner_mutex);
+    mdata->outstanding_scanners = m_outstanding_scanner_count;
+  }
   mdata->in_memory = m_in_memory;
 
   CellStoreMaintenanceData **tailp = 0;
@@ -436,14 +440,14 @@ AccessGroup::get_maintenance_data(ByteArena &arena, time_t now, int flags) {
 void AccessGroup::load_cellstore(CellStorePtr &cellstore) {
 
   // Record the latest stored revision
-  int64_t revision = boost::any_cast<int64_t>
+  int64_t revision = std::any_cast<int64_t>
     (cellstore->get_trailer()->get("revision"));
   if (revision > m_latest_stored_revision)
     m_latest_stored_revision = revision;
 
   if (m_in_memory) {
     HT_ASSERT(m_stores.empty());
-    ScanContextPtr scan_ctx = make_shared<ScanContext>(m_schema);
+    ScanContextPtr scan_ctx = std::make_shared<ScanContext>(m_schema);
     CellListScannerPtr scanner = cellstore->create_scanner(scan_ctx.get());
     m_cell_cache_manager->add(scanner);
   }
@@ -456,9 +460,9 @@ void AccessGroup::load_cellstore(CellStorePtr &cellstore) {
 }
 
 void AccessGroup::measure_garbage(double *total, double *garbage) {
-  ScanContextPtr scan_ctx = make_shared<ScanContext>(m_schema);
+  ScanContextPtr scan_ctx = std::make_shared<ScanContext>(m_schema);
   MergeScannerAccessGroupPtr mscanner 
-    = make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get());
+    = std::make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get());
   ByteString value;
   Key key;
 
@@ -580,7 +584,7 @@ void AccessGroup::run_compaction(int maintenance_flags, Hints *hints) {
 
     {
       lock_guard<mutex> lock(m_mutex);
-      scan_ctx = make_shared<ScanContext>(m_schema);
+      scan_ctx = std::make_shared<ScanContext>(m_schema);
 
       cs_file = format("%s/tables/%s/%s/%s/cs%d",
                        Global::toplevel_dir.c_str(),
@@ -615,19 +619,19 @@ void AccessGroup::run_compaction(int maintenance_flags, Hints *hints) {
         }
       }
 
-      cellstore = make_shared<CellStoreV7>(Global::dfs.get(), m_schema);
+      cellstore = std::make_shared<CellStoreV7>(Global::dfs.get(), m_schema);
 
       max_num_entries = m_cell_cache_manager->immutable_items();
 
       if (m_in_memory) {
-        mscanner = make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get(),
+        mscanner = std::make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get(),
                                                         MergeScannerAccessGroup::IS_COMPACTION |
                                                         MergeScannerAccessGroup::ACCUMULATE_COUNTERS);
         m_cell_cache_manager->add_immutable_scanner(mscanner.get(), scan_ctx.get());
-        filtered_cache = make_shared<CellCache>();
+        filtered_cache = std::make_shared<CellCache>();
       }
       else if (merging) {
-        mscanner = make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get(),
+        mscanner = std::make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get(),
                                                              MergeScannerAccessGroup::IS_COMPACTION |
                                                              MergeScannerAccessGroup::RETURN_DELETES);
         // If we're merging up to the end of the vector of stores, add in the cell cache
@@ -640,21 +644,21 @@ void AccessGroup::run_compaction(int maintenance_flags, Hints *hints) {
         for (size_t i=merge_offset; i<merge_offset+merge_length; i++) {
           HT_ASSERT(m_stores[i].cs);
           mscanner->add_scanner(m_stores[i].cs->create_scanner(scan_ctx.get()));
-          int divisor = (boost::any_cast<uint32_t>(m_stores[i].cs->get_trailer()->get("flags")) & CellStoreTrailerV7::SPLIT) ? 2: 1;
-          max_num_entries += (boost::any_cast<int64_t>
+          int divisor = (std::any_cast<uint32_t>(m_stores[i].cs->get_trailer()->get("flags")) & CellStoreTrailerV7::SPLIT) ? 2: 1;
+          max_num_entries += (std::any_cast<int64_t>
               (m_stores[i].cs->get_trailer()->get("total_entries")))/divisor;
         }
       }
       else if (major) {
-        mscanner = make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get(), 
+        mscanner = std::make_shared<MergeScannerAccessGroup>(m_table_name, scan_ctx.get(), 
                                                         MergeScannerAccessGroup::IS_COMPACTION |
                                                         MergeScannerAccessGroup::ACCUMULATE_COUNTERS);
         m_cell_cache_manager->add_immutable_scanner(mscanner.get(), scan_ctx.get());
         for (size_t i=0; i<m_stores.size(); i++) {
           HT_ASSERT(m_stores[i].cs);
           mscanner->add_scanner(m_stores[i].cs->create_scanner(scan_ctx.get()));
-          int divisor = (boost::any_cast<uint32_t>(m_stores[i].cs->get_trailer()->get("flags")) & CellStoreTrailerV7::SPLIT) ? 2: 1;
-          max_num_entries += (boost::any_cast<int64_t>
+          int divisor = (std::any_cast<uint32_t>(m_stores[i].cs->get_trailer()->get("flags")) & CellStoreTrailerV7::SPLIT) ? 2: 1;
+          max_num_entries += (std::any_cast<int64_t>
               (m_stores[i].cs->get_trailer()->get("total_entries")))/divisor;
         }
       }
@@ -778,7 +782,7 @@ void AccessGroup::run_compaction(int maintenance_flags, Hints *hints) {
 
       // If compaction included CellCache, recompute latest stored revision
       if (!merging || m_end_merge) {
-        m_latest_stored_revision = boost::any_cast<int64_t>
+        m_latest_stored_revision = std::any_cast<int64_t>
           (cellstore->get_trailer()->get("revision"));
         if (m_latest_stored_revision >= m_earliest_cached_revision)
           HT_ERROR("Revision (clock) skew detected! May result in data loss.");
@@ -866,7 +870,7 @@ String AccessGroup::describe() {
 
 void AccessGroup::purge_stored_cells_from_cache() {
   lock_guard<mutex> lock(m_mutex);
-  ScanContextPtr scan_ctx = make_shared<ScanContext>(m_schema);
+  ScanContextPtr scan_ctx = std::make_shared<ScanContext>(m_schema);
   Key key;
   ByteString value;
 
@@ -874,7 +878,7 @@ void AccessGroup::purge_stored_cells_from_cache() {
   m_earliest_cached_revision = TIMESTAMP_MAX;
 
   CellCachePtr old_cell_cache = m_cell_cache_manager->active_cache();
-  m_cell_cache_manager->install_new_active_cache(make_shared<CellCache>());
+  m_cell_cache_manager->install_new_active_cache(std::make_shared<CellCache>());
   
   lock_guard<CellCacheManager> ccm_lock(*m_cell_cache_manager);
   
@@ -898,7 +902,7 @@ void AccessGroup::purge_stored_cells_from_cache() {
 void
 AccessGroup::shrink(String &split_row, bool drop_high, Hints *hints) {
   lock_guard<mutex> lock(m_mutex);
-  ScanContextPtr scan_ctx = make_shared<ScanContext>(m_schema);
+  ScanContextPtr scan_ctx = std::make_shared<ScanContext>(m_schema);
   ByteString key;
   ByteString value;
   Key key_comps;
@@ -924,12 +928,12 @@ AccessGroup::shrink(String &split_row, bool drop_high, Hints *hints) {
     else
       m_start_row = split_row;
 
-    m_range_name = m_table_name + "[" + m_start_row + ".." + m_end_row + "]";
+    m_range_name = m_table_name + "[" + format_row_key(m_start_row.c_str()) + ".." + format_row_key(m_end_row.c_str()) + "]";
     m_full_name = m_range_name + "(" + m_name + ")";
 
     m_file_tracker.change_range(m_start_row, m_end_row);
 
-    m_cell_cache_manager->install_new_active_cache(make_shared<CellCache>());
+    m_cell_cache_manager->install_new_active_cache(std::make_shared<CellCache>());
     {
       lock_guard<CellCacheManager> ccm_lock(*m_cell_cache_manager);
 

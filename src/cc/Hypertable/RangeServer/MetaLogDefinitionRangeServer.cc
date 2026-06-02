@@ -44,15 +44,15 @@ const char *DefinitionRangeServer::name() {
 EntityPtr DefinitionRangeServer::create(const EntityHeader &header) {
 
   if (header.type == EntityType::RANGE)
-    return make_shared<MetaLogEntityRange>(header);
+    return std::make_shared<MetaLogEntityRange>(header);
   else if (header.type == EntityType::RANGE2)
-    return make_shared<MetaLogEntityRange>(header);
+    return std::make_shared<MetaLogEntityRange>(header);
   else if (header.type == EntityType::TASK_REMOVE_TRANSFER_LOG)
     return EntityPtr();  // no longer used
   else if (header.type == EntityType::TASK_ACKNOWLEDGE_RELINQUISH)
-    return make_shared<EntityTaskAcknowledgeRelinquish>(header);
+    return std::make_shared<EntityTaskAcknowledgeRelinquish>(header);
   else if (header.type == EntityType::REMOVE_OK_LOGS)
-    return make_shared<MetaLogEntityRemoveOkLogs>(header);
+    return std::make_shared<MetaLogEntityRemoveOkLogs>(header);
 
   HT_THROWF(Error::METALOG_ENTRY_BAD_TYPE,
             "Unrecognized type (%d) encountered in rsml",

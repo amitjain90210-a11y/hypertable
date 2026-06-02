@@ -119,7 +119,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   m_context->props = props;
   m_context->comm = conn_mgr->get_comm();
   m_context->server_state = std::make_shared<ServerState>();
-  m_context->live_map = make_shared<TableInfoMap>();
+  m_context->live_map = std::make_shared<TableInfoMap>();
 
   m_log_replay_barrier = std::make_shared<LogReplayBarrier>();
 
@@ -180,11 +180,11 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
 
   int64_t interval = (int64_t)cfg.get_i32("Maintenance.Interval");
 
-  Global::load_statistics = make_shared<LoadStatistics>(interval);
+  Global::load_statistics = std::make_shared<LoadStatistics>(interval);
 
-  m_stats = make_shared<StatsRangeServer>(m_props);
+  m_stats = std::make_shared<StatsRangeServer>(m_props);
 
-  m_namemap = make_shared<NameIdMapper>(m_hyperspace, Global::toplevel_dir);
+  m_namemap = std::make_shared<NameIdMapper>(m_hyperspace, Global::toplevel_dir);
 
   m_scanner_ttl = (time_t)cfg.get_i32("Scanner.Ttl");
 
@@ -292,13 +292,13 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
     Global::log_dfs = Global::dfs;
 
   // Create the maintenance queue
-  Global::maintenance_queue = make_shared<MaintenanceQueue>(maintenance_threads);
+  Global::maintenance_queue = std::make_shared<MaintenanceQueue>(maintenance_threads);
 
   /**
    * Listen for incoming connections
    */
   ConnectionHandlerFactoryPtr chfp =
-    make_shared<HandlerFactory>(m_context->comm, m_app_queue, RangeServerPtr(this));
+    std::make_shared<HandlerFactory>(m_context->comm, m_app_queue, RangeServerPtr(this));
 
   InetAddr listen_addr(INADDR_ANY, port);
   try {
@@ -310,7 +310,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
     quick_exit(EXIT_SUCCESS);
   }
 
-  Global::location_initializer = make_shared<LocationInitializer>(m_context);
+  Global::location_initializer = std::make_shared<LocationInitializer>(m_context);
 
   if(Global::location_initializer->is_removed(Global::toplevel_dir+"/servers", m_hyperspace)) {
     HT_ERROR_OUT << "location " << Global::location_initializer->get()
@@ -321,10 +321,10 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   // Create Master client
   int timeout = props->get_i32("Hypertable.Request.Timeout");
   m_master_connection_handler
-    = make_shared<ConnectionHandler>(m_context->comm, m_app_queue, this);
+    = std::make_shared<ConnectionHandler>(m_context->comm, m_app_queue, this);
   ApplicationQueueInterfacePtr aq = Global::app_queue;
   m_master_client =
-    make_shared<Lib::Master::Client>(m_conn_manager, m_hyperspace,
+    std::make_shared<Lib::Master::Client>(m_conn_manager, m_hyperspace,
                                      Global::toplevel_dir, timeout, aq,
                                      m_master_connection_handler,
                                      Global::location_initializer);
@@ -359,7 +359,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
                                            m_context->live_map);
 
   // Install maintenance timer
-  m_timer_handler = make_shared<TimerHandler>(m_context->comm, this);
+  m_timer_handler = std::make_shared<TimerHandler>(m_context->comm, this);
 
   local_recover();
 
@@ -595,7 +595,7 @@ namespace {
 
 void Apps::RangeServer::local_recover() {
   MetaLog::DefinitionPtr rsml_definition =
-    make_shared<MetaLog::DefinitionRangeServer>(Global::location_initializer->get().c_str());
+    std::make_shared<MetaLog::DefinitionRangeServer>(Global::location_initializer->get().c_str());
   MetaLog::ReaderPtr rsml_reader;
   CommitLogReaderPtr root_log_reader;
   CommitLogReaderPtr system_log_reader;
@@ -604,13 +604,13 @@ void Apps::RangeServer::local_recover() {
   Ranges ranges;
   std::vector<MetaLog::EntityPtr> entities, stripped_entities;
   StringSet transfer_logs;
-  TableInfoMap replay_map(make_shared<HyperspaceTableCache>(m_hyperspace, Global::toplevel_dir));
+  TableInfoMap replay_map(std::make_shared<HyperspaceTableCache>(m_hyperspace, Global::toplevel_dir));
   int priority = 0;
   String rsml_dir = Global::log_dir + "/" + rsml_definition->name();
 
   try {
     rsml_reader = 
-      make_shared<MetaLog::Reader>(Global::log_dfs, rsml_definition, rsml_dir);
+      std::make_shared<MetaLog::Reader>(Global::log_dfs, rsml_definition, rsml_dir);
   }
   catch (Exception &e) {
     HT_FATALF("Problem reading RSML %s:  %s - %s", rsml_dir.c_str(),
@@ -673,7 +673,7 @@ void Apps::RangeServer::local_recover() {
       entities.swap(stripped_entities);
 
       Global::rsml_writer =
-        make_shared<MetaLog::Writer>(Global::log_dfs, rsml_definition,
+        std::make_shared<MetaLog::Writer>(Global::log_dfs, rsml_definition,
                                      Global::log_dir + "/" + rsml_definition->name(),
                                      entities);
 
@@ -690,7 +690,7 @@ void Apps::RangeServer::local_recover() {
       }
 
       if (!replay_map.empty()) {
-        root_log_reader = make_shared<CommitLogReader>(Global::log_dfs,
+        root_log_reader = std::make_shared<CommitLogReader>(Global::log_dfs,
                                               Global::log_dir + "/root");
         replay_log(replay_map, root_log_reader);
 
@@ -714,7 +714,7 @@ void Apps::RangeServer::local_recover() {
       m_context->live_map->merge(&replay_map);
 
       if (root_log_reader)
-        Global::root_log = make_shared<CommitLog>(Global::log_dfs, Global::log_dir
+        Global::root_log = std::make_shared<CommitLog>(Global::log_dfs, Global::log_dir
                                          + "/root", m_props, root_log_reader.get());
 
       m_log_replay_barrier->set_root_complete();
@@ -740,7 +740,7 @@ void Apps::RangeServer::local_recover() {
 
       if (!replay_map.empty()) {
         metadata_log_reader =
-          make_shared<CommitLogReader>(Global::log_dfs, Global::log_dir + "/metadata");
+          std::make_shared<CommitLogReader>(Global::log_dfs, Global::log_dir + "/metadata");
 
         replay_log(replay_map, metadata_log_reader);
 
@@ -764,11 +764,11 @@ void Apps::RangeServer::local_recover() {
       m_context->live_map->merge(&replay_map);
 
       if (root_log_reader || metadata_log_reader) {
-        Global::metadata_log = make_shared<CommitLog>(Global::log_dfs,
+        Global::metadata_log = std::make_shared<CommitLog>(Global::log_dfs,
                                              Global::log_dir + "/metadata",
                                              m_props, metadata_log_reader.get());
         m_update_pipeline_metadata =
-          make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+          std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                       Global::metadata_log, m_log_flush_method_meta);
       }
 
@@ -794,7 +794,7 @@ void Apps::RangeServer::local_recover() {
 
       if (!replay_map.empty()) {
         system_log_reader =
-          make_shared<CommitLogReader>(Global::log_dfs, Global::log_dir + "/system");
+          std::make_shared<CommitLogReader>(Global::log_dfs, Global::log_dir + "/system");
 
         replay_log(replay_map, system_log_reader);
 
@@ -820,11 +820,11 @@ void Apps::RangeServer::local_recover() {
       // Create system log and wake up anybody waiting for system replay to
       // complete
       if (system_log_reader) {
-        Global::system_log = make_shared<CommitLog>(Global::log_dfs,
+        Global::system_log = std::make_shared<CommitLog>(Global::log_dfs,
                                            Global::log_dir + "/system", m_props,
                                            system_log_reader.get());
         m_update_pipeline_system =
-          make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+          std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                       Global::system_log, m_log_flush_method_user);
       }
 
@@ -852,7 +852,7 @@ void Apps::RangeServer::local_recover() {
       }
 
       if (!replay_map.empty()) {
-        user_log_reader = make_shared<CommitLogReader>(Global::log_dfs,
+        user_log_reader = std::make_shared<CommitLogReader>(Global::log_dfs,
                                               Global::log_dir + "/user");
 
         replay_log(replay_map, user_log_reader);
@@ -877,11 +877,11 @@ void Apps::RangeServer::local_recover() {
 
       m_context->live_map->merge(&replay_map);
 
-      Global::user_log = make_shared<CommitLog>(Global::log_dfs, Global::log_dir
+      Global::user_log = std::make_shared<CommitLog>(Global::log_dfs, Global::log_dir
                                        + "/user", m_props, user_log_reader.get(), false);
 
       m_update_pipeline_user =
-        make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+        std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                     Global::user_log, m_log_flush_method_user);
 
       m_log_replay_barrier->set_user_complete();
@@ -904,34 +904,34 @@ void Apps::RangeServer::local_recover() {
        */
 
       if (root_log_reader)
-        Global::root_log = make_shared<CommitLog>(Global::log_dfs, Global::log_dir
+        Global::root_log = std::make_shared<CommitLog>(Global::log_dfs, Global::log_dir
             + "/root", m_props, root_log_reader.get());
 
       if (root_log_reader || metadata_log_reader) {
-        Global::metadata_log = make_shared<CommitLog>(Global::log_dfs, Global::log_dir
+        Global::metadata_log = std::make_shared<CommitLog>(Global::log_dfs, Global::log_dir
             + "/metadata", m_props, metadata_log_reader.get());
         m_update_pipeline_metadata =
-          make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+          std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                       Global::metadata_log, m_log_flush_method_meta);
       }
 
       if (system_log_reader) {
-        Global::system_log = make_shared<CommitLog>(Global::log_dfs, Global::log_dir
+        Global::system_log = std::make_shared<CommitLog>(Global::log_dfs, Global::log_dir
             + "/system", m_props, system_log_reader.get());
         m_update_pipeline_system =
-          make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+          std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                       Global::system_log, m_log_flush_method_user);
       }
 
-      Global::user_log = make_shared<CommitLog>(Global::log_dfs, Global::log_dir
+      Global::user_log = std::make_shared<CommitLog>(Global::log_dfs, Global::log_dir
           + "/user", m_props, user_log_reader.get(), false);
 
       m_update_pipeline_user =
-        make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+        std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                     Global::user_log, m_log_flush_method_user);
       
       Global::rsml_writer =
-        make_shared<MetaLog::Writer>(Global::log_dfs, rsml_definition,
+        std::make_shared<MetaLog::Writer>(Global::log_dfs, rsml_definition,
                                      Global::log_dir + "/" + rsml_definition->name(),
                                      entities);
 
@@ -942,7 +942,7 @@ void Apps::RangeServer::local_recover() {
     }
 
     if (!Global::remove_ok_logs) {
-      Global::remove_ok_logs = make_shared<MetaLogEntityRemoveOkLogs>();
+      Global::remove_ok_logs = std::make_shared<MetaLogEntityRemoveOkLogs>();
       Global::remove_ok_logs->insert(transfer_logs);
       Global::rsml_writer->record_state(Global::remove_ok_logs);
     }
@@ -1013,21 +1013,24 @@ Apps::RangeServer::replay_load_range(TableInfoMap &replay_map,
     /**
      * Lazily create sys/METADATA table pointer
      */
-    if (!Global::metadata_table) {
+    if (!Global::metadata_table_initialized.load()) {
       lock_guard<mutex> lock(Global::mutex);
-      uint32_t timeout_ms = m_props->get_i32("Hypertable.Request.Timeout");
-      if (!Global::range_locator)
-        Global::range_locator = make_shared<Hypertable::RangeLocator>(m_props,
-                m_conn_manager, Global::hyperspace, timeout_ms);
-      ApplicationQueueInterfacePtr aq = Global::app_queue;
-      Global::metadata_table = make_shared<Table>(m_props, Global::range_locator,
-              m_conn_manager, Global::hyperspace, aq,
-              m_namemap, TableIdentifier::METADATA_NAME, 0, timeout_ms);
+      if (!Global::metadata_table) {
+        uint32_t timeout_ms = m_props->get_i32("Hypertable.Request.Timeout");
+        if (!Global::range_locator)
+          Global::range_locator = std::make_shared<Hypertable::RangeLocator>(m_props,
+                  m_conn_manager, Global::hyperspace, timeout_ms);
+        ApplicationQueueInterfacePtr aq = Global::app_queue;
+        Global::metadata_table = std::make_shared<Table>(m_props, Global::range_locator,
+                m_conn_manager, Global::hyperspace, aq,
+                m_namemap, TableIdentifier::METADATA_NAME, 0, timeout_ms);
+        Global::metadata_table_initialized.store(true);
+      }
     }
 
     schema = table_info->get_schema();
 
-    range = make_shared<Range>(m_master_client, schema, range_entity,
+    range = std::make_shared<Range>(m_master_client, schema, range_entity,
                                live_table_info.get());
 
     range->recovery_initialize();
@@ -1312,19 +1315,18 @@ Apps::RangeServer::metadata_sync(ResponseCallback *cb, const char *table_id,
   if (!m_log_replay_barrier->wait_for_user(cb->event()->deadline()))
     return;
 
-  if (!Global::metadata_table) {
+  if (!Global::metadata_table_initialized.load()) {
     lock_guard<mutex> lock(Global::mutex);
-    // double-check locking (works fine on x86 and amd64 but may fail
-    // on other archs without using a memory barrier
     if (!Global::metadata_table) {
       uint32_t timeout_ms = m_props->get_i32("Hypertable.Request.Timeout");
       if (!Global::range_locator)
-        Global::range_locator = make_shared<Hypertable::RangeLocator>(m_props,
+        Global::range_locator = std::make_shared<Hypertable::RangeLocator>(m_props,
                 m_conn_manager, Global::hyperspace, timeout_ms);
       ApplicationQueueInterfacePtr aq = Global::app_queue;
-      Global::metadata_table = make_shared<Table>(m_props, Global::range_locator,
+      Global::metadata_table = std::make_shared<Table>(m_props, Global::range_locator,
               m_conn_manager, Global::hyperspace, aq,
               m_namemap, TableIdentifier::METADATA_NAME, 0, timeout_ms);
+      Global::metadata_table_initialized.store(true);
     }
   }
 
@@ -1515,7 +1517,7 @@ Apps::RangeServer::create_scanner(Response::Callback::CreateScanner *cb,
       }
     }
     std::set<uint8_t> columns;
-    scan_ctx = make_shared<ScanContext>(range->get_scan_revision(cb->event()->header.timeout_ms),
+    scan_ctx = std::make_shared<ScanContext>(range->get_scan_revision(cb->event()->header.timeout_ms),
                                &scan_spec, &range_spec, schema, &columns);
     scan_ctx->timeout_ms = cb->event()->header.timeout_ms;
 
@@ -1770,19 +1772,18 @@ Apps::RangeServer::load_range(ResponseCallback *cb, const TableIdentifier &table
     is_staged = true;
 
     // Lazily create sys/METADATA table pointer
-    if (!Global::metadata_table) {
+    if (!Global::metadata_table_initialized.load()) {
       lock_guard<mutex> lock(Global::mutex);
-      // double-check locking (works fine on x86 and amd64 but may fail
-      // on other archs without using a memory barrier
       if (!Global::metadata_table) {
         uint32_t timeout_ms = m_props->get_i32("Hypertable.Request.Timeout");
         if (!Global::range_locator)
-          Global::range_locator = make_shared<Hypertable::RangeLocator>(m_props,
+          Global::range_locator = std::make_shared<Hypertable::RangeLocator>(m_props,
                   m_conn_manager, Global::hyperspace, timeout_ms);
         ApplicationQueueInterfacePtr aq = Global::app_queue;
-        Global::metadata_table = make_shared<Table>(m_props, Global::range_locator,
+        Global::metadata_table = std::make_shared<Table>(m_props, Global::range_locator,
                 m_conn_manager, Global::hyperspace, aq,
                 m_namemap, TableIdentifier::METADATA_NAME, 0, timeout_ms);
+        Global::metadata_table_initialized.store(true);
       }
     }
 
@@ -1827,7 +1828,7 @@ Apps::RangeServer::load_range(ResponseCallback *cb, const TableIdentifier &table
 
     HT_MAYBE_FAIL_X("metadata-load-range-1", table.is_metadata());
 
-    range = make_shared<Range>(m_master_client, table, schema, range_spec,
+    range = std::make_shared<Range>(m_master_client, table, schema, range_spec,
                                table_info.get(), range_state, needs_compaction);
 
     HT_MAYBE_FAIL_X("metadata-load-range-2", table.is_metadata());
@@ -1838,24 +1839,24 @@ Apps::RangeServer::load_range(ResponseCallback *cb, const TableIdentifier &table
       if (table.is_metadata()) {
         if (is_root) {
           Global::log_dfs->mkdirs(Global::log_dir + "/root");
-          Global::root_log = make_shared<CommitLog>(Global::log_dfs, Global::log_dir
+          Global::root_log = std::make_shared<CommitLog>(Global::log_dfs, Global::log_dir
                                            + "/root", m_props);
         }
         if (Global::metadata_log == 0) {
           Global::log_dfs->mkdirs(Global::log_dir + "/metadata");
-          Global::metadata_log = make_shared<CommitLog>(Global::log_dfs,
+          Global::metadata_log = std::make_shared<CommitLog>(Global::log_dfs,
                                                Global::log_dir + "/metadata", m_props);
           m_update_pipeline_metadata =
-            make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+            std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                         Global::metadata_log, m_log_flush_method_meta);
         }
       }
       else if (table.is_system() && Global::system_log == 0) {
         Global::log_dfs->mkdirs(Global::log_dir + "/system");
-        Global::system_log = make_shared<CommitLog>(Global::log_dfs,
+        Global::system_log = std::make_shared<CommitLog>(Global::log_dfs,
                                            Global::log_dir + "/system", m_props);
         m_update_pipeline_system =
-          make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+          std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                       Global::system_log, m_log_flush_method_user);
       }
     }
@@ -1923,7 +1924,8 @@ Apps::RangeServer::load_range(ResponseCallback *cb, const TableIdentifier &table
       HT_ERRORF("Problem sending OK response - %s", Error::get_text(error));
     else
       HT_INFOF("Successfully loaded range %s[%s..%s]", table.id,
-               range_spec.start_row, range_spec.end_row);
+               format_row_key(range_spec.start_row).c_str(),
+               format_row_key(range_spec.end_row).c_str());
   }
   catch (Hypertable::Exception &e) {
     if (e.code() != Error::RANGESERVER_TABLE_NOT_FOUND &&
@@ -1951,7 +1953,8 @@ Apps::RangeServer::acknowledge_load(Response::Callback::AcknowledgeLoad *cb,
       return;
 
     HT_INFOF("Acknowledging range: %s[%s..%s]", rr.table.id,
-             rr.range.start_row, rr.range.end_row);
+             format_row_key(rr.range.start_row).c_str(),
+             format_row_key(rr.range.end_row).c_str());
 
     if (!m_context->live_map->lookup(rr.table.id, table_info)) {
       error_map[rr] = Error::TABLE_NOT_FOUND;
@@ -2315,7 +2318,7 @@ Apps::RangeServer::dump_pseudo_table(ResponseCallback *cb, const TableIdentifier
     Ranges ranges;
     TableInfoPtr table_info;
     CellListScanner *scanner;
-    ScanContextPtr scan_ctx = make_shared<ScanContext>();
+    ScanContextPtr scan_ctx = std::make_shared<ScanContext>();
     Key key;
     ByteString value;
     ColumnFamilySpec *cf_spec;
@@ -2545,10 +2548,10 @@ void
       try {
         uint32_t timeout_ms = m_props->get_i32("Hypertable.Request.Timeout");
         if (!Global::range_locator)
-          Global::range_locator = make_shared<Hypertable::RangeLocator>(m_props, m_conn_manager,
+          Global::range_locator = std::make_shared<Hypertable::RangeLocator>(m_props, m_conn_manager,
                                                                Global::hyperspace, timeout_ms);
         ApplicationQueueInterfacePtr aq = Global::app_queue;
-        Global::rs_metrics_table = make_shared<Table>(m_props, Global::range_locator, m_conn_manager,
+        Global::rs_metrics_table = std::make_shared<Table>(m_props, Global::range_locator, m_conn_manager,
                                              Global::hyperspace, aq,
                                              m_namemap, "sys/RS_METRICS", 0, timeout_ms);
       }
@@ -2593,7 +2596,7 @@ void
   m_stats->tables.clear();
 
   if (mutator || !ranges) {
-    ranges = make_shared<Ranges>();
+    ranges = std::make_shared<Ranges>();
     m_context->live_map->get_ranges(*ranges);
   }
   for (auto &rd : ranges->array) {
@@ -2910,7 +2913,7 @@ void Apps::RangeServer::replay_fragments(ResponseCallback *cb, int64_t op_id,
   cb->response_ok();
 
   try {
-    log_reader = make_shared<CommitLogReader>(Global::log_dfs, log_dir, fragments);
+    log_reader = std::make_shared<CommitLogReader>(Global::log_dfs, log_dir, fragments);
     StringSet receivers;
     receiver_plan.get_locations(receivers);
     CommAddress addr;
@@ -2932,7 +2935,6 @@ void Apps::RangeServer::replay_fragments(ResponseCallback *cb, int64_t op_id,
     const uint8_t *ptr, *end;
     SerializedKey key;
     ByteString value;
-    uint32_t block_count = 0;
     uint32_t fragment_id;
     uint32_t last_fragment_id = 0;
     bool started = false;
@@ -2976,7 +2978,6 @@ void Apps::RangeServer::replay_fragments(ResponseCallback *cb, int64_t op_id,
         }
         HT_INFOF("Replayed %d key/value pairs from fragment %s",
                  (int)num_kv_pairs, log_reader->last_fragment_fname().c_str());
-        block_count++;
 
         // report back status
         if (timer.expired()) {
@@ -3056,7 +3057,7 @@ void Apps::RangeServer::phantom_load(ResponseCallback *cb, const String &locatio
     lock_guard<mutex> lock(m_failover_mutex);
     failover_map_it = m_failover_map.find(location);
     if (failover_map_it == m_failover_map.end()) {
-      phantom_range_map = make_shared<PhantomRangeMap>(plan_generation);
+      phantom_range_map = std::make_shared<PhantomRangeMap>(plan_generation);
       m_failover_map[location] = phantom_range_map;
     }
     else
@@ -3249,19 +3250,18 @@ void Apps::RangeServer::phantom_prepare_ranges(ResponseCallback *cb, int64_t op_
       if (!phantom_range || phantom_range->prepared())
         continue;
 
-      if (!Global::metadata_table) {
+      if (!Global::metadata_table_initialized.load()) {
         lock_guard<mutex> lock(Global::mutex);
-        // TODO double-check locking (works fine on x86 and amd64 but may fail
-        // on other archs without using a memory barrier
         if (!Global::metadata_table) {
           uint32_t timeout_ms = m_props->get_i32("Hypertable.Request.Timeout");
           if (!Global::range_locator)
-            Global::range_locator = make_shared<Hypertable::RangeLocator>(m_props,
+            Global::range_locator = std::make_shared<Hypertable::RangeLocator>(m_props,
                     m_conn_manager, Global::hyperspace, timeout_ms);
           ApplicationQueueInterfacePtr aq = Global::app_queue;
-          Global::metadata_table = make_shared<Table>(m_props, Global::range_locator,
+          Global::metadata_table = std::make_shared<Table>(m_props, Global::range_locator,
                   m_conn_manager, Global::hyperspace, aq,
                   m_namemap, TableIdentifier::METADATA_NAME, 0, timeout_ms);
+          Global::metadata_table_initialized.store(true);
         }
       }
 
@@ -3300,16 +3300,16 @@ void Apps::RangeServer::phantom_prepare_ranges(ResponseCallback *cb, int64_t op_
             if (!Global::root_log) {
               Global::log_dfs->mkdirs(Global::log_dir + "/root");
               if (!Global::root_log)
-                Global::root_log = make_shared<CommitLog>(Global::log_dfs,
+                Global::root_log = std::make_shared<CommitLog>(Global::log_dfs,
                                                  Global::log_dir + "/root", m_props);
             }
           }
           if (!Global::metadata_log) {
             Global::log_dfs->mkdirs(Global::log_dir + "/metadata");
-            Global::metadata_log = make_shared<CommitLog>(Global::log_dfs,
+            Global::metadata_log = std::make_shared<CommitLog>(Global::log_dfs,
                                                  Global::log_dir + "/metadata", m_props);
             m_update_pipeline_metadata =
-              make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+              std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                           Global::metadata_log, m_log_flush_method_meta);
           }
           log = rr.is_root() ? Global::root_log : Global::metadata_log;
@@ -3317,10 +3317,10 @@ void Apps::RangeServer::phantom_prepare_ranges(ResponseCallback *cb, int64_t op_
         else if (rr.table.is_system()) {
           if (!Global::system_log) {
             Global::log_dfs->mkdirs(Global::log_dir + "/system");
-            Global::system_log = make_shared<CommitLog>(Global::log_dfs,
+            Global::system_log = std::make_shared<CommitLog>(Global::log_dfs,
                                                Global::log_dir + "/system", m_props);
             m_update_pipeline_system =
-              make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
+              std::make_shared<UpdatePipeline>(m_context, m_query_cache, m_timer_handler,
                                           Global::system_log, m_log_flush_method_user);
           }
           log = Global::system_log;
@@ -3725,7 +3725,7 @@ Apps::RangeServer::group_commit_add(EventPtr &event, uint64_t cluster_id,
   if (!m_group_commit) {
     m_group_commit = std::make_shared<GroupCommit>(this);
     HT_ASSERT(!m_group_commit_timer_handler);
-    m_group_commit_timer_handler = make_shared<GroupCommitTimerHandler>(m_context->comm, this, m_app_queue);
+    m_group_commit_timer_handler = std::make_shared<GroupCommitTimerHandler>(m_context->comm, this, m_app_queue);
     m_group_commit_timer_handler->start();
   }
   m_group_commit->add(event, cluster_id, schema, table, count, buffer, flags);

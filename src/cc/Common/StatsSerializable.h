@@ -46,6 +46,8 @@ namespace Hypertable {
  */
 class StatsSerializable {
   public:
+    virtual ~StatsSerializable() = default;
+
     /** Constructor; creates a new object with an ID and a number of groups
      *
      * @param _id The ID of this object; see %Identifier

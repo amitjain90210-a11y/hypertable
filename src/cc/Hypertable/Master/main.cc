@@ -81,7 +81,7 @@ namespace {
   class HandlerFactory : public ConnectionHandlerFactory {
   public:
     HandlerFactory(ContextPtr &context) : m_context(context) {
-      m_handler = make_shared<ConnectionHandler>(m_context);
+      m_handler = std::make_shared<ConnectionHandler>(m_context);
     }
 
     virtual void get_instance(DispatchHandlerPtr &dhp) {
@@ -135,10 +135,10 @@ int main(int argc, char **argv) {
       uint16_t port = get_i16("port");
       listen_addr = InetAddr(INADDR_ANY, port);
 
-      Hyperspace::SessionPtr hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
-      context = make_shared<Context>(properties, hyperspace);
-      context->monitoring = make_shared<Monitoring>(context.get());
-      context->op = make_unique<OperationProcessor>(context, get_i32("workers"));
+      Hyperspace::SessionPtr hyperspace = std::make_shared<Hyperspace::Session>(Comm::instance(), properties);
+      context = std::make_shared<Context>(properties, hyperspace);
+      context->monitoring = std::make_shared<Monitoring>(context.get());
+      context->op = std::make_unique<OperationProcessor>(context, get_i32("workers"));
 
       ConnectionHandlerFactoryPtr connection_handler_factory(new HandlerFactory(context));
       context->comm->listen(listen_addr, connection_handler_factory);
@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
       HT_INFOF("Cluster id is %llu", (Llu)ClusterId::get());
 
       context->mml_definition =
-        make_shared<MetaLog::DefinitionMaster>(context, format("%s_%u", "master", port).c_str());
+        std::make_shared<MetaLog::DefinitionMaster>(context, format("%s_%u", "master", port).c_str());
       
       if (has("induce-failure")) {
         if (FailureInducer::instance == 0)
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
         + context->mml_definition->name();
       BalancePlanAuthority *bpa {};
 
-      mml_reader = make_shared<MetaLog::Reader>(context->dfs, context->mml_definition,
+      mml_reader = std::make_shared<MetaLog::Reader>(context->dfs, context->mml_definition,
                                                 log_dir);
       mml_reader->get_entities(entities);
 
@@ -212,13 +212,13 @@ int main(int argc, char **argv) {
       }
 
       if (!context->system_state)
-        context->system_state = make_shared<SystemState>();
+        context->system_state = std::make_shared<SystemState>();
 
       if (!context->recovered_servers)
-        context->recovered_servers = make_shared<RecoveredServers>();
+        context->recovered_servers = std::make_shared<RecoveredServers>();
 
       context->mml_writer =
-        make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+        std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                      log_dir, entities);
 
       if (bpa) {
@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
       context->response_manager->set_mml_writer(context->mml_writer);
 
       // First do System Upgrade
-      operation = make_shared<OperationSystemUpgrade>(context);
+      operation = std::make_shared<OperationSystemUpgrade>(context);
       context->op->add_operation(operation);
       context->op->wait_for_empty();
 
@@ -271,13 +271,13 @@ int main(int argc, char **argv) {
         if (dynamic_cast<RangeServerConnection *>(entity.get())) {
           rsc = dynamic_pointer_cast<RangeServerConnection>(entity);
           if (recovery_ops.find(rsc->location()) == recovery_ops.end())
-            operations.push_back(make_shared<OperationRecover>(context, rsc, OperationRecover::RESTART));
+            operations.push_back(std::make_shared<OperationRecover>(context, rsc, OperationRecover::RESTART));
         }
       }
       recovery_ops.clear();
 
       if (operations.empty()) {
-        OperationPtr init_op = make_shared<OperationInitialize>(context);
+        OperationPtr init_op = std::make_shared<OperationInitialize>(context);
         if (context->namemap->exists_mapping("/sys/METADATA", 0))
           init_op->set_state(OperationState::CREATE_RS_METRICS);
         operations.push_back(init_op);
@@ -291,11 +291,11 @@ int main(int argc, char **argv) {
       }
 
       // Add PERPETUAL operations
-      operation = make_shared<OperationWaitForServers>(context);
+      operation = std::make_shared<OperationWaitForServers>(context);
       operations.push_back(operation);
       context->recovery_barrier_op =
-        make_shared<OperationTimedBarrier>(context, Dependency::RECOVERY, Dependency::RECOVERY_BLOCKER);
-      operation = make_shared<OperationRecoveryBlocker>(context);
+        std::make_shared<OperationTimedBarrier>(context, Dependency::RECOVERY, Dependency::RECOVERY_BLOCKER);
+      operation = std::make_shared<OperationRecoveryBlocker>(context);
       operations.push_back(operation);
 
       context->op->add_operations(operations);

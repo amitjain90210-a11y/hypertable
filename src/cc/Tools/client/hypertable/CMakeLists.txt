@@ -66,6 +66,13 @@ configure_file(${SRC_DIR}/test/foobar.tsv
 configure_file(${SRC_DIR}/test/single_cell_test.tsv
                ${DST_DIR}/single_cell_test.tsv)
 
+# Tests use ./hypertable_test, ./hypertable_ldi_select_test, and ./ht_hypertable relative to DST_DIR
+foreach(_exe hypertable_test hypertable_ldi_select_test ht_hypertable)
+  if (NOT IS_SYMLINK "${DST_DIR}/${_exe}")
+    file(CREATE_LINK "${HYPERTABLE_BINARY_DIR}/bin/${_exe}" "${DST_DIR}/${_exe}" SYMBOLIC)
+  endif()
+endforeach()
+
 add_test(Hypertable-shell env INSTALL_DIR=${INSTALL_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/test/hypertable_test.sh hypertable_test)
 
@@ -85,7 +92,8 @@ configure_file(${SRC_DIR}/test/hypertable_escape_test.tsv
                ${DST_DIR}/hypertable_escape_test.tsv COPYONLY)
 configure_file(${SRC_DIR}/test/hypertable_escape_test.golden
                ${DST_DIR}/hypertable_escape_test.golden COPYONLY)
-add_test(Hypertable-shell-ldi-select hypertable_ldi_select_test ${INSTALL_DIR})
+add_test(NAME Hypertable-shell-ldi-select COMMAND $<TARGET_FILE:hypertable_ldi_select_test> ${INSTALL_DIR}
+         WORKING_DIRECTORY ${DST_DIR})
 
 # field_separator_test
 configure_file(${SRC_DIR}/test/field_separator_test.tsv

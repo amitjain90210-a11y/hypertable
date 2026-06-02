@@ -38,13 +38,13 @@ $HT_HOME/bin/ht RangeServer --verbose --pidfile=$RS1_PIDFILE \
    --Hypertable.RangeServer.ProxyName=rs1 \
    --Hypertable.RangeServer.Port=15870 \
    --Hypertable.RangeServer.Maintenance.Interval 100 \
-   --Hypertable.RangeServer.Range.SplitSize=400K 2>&1 > rangeserver.rs1.output&
+   --Hypertable.RangeServer.Range.SplitSize=400K > rangeserver.rs1.output 2>&1 &
 
 $HT_HOME/bin/ht RangeServer --verbose --pidfile=$RS2_PIDFILE \
    --Hypertable.RangeServer.ProxyName=rs2 \
    --Hypertable.RangeServer.Port=15871 \
    --Hypertable.RangeServer.Maintenance.Interval 100 \
-   --Hypertable.RangeServer.Range.SplitSize=400K 2>&1 > rangeserver.rs2.output&
+   --Hypertable.RangeServer.Range.SplitSize=400K > rangeserver.rs2.output 2>&1 &
 
 $HT_HOME/bin/ht shell --no-prompt < $SCRIPT_DIR/create-table.hql
 
@@ -70,13 +70,13 @@ kill_range_servers
 
 $HT_HOME/bin/ht RangeServer --verbose --pidfile=$RS1_PIDFILE \
    --Hypertable.RangeServer.ProxyName=rs1 \
-   --Hypertable.RangeServer.Port=15872 2>&1 >> rangeserver.rs1.output&
+   --Hypertable.RangeServer.Port=15872 >> rangeserver.rs1.output 2>&1 &
 
 $HT_HOME/bin/ht RangeServer --verbose --pidfile=$RS2_PIDFILE \
    --Hypertable.RangeServer.ProxyName=rs2 \
-   --Hypertable.RangeServer.Port=15873 2>&1 >> rangeserver.rs2.output&
+   --Hypertable.RangeServer.Port=15873 >> rangeserver.rs2.output 2>&1 &
 
-sleep 10
+sleep 30
 
 echo "About to load data ... " + `date`
 
@@ -94,7 +94,7 @@ $HT_HOME/bin/ht ht_load_generator update \
     --rowkey.component.0.max=1000000 \
     --row-seed=2 \
     --Field.value.size=5000 \
-    --max-bytes=100000000 2>&1 > load.output&
+    --max-bytes=100000000 > load.output 2>&1 &
 
 LOAD_PID=${!}
 
@@ -115,7 +115,6 @@ fi
 
 diff dump.output dump.golden
 if [ $? != 0 ] ; then
-  sleep 86400
   save_failure_state
   kill_range_servers
   $HT_HOME/bin/ht-destroy-database.sh
@@ -130,7 +129,7 @@ $HT_HOME/bin/ht ht_load_generator query \
     --rowkey.component.0.max=1000000 \
     --row-seed=3 \
     --Field.value.size=1000 \
-    --max-keys=50000 2>&1 > query.output&
+    --max-keys=50000 > query.output 2>&1 &
 
 QUERY_PID=${!}
 

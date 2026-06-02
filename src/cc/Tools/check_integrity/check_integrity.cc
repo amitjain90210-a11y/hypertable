@@ -33,7 +33,7 @@
 #include <Common/Timer.h>
 #include <Common/Usage.h>
 
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <chrono>
@@ -110,7 +110,7 @@ class LocationThread
 {
   public:
     LocationThread(NamespacePtr &ns, NameIdMapperPtr namemap,
-            const String &location, boost::progress_display *progress,
+            const String &location, boost::timer::progress_display *progress,
             const RangeInfoVec &ranges, uint32_t sleep_ms)
       : m_namespace(ns), m_namemap(namemap), m_ranges(ranges),
         m_progress(progress), m_sleep_ms(sleep_ms) {
@@ -186,7 +186,7 @@ class LocationThread
     NamespacePtr m_namespace;
     NameIdMapperPtr m_namemap;
     RangeInfoVec m_ranges;
-    boost::progress_display *m_progress;
+    boost::timer::progress_display *m_progress;
     uint32_t m_sleep_ms;
 };
 
@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
 
     // initialize a boost progress bar
     cout << "Checking " << total_ranges << " ranges... please wait..." << endl;
-    boost::progress_display progress(total_ranges);
+    boost::timer::progress_display progress(total_ranges);
 
     // for each location: start a thread which will check the ranges
     boost::thread_group threads;

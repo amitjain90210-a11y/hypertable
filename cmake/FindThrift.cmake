@@ -23,8 +23,11 @@
 #  Thrift_LIBS, Thrift libraries
 #  Thrift_FOUND, If false, do not try to use ant
 
-exec_program(env ARGS thrift -version OUTPUT_VARIABLE Thrift_VERSION
-             RETURN_VALUE Thrift_RETURN)
+execute_process(COMMAND env thrift -version
+                OUTPUT_VARIABLE Thrift_VERSION
+                RESULT_VARIABLE Thrift_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
 
 find_path(Thrift_INCLUDE_DIR Thrift.h NO_DEFAULT_PATH PATHS
   ${HT_DEPENDENCY_INCLUDE_DIR}/thrift
@@ -33,10 +36,11 @@ find_path(Thrift_INCLUDE_DIR Thrift.h NO_DEFAULT_PATH PATHS
   /usr/include/thrift
 )
 
-set(Thrift_LIB_PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/lib /opt/local/lib /usr/lib64)
+set(Thrift_LIB_PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/lib /opt/local/lib /usr/lib64
+    /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu)
 
 find_library(Thrift_LIB NAMES thrift NO_DEFAULT_PATH PATHS ${Thrift_LIB_PATHS})
-find_library(Thrift_NB_LIB NAMES thriftnb PATHS ${Thrift_LIB_PATHS})
+find_library(Thrift_NB_LIB NAMES thriftnb NO_DEFAULT_PATH PATHS ${Thrift_LIB_PATHS})
 
 if (Thrift_VERSION MATCHES "^Thrift version" AND LibEvent_LIBS
     AND LibEvent_INCLUDE_DIR AND Thrift_LIB AND Thrift_NB_LIB
@@ -44,10 +48,11 @@ if (Thrift_VERSION MATCHES "^Thrift version" AND LibEvent_LIBS
   set(Thrift_FOUND TRUE)
   set(Thrift_LIBS ${Thrift_LIB} ${Thrift_NB_LIB})
 
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-               ARGS ${Thrift_LIB}
-               OUTPUT_VARIABLE LDD_OUT
-               RETURN_VALUE LDD_RETURN)
+  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh ${Thrift_LIB}
+                  OUTPUT_VARIABLE LDD_OUT
+                  RESULT_VARIABLE LDD_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
 
   if (LDD_RETURN STREQUAL "0")
     string(REGEX MATCH "[ \t](/[^ ]+/libssl\\.[^ \n]+)" dummy ${LDD_OUT})
@@ -70,10 +75,11 @@ if (Thrift_VERSION MATCHES "^Thrift version" AND LibEvent_LIBS
     set(Thrift_LIB_DEPENDENCIES "${Thrift_LIB_DEPENDENCIES} ${CMAKE_MATCH_1}")
   endif ()
 
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-               ARGS ${Thrift_NB_LIB}
-               OUTPUT_VARIABLE LDD_OUT
-               RETURN_VALUE LDD_RETURN)
+  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh ${Thrift_NB_LIB}
+                  OUTPUT_VARIABLE LDD_OUT
+                  RESULT_VARIABLE LDD_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
 
   if (LDD_RETURN STREQUAL "0")
     string(REGEX MATCH "[ \t](/[^ ]+/libssl\\.[^ \n]+)" dummy ${LDD_OUT})

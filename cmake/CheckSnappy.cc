@@ -21,6 +21,7 @@
 #include <string.h>
 #include <string>
 #include <snappy.h>
+#include <snappy-stubs-public.h>
 
 
 int main() {
@@ -28,6 +29,6 @@ int main() {
 
   std::string output;
   snappy::Compress("hello world", 12, &output);
-  printf("0.0.0\n");
+  printf("%d.%d.%d\n", SNAPPY_MAJOR, SNAPPY_MINOR, SNAPPY_PATCHLEVEL);
   return 0;
 }

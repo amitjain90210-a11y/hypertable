@@ -85,7 +85,7 @@ class LoadClient {
     TableMutatorPtr m_native_mutator;
     TableScannerPtr m_native_scanner;
 #ifdef HT_WITH_THRIFT
-    boost::shared_ptr<Thrift::Client> m_thrift_client;
+    std::shared_ptr<Thrift::Client> m_thrift_client;
     ThriftGen::Namespace m_thrift_namespace;
     ThriftGen::Mutator m_thrift_mutator;
     ThriftGen::Scanner m_thrift_scanner;

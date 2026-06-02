@@ -54,6 +54,8 @@ namespace Hypertable {
     class Definition {
     public:
 
+      virtual ~Definition() = default;
+
       /** Constructor.
        * @param backup_label Backup label of %MetaLog
        * @see backup_label()

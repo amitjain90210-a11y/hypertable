@@ -56,7 +56,7 @@ CellStoreScannerIntervalReadahead<IndexT>::CellStoreScannerIntervalReadahead(Cel
   m_zcodec = m_cellstore->create_block_compression_codec();
   m_key_decompressor = m_cellstore->create_key_decompressor();
 
-  uint16_t csversion = boost::any_cast<uint16_t>(cellstore->get_trailer()->get("version"));
+  uint16_t csversion = std::any_cast<uint16_t>(cellstore->get_trailer()->get("version"));
   if (csversion >= 4)
     m_oflags = Filesystem::OPEN_FLAG_DIRECTIO;
 

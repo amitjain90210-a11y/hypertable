@@ -42,20 +42,20 @@ using namespace Hypertable::ClusterDefinitionFile;
 void Token::create_translator() {
   switch (type) {
   case(VARIABLE):
-    translator = make_shared<TranslatorVariable>(fname, line, text);
+    translator = std::make_shared<TranslatorVariable>(fname, line, text);
     break;
   case (ROLE):
-    translator = make_shared<TranslatorRole>(fname, line, text);
+    translator = std::make_shared<TranslatorRole>(fname, line, text);
     break;
   case (TASK):
-    translator = make_shared<TranslatorTask>(fname, line, text);
+    translator = std::make_shared<TranslatorTask>(fname, line, text);
     break;
   case (FUNCTION):
   case (CONTROLFLOW):
   case (COMMENT):
   case (CODE):
   case (BLANKLINE):
-    translator = make_shared<TranslatorCode>(fname, line, text);
+    translator = std::make_shared<TranslatorCode>(fname, line, text);
     break;
   default:
     break;

@@ -21,8 +21,11 @@
 #  MAVEN_VERSION version string of maven if found
 #  MAVEN_FOUND, If false, do not try to use maven
 
-exec_program(env ARGS mvn -version OUTPUT_VARIABLE MAVEN_OUTPUT
-             RETURN_VALUE MAVEN_RETURN)
+execute_process(COMMAND env mvn -version
+                OUTPUT_VARIABLE MAVEN_OUTPUT
+                RESULT_VARIABLE MAVEN_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET)
 
 if (MAVEN_RETURN STREQUAL "0")
    string(REPLACE ";" " " MAVEN_OUTPUT2 ${MAVEN_OUTPUT})
@@ -38,12 +41,17 @@ else ()
   set(SKIP_JAVA_BUILD TRUE)
 endif ()
 
-exec_program(env ARGS javac -version OUTPUT_VARIABLE JAVAC_OUT
-             RETURN_VALUE JAVAC_RETURN)
+execute_process(COMMAND env javac -version
+                OUTPUT_VARIABLE JAVAC_OUT
+                ERROR_VARIABLE JAVAC_ERR
+                RESULT_VARIABLE JAVAC_RETURN
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_STRIP_TRAILING_WHITESPACE)
+string(APPEND JAVAC_OUT "${JAVAC_ERR}")
 
 if (JAVAC_RETURN STREQUAL "0")
   message(STATUS "    Javac: ${JAVAC_OUT}")
-  string(REGEX MATCH "1\\.[6-9]\\..*" JAVAC_VERSION ${JAVAC_OUT})
+  string(REGEX MATCH "(1\\.[6-9]\\.[0-9]|[1-9][0-9]+\\.[0-9])" JAVAC_VERSION ${JAVAC_OUT})
 
   if (NOT JAVAC_VERSION)
     message(STATUS "    Expected JDK 1.6 or greater. Skipping Java build")

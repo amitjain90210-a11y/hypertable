@@ -38,7 +38,7 @@ endif ()
 
 find_library(Tcmalloc_LIBRARY NO_DEFAULT_PATH
   NAMES ${Tcmalloc_NAMES}
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /lib /usr/lib /usr/local/lib /opt/local/lib
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /lib /usr/lib /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu /usr/local/lib /opt/local/lib
 )
 
 if (CMAKE_SYSTEM_PROCESSOR_x86 AND ${CMAKE_SYSTEM_PROCESSOR_x86} EQUAL 64)

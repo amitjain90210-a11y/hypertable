@@ -23,6 +23,6 @@ target_link_libraries(issue827_test Hypertable)
 
 add_test(Defects-issue827-1 env INSTALL_DIR=${INSTALL_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/run.sh)
-add_test(Defects-issue827-2 env INSTALL_DIR=${INSTALL_DIR}
-        ${HYPERTABLE_BINARY_DIR}/tests/integration/defects/issue827/issue827_test)
+add_test(NAME Defects-issue827-2 COMMAND $<TARGET_FILE:issue827_test>)
+set_tests_properties(Defects-issue827-2 PROPERTIES ENVIRONMENT "INSTALL_DIR=${INSTALL_DIR}")
 

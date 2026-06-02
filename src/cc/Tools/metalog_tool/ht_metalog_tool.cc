@@ -23,7 +23,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 
 #include "Common/Error.h"
@@ -412,7 +411,7 @@ Options)";
   void parse_select_arg(const String &arg) {
     char_separator<char> sep(", ");
     tokenizer<char_separator<char> > tokens(arg, sep);
-    BOOST_FOREACH(string t, tokens) {
+    for (string t : tokens) {
       if (boost::starts_with(t, "rs")) {
 	select_set.insert(t);
       }
@@ -461,7 +460,7 @@ Options)";
       char_separator<char> sep(",");
       tokenizer<char_separator<char> > tokens(arg, sep);
       size_t position = 0;
-      BOOST_FOREACH(string t, tokens) {
+      for (string t : tokens) {
         if (position == 0)
           changes->destination_change_args.push_back(t);
         else if (position == 1) {
@@ -511,7 +510,7 @@ Options)";
       char_separator<char> sep(",");
       tokenizer<char_separator<char> > tokens(arg, sep);
       MoveChangeSpec change;
-      BOOST_FOREACH(string t, tokens) {
+      for (string t : tokens) {
         const char *base = t.c_str();
         const char *ptr = base;
         while (*ptr && isalnum(*ptr))
@@ -535,7 +534,7 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
 
-    ConnectionManagerPtr conn_manager_ptr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_manager_ptr = std::make_shared<ConnectionManager>();
 
     String log_path = get_str("log-path");
     String log_host = get("log-host", String());
@@ -609,10 +608,10 @@ int main(int argc, char **argv) {
       int log_port = get_i16("log-port");
       InetAddr addr(log_host, log_port);
 
-      dfs_client = make_shared<FsBroker::Lib::Client>(conn_manager_ptr, addr, timeout);
+      dfs_client = std::make_shared<FsBroker::Lib::Client>(conn_manager_ptr, addr, timeout);
     }
     else {
-      dfs_client = make_shared<FsBroker::Lib::Client>(conn_manager_ptr, properties);
+      dfs_client = std::make_shared<FsBroker::Lib::Client>(conn_manager_ptr, properties);
     }
 
     if (!dfs_client->wait_for_connection(timeout)) {
@@ -622,9 +621,9 @@ int main(int argc, char **argv) {
 
     // Population Defintion map
     unordered_map<String, MetaLog::DefinitionPtr> defmap;
-    MetaLog::DefinitionPtr def = make_shared<MetaLog::DefinitionRangeServer>("");
+    MetaLog::DefinitionPtr def = std::make_shared<MetaLog::DefinitionRangeServer>("");
     defmap[def->name()] = def;
-    def = make_shared<MetaLog::DefinitionMaster>("");
+    def = std::make_shared<MetaLog::DefinitionMaster>("");
     defmap[def->name()] = def;
 
     FilesystemPtr fs = static_pointer_cast<Filesystem>(dfs_client);
@@ -643,11 +642,11 @@ int main(int argc, char **argv) {
 
     int reader_flags = dump_all ? MetaLog::Reader::LOAD_ALL_ENTITIES : 0;
     if (is_file) {
-      rsml_reader = make_shared<MetaLog::Reader>(fs, def, reader_flags);
+      rsml_reader = std::make_shared<MetaLog::Reader>(fs, def, reader_flags);
       rsml_reader->load_file(log_path);
     }
     else
-      rsml_reader = make_shared<MetaLog::Reader>(fs, def, log_path, reader_flags);
+      rsml_reader = std::make_shared<MetaLog::Reader>(fs, def, log_path, reader_flags);
 
     if (!metadata_tsv)
       cout << "log version: " << rsml_reader->version() << "\n";
@@ -730,7 +729,7 @@ int main(int argc, char **argv) {
         if (!move_destination_changes.empty() &&
             (move_entity = dynamic_cast<OperationMoveRange *>(entities[i].get()))) {
           String location = move_entity->get_location();
-          BOOST_FOREACH(MoveChangeSpec &change, move_destination_changes) {
+          for (MoveChangeSpec &change : move_destination_changes) {
             if (change.first.compare(location) == 0) {
               move_entity->set_destination(change.second);
               entities_modified++;

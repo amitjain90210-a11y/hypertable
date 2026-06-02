@@ -33,7 +33,7 @@
 #include <Common/FileUtils.h>
 #include <Common/Stopwatch.h>
 
-#include <boost/progress.hpp>
+#include <boost/timer/progress_display.hpp>
 
 #include <cassert>
 #include <cstdio>
@@ -49,7 +49,7 @@ namespace {
   struct CommandCallback : HqlInterpreter::Callback {
     CommandInterpreter &commander;
     int command {};
-    unique_ptr<boost::progress_display> progress;
+    unique_ptr<boost::timer::progress_display> progress;
     Stopwatch stopwatch;
     bool m_profile {};
 
@@ -82,7 +82,7 @@ namespace {
         HT_ASSERT(!progress);
         cout <<"\nLoading "<< format_number(total)
              <<" bytes of input data..." << endl;
-        progress = make_unique<boost::progress_display>(total);
+        progress = std::make_unique<boost::timer::progress_display>(total);
       }
     }
 

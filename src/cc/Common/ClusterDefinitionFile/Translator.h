@@ -47,6 +47,7 @@ namespace Hypertable { namespace ClusterDefinitionFile {
     /// This method is called to translate a token.
     /// @param context Context object containing symbol tables
     /// @return Translated token text
+    virtual ~Translator() = default;
     virtual const string translate(TranslationContext &context) = 0;
   };
 

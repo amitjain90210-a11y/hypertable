@@ -22,7 +22,7 @@
 #include <cstdio>
 
 int main() {
-  const char *version = SSLeay_version(SSLEAY_VERSION);
+  const char *version = OpenSSL_version(OPENSSL_VERSION);
   if (version) {
     printf("%s", version);
     return 0;

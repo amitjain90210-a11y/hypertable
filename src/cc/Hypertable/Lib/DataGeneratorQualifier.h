@@ -30,7 +30,7 @@
 #include <Common/Logger.h>
 #include <Common/String.h>
 
-#include <boost/shared_array.hpp>
+#include <memory>
 
 using namespace Hypertable;
 
@@ -73,7 +73,7 @@ namespace Hypertable {
     }
     virtual std::string &get() { return m_qualifier; }
   private:
-    boost::shared_array<const char> m_render_buf;
+    std::unique_ptr<const char[]> m_render_buf;
     std::string m_qualifier;
   };
 

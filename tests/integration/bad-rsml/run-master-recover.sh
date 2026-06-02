@@ -116,7 +116,7 @@ $HT_HOME/bin/ht-stop-servers.sh
 $HT_HOME/bin/ht-start-fsbroker.sh local
 $HT_HOME/bin/ht metalog_dump /hypertable/servers/master/log/mml | grep RecoveredServers > mml.output
 cat mml.output \
-    | perl -e 'while (<>) { s/timestamp=.*?201\d,/timestamp=0,/g; print; }' \
+    | perl -e 'while (<>) { s/timestamp=.*?2\d\d\d,/timestamp=0,/g; print; }' \
     | perl -e 'while (<>) { s/id=\d*,/id=0,/g; print; }' > mml.stripped
 diff mml.stripped ${SCRIPT_DIR}/mml.golden
 if [ $? != 0 ] ; then

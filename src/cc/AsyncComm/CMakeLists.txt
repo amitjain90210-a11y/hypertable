@@ -97,11 +97,23 @@ add_custom_command(SOURCE ${HYPERTABLE_SOURCE_DIR}/tests/data/words.gz
 
 set(ADDITIONAL_MAKE_CLEAN_FILES ${DST_DIR}/words)
 
-add_test(HyperComm commTest)
-add_test(HyperComm-datagram commTestDatagram)
-add_test(HyperComm-timeout commTestTimeout)
-add_test(HyperComm-timer commTestTimer)
-add_test(HyperComm-reverse-request commTestReverseRequest)
+# Tests reference ./testServer and ./sampleClient relative to CWD; symlink them into DST_DIR
+foreach(_exe testServer sampleClient)
+  if (NOT IS_SYMLINK "${DST_DIR}/${_exe}")
+    file(CREATE_LINK "${HYPERTABLE_BINARY_DIR}/bin/${_exe}" "${DST_DIR}/${_exe}" SYMBOLIC)
+  endif()
+endforeach()
+
+add_test(NAME HyperComm COMMAND $<TARGET_FILE:commTest>
+         WORKING_DIRECTORY ${DST_DIR})
+add_test(NAME HyperComm-datagram COMMAND $<TARGET_FILE:commTestDatagram>
+         WORKING_DIRECTORY ${DST_DIR})
+add_test(NAME HyperComm-timeout COMMAND $<TARGET_FILE:commTestTimeout>
+         WORKING_DIRECTORY ${DST_DIR})
+add_test(NAME HyperComm-timer COMMAND $<TARGET_FILE:commTestTimer>
+         WORKING_DIRECTORY ${DST_DIR})
+add_test(NAME HyperComm-reverse-request COMMAND $<TARGET_FILE:commTestReverseRequest>
+         WORKING_DIRECTORY ${DST_DIR})
 
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB HEADERS *.h)

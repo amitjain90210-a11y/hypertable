@@ -37,6 +37,8 @@ find_library(RE2_LIBRARY NAMES ${RE2_NAMES} NO_DEFAULT_PATH PATHS
     /usr/local/re2/lib
     /opt/local/lib
     /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    /usr/lib/aarch64-linux-gnu
     )
 
 if (RE2_INCLUDE_DIR AND RE2_LIBRARY)
@@ -61,9 +63,13 @@ if (RE2_FOUND)
     message(FATAL_ERROR "Please fix the re2 installation and try again.")
     set(RE2_LIBRARIES)
   endif ()
-  string(REGEX REPLACE ".*\n([0-9]+[^\n]+).*" "\\1" RE2_VERSION ${RE2_TRY_OUT})
-  if (NOT RE2_VERSION MATCHES "^[0-9]+.*")
-    set(RE2_VERSION "unknown") 
+  find_package(PkgConfig QUIET)
+  if (PKG_CONFIG_FOUND)
+    pkg_check_modules(RE2_PC QUIET re2)
+    set(RE2_VERSION ${RE2_PC_VERSION})
+  endif ()
+  if (NOT RE2_VERSION)
+    set(RE2_VERSION "unknown")
   endif ()
   message(STATUS "       version: ${RE2_VERSION}")
 else ()

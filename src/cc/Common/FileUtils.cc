@@ -43,8 +43,7 @@ extern "C" {
 #include <sys/uio.h>
 }
 
-#include <boost/shared_array.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <re2/re2.h>
 
@@ -365,7 +364,7 @@ void *FileUtils::mmap(const String &fname, off_t *lenp) {
 
 bool FileUtils::mkdirs(const String &dirname) {
   struct stat statbuf;
-  boost::shared_array<char> tmp_dir(new char [dirname.length() + 1]);
+  std::unique_ptr<char[]> tmp_dir(new char [dirname.length() + 1]);
   char *tmpdir = tmp_dir.get();
   char *ptr = tmpdir + 1;
 
@@ -510,21 +509,20 @@ using namespace re2;
 
 void FileUtils::readdir(const String &dirname, const String &fname_regex,
 			std::vector<struct dirent> &listing) {
-  int ret;
   DIR *dirp = opendir(dirname.c_str());
-  struct dirent de, *dep;
-  boost::shared_ptr<RE2> regex(fname_regex.length()
+  std::shared_ptr<RE2> regex(fname_regex.length()
                                 ? new RE2(fname_regex)
                                 : 0);
 
-  do {
-    if ((ret = readdir_r(dirp, &de, &dep)) != 0)
-      HT_FATALF("Problem reading directory '%s' - %s", dirname.c_str(),
-              strerror(errno));
-
-    if (dep != 0 && (!regex || RE2::FullMatch(de.d_name, *regex)))
-      listing.push_back(de);
-  } while (dep != 0);
+  errno = 0;
+  struct dirent *dep;
+  while ((dep = ::readdir(dirp)) != nullptr) {
+    if (!regex || RE2::FullMatch(dep->d_name, *regex))
+      listing.push_back(*dep);
+  }
+  if (errno != 0)
+    HT_FATALF("Problem reading directory '%s' - %s", dirname.c_str(),
+            strerror(errno));
 
   (void)closedir(dirp);
 }

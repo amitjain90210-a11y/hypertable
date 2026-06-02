@@ -401,7 +401,7 @@ int HandlerMap::propagate_proxy_map(ProxyMapT &mappings) {
   for (iter = m_data_handler_map.begin(); iter != m_data_handler_map.end(); ++iter) {
     IOHandlerData *handler = iter->second;
     if (handler) {
-      CommBufPtr comm_buf = make_shared<CommBuf>(header, 0, payload, mapping.length()+1);
+      CommBufPtr comm_buf = std::make_shared<CommBuf>(header, 0, payload, mapping.length()+1);
       comm_buf->write_header_and_reset();
       int error = handler->send_message(comm_buf);
       if (error != Error::OK) {

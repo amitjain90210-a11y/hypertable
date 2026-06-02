@@ -133,7 +133,7 @@ namespace {
     --(src_range_dist_it->second);
     ++(dst_range_dist_it->second);
     RangeMoveSpecPtr move =
-      make_shared<RangeMoveSpec>(src_server.c_str(), dst_server.c_str(),
+      std::make_shared<RangeMoveSpec>(src_server.c_str(), dst_server.c_str(),
                                  table.c_str(), start_row.c_str(), end_row.c_str());
     plan->moves.push_back(move);
 
@@ -192,7 +192,7 @@ void BalanceAlgorithmEvenRanges::compute_plan(BalancePlanPtr &plan,
       for (auto &table : rs.stats->tables) {
         TableSummaryMap::iterator it = state.table_summaries.find(table.table_id.c_str());
         if (it == state.table_summaries.end()) {
-          ts = make_shared<TableSummary>();
+          ts = std::make_shared<TableSummary>();
           state.table_summaries[table.table_id.c_str()] = ts;
         }
         else

@@ -100,9 +100,9 @@ void StatusManager::set_status(Status::Code code, const std::string &text) {
 }
 
 void StatusManager::set_error(int error) {
-  char errtext[128];
-  errtext[0] = 0;
-  strerror_r(errno, errtext, 128);
+  char errbuf[128];
+  errbuf[0] = 0;
+  const char *errtext = strerror_r(errno, errbuf, 128);
   lock_guard<mutex> lock(m_mutex);
   m_current_status = Status::Code::CRITICAL;
   m_status.set(m_current_status, errtext);

@@ -38,7 +38,7 @@ struct CellCacheAllocator : Impl {
  : Impl(other) {}
 
   template <typename U>
-  struct rebind { typedef PageArenaAllocator<U, CellCacheArena> other; };
+  struct rebind { typedef CellCacheAllocator<U> other; };
 
   CellCacheAllocator() {}
   CellCacheAllocator(CellCacheArena &arena) : Impl(arena) {}

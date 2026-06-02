@@ -59,9 +59,7 @@ namespace {
     if (!text.empty()) {
       const char *base = text.c_str();
       const char *ptr = base + (text.length() - 1);
-      size_t count = 0;
       while (ptr >= base && isspace(*ptr) && *ptr != '\n' && *ptr != '\r') {
-        count++;
         ptr--;
       }
       indentation.append(ptr+1);

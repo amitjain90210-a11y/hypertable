@@ -39,6 +39,8 @@ namespace Hypertable {
   class MetricsCollector {
   public:
 
+    virtual ~MetricsCollector() = default;
+
     /// Updates string metric value.
     /// @param name Relative name of metric
     /// @param value Metric value

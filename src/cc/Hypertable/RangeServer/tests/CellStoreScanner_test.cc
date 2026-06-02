@@ -601,7 +601,7 @@ int main(int argc, char **argv) {
 
     InetAddr::initialize(&addr, "localhost", port);
 
-    ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_mgr = std::make_shared<ConnectionManager>();
     client = std::make_shared<FsBroker::Lib::Client>(conn_mgr, addr, 15000);
 
     Global::dfs = client;
@@ -619,12 +619,12 @@ int main(int argc, char **argv) {
     //String csname = testdir + format("/cs_pid%d", getpid());
 
     String csname = testdir + "/cs0";
-    PropertiesPtr cs_props = make_shared<Properties>();
+    PropertiesPtr cs_props = std::make_shared<Properties>();
     AccessGroupOptions::parse_bloom_filter("rows+cols", cs_props);
 
     SchemaPtr schema ( Schema::new_instance(schema_str) );
 
-    cs = make_shared<CellStoreV7>(Global::dfs.get(), schema);
+    cs = std::make_shared<CellStoreV7>(Global::dfs.get(), schema);
     HT_TRY("creating cellstore", cs->create(csname.c_str(), 0, cs_props, &table_id));
     cs->set_replaced_files(replaced_files_write);
 
@@ -747,7 +747,7 @@ int main(int argc, char **argv) {
       if (!strcmp(keyv[i].row, select_cf_row))
         column = cf_foo + ":"+ keyv[i].column_qualifier;
       ssbuilder.add_cell(keyv[i].row, column.c_str());
-      scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+      scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                      schema);
       scanner = cs->create_scanner(scan_ctx.get());
       count = display_scan(scanner, out);
@@ -765,7 +765,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("http://www.Texas.com/", true,
                                "http://www.Texas.com/", true);
     ssbuilder.add_column("tag:^s");
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     out << "may_contain(ROW=\"http://www.Texas.com/\", COL=\"tag:^s\") == ";
     out << ((cs->may_contain(scan_ctx.get())) ? "true" : "false") << "\n";
@@ -778,7 +778,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Balak.com/", true,
                                "http://www.Boulangism.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -787,7 +787,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Balak.com/", false,
                                "http://www.Boulangism.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -796,7 +796,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Balak.com/", true,
                                "http://www.Boulangism.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -805,7 +805,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Balak.com/", false,
                                "http://www.Boulangism.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -814,7 +814,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.unlawfully.com/", true,
                                "http://www.unscramble.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -823,7 +823,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.unlawfully.com/", false,
                                "http://www.unscramble.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -832,7 +832,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.unlawfully.com/", true,
                                "http://www.unscramble.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -841,7 +841,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.unlawfully.com/", false,
                                "http://www.unscramble.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -850,7 +850,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Philistia.com/", true,
                                "http://www.Texas.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -859,7 +859,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Philistia.com/", false,
                                "http://www.Texas.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -868,7 +868,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Philistia.com/", true,
                                "http://www.Texas.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -877,7 +877,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.Philistia.com/", false,
                                "http://www.Texas.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -886,7 +886,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.antiholiday.com/", true,
                                "http://www.carlings.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -895,7 +895,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.antiholiday.com/", false,
                                "http://www.carlings.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -904,7 +904,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.antiholiday.com/", true,
                                "http://www.carlings.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -913,7 +913,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.antiholiday.com/", false,
                                "http://www.carlings.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -922,7 +922,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.nonvenous.com/", true,
                                "http://www.omega.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -931,7 +931,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.nonvenous.com/", false,
                                "http://www.omega.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -940,7 +940,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.nonvenous.com/", true,
                                "http://www.omega.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -949,7 +949,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.nonvenous.com/", false,
                                "http://www.omega.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -958,7 +958,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.omega.com/", true,
                                "http://www.oometry.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -967,7 +967,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.omega.com/", false,
                                "http://www.oometry.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -976,7 +976,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.omega.com/", true,
                                "http://www.oometry.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -985,7 +985,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.omega.com/", false,
                                "http://www.oometry.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -994,7 +994,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.urolithology.com/", true,
                                "http://www.vipresident.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1003,7 +1003,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.urolithology.com/", false,
                                "http://www.vipresident.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1012,7 +1012,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.urolithology.com/", true,
                                "http://www.vipresident.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1021,7 +1021,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.urolithology.com/", false,
                                "http://www.vipresident.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1030,7 +1030,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.utick.com/", true,
                                "http://www.younglet.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1039,7 +1039,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.utick.com/", false,
                                "http://www.younglet.com/", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1048,7 +1048,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.utick.com/", true,
                                "http://www.younglet.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1057,7 +1057,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("http://www.utick.com/", false,
                                "http://www.younglet.com/", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1071,7 +1071,7 @@ int main(int argc, char **argv) {
     String deleted_row = (String) delete_row;
     String deleted_column = (String)"tag:" + delete_test;
     ssbuilder.add_cell(deleted_row.c_str(), deleted_column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1080,7 +1080,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     deleted_row = (String) delete_cf;
     ssbuilder.add_cell(deleted_row.c_str(), deleted_column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1091,7 +1091,7 @@ int main(int argc, char **argv) {
     out << "[select-column-family-scan]\n";
     ssbuilder.clear();
     ssbuilder.add_column(cf_foo.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1100,7 +1100,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     String cf_foo_row = (String) select_cf_row;
     ssbuilder.add_cell(cf_foo_row.c_str(), cf_foo.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1113,7 +1113,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Balak.com/", "tag:micasize", true,
         "http://www.Boulangism.com/", "tag:laminiplantar", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1122,7 +1122,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Balak.com/", "tag:micasize", false,
         "http://www.Boulangism.com/", "tag:laminiplantar", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1131,7 +1131,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Balak.com/", "tag:micasize", true,
         "http://www.Boulangism.com/", "tag:laminiplantar", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1140,7 +1140,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Balak.com/", "tag:micasize", false,
         "http://www.Boulangism.com/", "tag:laminiplantar", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1149,7 +1149,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.unlawfully.com/", "tag:bridgepot",
         true, "http://www.unscramble.com/", "tag:milliform", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1158,7 +1158,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.unlawfully.com/", "tag:bridgepot",
         false, "http://www.unscramble.com/", "tag:milliform", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1167,7 +1167,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.unlawfully.com/", "tag:bridgepot",
         true, "http://www.unscramble.com/", "tag:milliform", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1176,7 +1176,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.unlawfully.com/", "tag:bridgepot",
         false, "http://www.unscramble.com/", "tag:milliform", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1185,7 +1185,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Philistia.com/", "tag:tropic", true,
         "http://www.Texas.com/", "tag:semimembranosus", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1194,7 +1194,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Philistia.com/", "tag:tropic",
         false, "http://www.Texas.com/", "tag:semimembranosus", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1203,7 +1203,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Philistia.com/", "tag:tropic", true,
         "http://www.Texas.com/", "tag:semimembranosus", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1212,7 +1212,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.Philistia.com/", "tag:tropic",
         false, "http://www.Texas.com/", "tag:semimembranosus", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1221,7 +1221,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.antiholiday.com/", "tag:benzolize",
         true, "http://www.carlings.com/", "tag:dilogy", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1230,7 +1230,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.antiholiday.com/", "tag:benzolize",
         false, "http://www.carlings.com/", "tag:dilogy", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1239,7 +1239,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.antiholiday.com/", "tag:benzolize",
         true, "http://www.carlings.com/", "tag:dilogy", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1248,7 +1248,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.antiholiday.com/", "tag:benzolize",
         false, "http://www.carlings.com/", "tag:dilogy", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1257,7 +1257,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.nonvenous.com/", "tag:overbloom",
         true, "http://www.omega.com/", "tag:muskroot", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1266,7 +1266,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.nonvenous.com/", "tag:overbloom",
         false, "http://www.omega.com/", "tag:muskroot", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1275,7 +1275,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.nonvenous.com/", "tag:overbloom",
         true, "http://www.omega.com/", "tag:muskroot", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1284,7 +1284,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.nonvenous.com/", "tag:overbloom",
         false, "http://www.omega.com/", "tag:muskroot", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1293,7 +1293,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.omega.com/", "tag:muskroot", true,
         "http://www.oometry.com/", "tag:nubigenous", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1302,7 +1302,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.omega.com/", "tag:muskroot", false,
         "http://www.oometry.com/", "tag:nubigenous", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1311,7 +1311,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.omega.com/", "tag:muskroot", true,
         "http://www.oometry.com/", "tag:nubigenous", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1320,7 +1320,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.omega.com/", "tag:muskroot", false,
         "http://www.oometry.com/", "tag:nubigenous", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1330,7 +1330,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell_interval("http://www.urolithology.com/",
         "tag:presynaptic", true, "http://www.vipresident.com/", "tag:coiling",
         true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1340,7 +1340,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell_interval("http://www.urolithology.com/",
         "tag:presynaptic", false, "http://www.vipresident.com/", "tag:coiling",
         true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1350,7 +1350,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell_interval("http://www.urolithology.com/",
         "tag:presynaptic", true, "http://www.vipresident.com/", "tag:coiling",
         false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1360,7 +1360,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell_interval("http://www.urolithology.com/",
         "tag:presynaptic", false, "http://www.vipresident.com/", "tag:coiling",
         false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1369,7 +1369,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.utick.com/", "tag:frike", true,
         "http://www.younglet.com/", "tag:laeotropism", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1378,7 +1378,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.utick.com/", "tag:frike", false,
         "http://www.younglet.com/", "tag:laeotropism", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1387,7 +1387,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.utick.com/", "tag:frike", true,
         "http://www.younglet.com/", "tag:laeotropism", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1396,7 +1396,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval("http://www.utick.com/", "tag:frike", false,
         "http://www.younglet.com/", "tag:laeotropism", false);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1411,7 +1411,7 @@ int main(int argc, char **argv) {
 
     ssbuilder.clear();
     ssbuilder.add_row_interval("", true, Key::END_ROW_MARKER, true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -1421,16 +1421,16 @@ int main(int argc, char **argv) {
 
     ssbuilder.clear();
     ssbuilder.add_row_interval("", true, Key::END_ROW_MARKER, true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
     csname = testdir + "/cs1";
-    cs_props = make_shared<Properties>();
+    cs_props = std::make_shared<Properties>();
     cs_props->set("blocksize", (int32_t)10000);
     cs_props->set("compressor", String("none"));
-    cs = make_shared<CellStoreV7>(Global::dfs.get(), schema);
+    cs = std::make_shared<CellStoreV7>(Global::dfs.get(), schema);
     HT_TRY("creating cellstore", cs->create(csname.c_str(), 0, cs_props, &table_id));
     // should not coalesce and be in a separate block from trailer
     replaced_files_write.push_back("1/hypertable/tables/0/1/default/qyoNKN5rd__dbHKv/cs0");
@@ -1447,7 +1447,14 @@ int main(int argc, char **argv) {
     strcpy((char *)uptr, value);
     bsvalue.ptr = valuebuf;
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
     memset(&key, 0, sizeof(key));
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
     for (size_t i=0; i<500; i++) {
       sprintf(rowbuf, "row%06d", (int)i);
@@ -1480,7 +1487,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("row000050", true,
                                "row000450", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1489,7 +1496,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("row000071", true,
                                "row000365", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1498,7 +1505,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("row000300", true,
                                Key::END_ROW_MARKER, true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1508,7 +1515,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("row000364", true,
                                Key::END_ROW_MARKER, true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1518,7 +1525,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("", true,
                                Key::END_ROW_MARKER, true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1527,7 +1534,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_row_interval("row000250", true,
                                "row000275", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1535,11 +1542,11 @@ int main(int argc, char **argv) {
      * test trailer
      */
     csname = testdir + "/cs2";
-    cs_props = make_shared<Properties>();
+    cs_props = std::make_shared<Properties>();
 
     schema.reset( Schema::new_instance(schema2_str) );
 
-    cs = make_shared<CellStoreV7>(Global::dfs.get(), schema);
+    cs = std::make_shared<CellStoreV7>(Global::dfs.get(), schema);
     HT_TRY("creating cellstore", cs->create(csname.c_str(), 0, cs_props, &table_id));
     // should coalesce and be in 2 blocks, with the 2nd block also containing the trailer
     replaced_files_write.push_back("7/hypertable/tables/0/1/default/qyoNKN5rd__dbHKv/cs0");
@@ -1576,9 +1583,9 @@ int main(int argc, char **argv) {
     out << "[replaced-files-2]\n";
     check_replaced_files(cs, replaced_files_write, out);
 
-    int64_t expiration_time = boost::any_cast<int64_t>(cs->get_trailer()->get("expiration_time"));
-    int64_t expirable_data = boost::any_cast<int64_t>(cs->get_trailer()->get("expirable_data"));
-    int64_t delete_count = boost::any_cast<int64_t>(cs->get_trailer()->get("delete_count"));
+    int64_t expiration_time = std::any_cast<int64_t>(cs->get_trailer()->get("expiration_time"));
+    int64_t expirable_data = std::any_cast<int64_t>(cs->get_trailer()->get("expirable_data"));
+    int64_t delete_count = std::any_cast<int64_t>(cs->get_trailer()->get("delete_count"));
     out << "trailer.expiration_time = " << expiration_time << "\n";
     out << "trailer.expirable_data = " << expirable_data << "\n";
     out << "trailer.delete_count= " << delete_count << "\n";
@@ -1589,11 +1596,11 @@ int main(int argc, char **argv) {
     // issue 1017
     out << "[issue1017]\n";
     csname = testdir + "/cs3";
-    cs_props = make_shared<Properties>();
+    cs_props = std::make_shared<Properties>();
     AccessGroupOptions::parse_bloom_filter("rows", cs_props);
     schema.reset( Schema::new_instance(schema_str) );
 
-    cs = make_shared<CellStoreV7>(Global::dfs.get(), schema);
+    cs = std::make_shared<CellStoreV7>(Global::dfs.get(), schema);
     HT_TRY("creating cellstore", cs->create(csname.c_str(), 735, cs_props, &table_id));
     strcpy((char *)rowbuf, "the only row");
     value = "Dummy value";
@@ -1613,13 +1620,13 @@ int main(int argc, char **argv) {
 
     ssbuilder.clear();
     ssbuilder.add_row_interval("the only row", true, "the only row", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()),&range,schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()),&range,schema);
     out << "may_contain(ROW=\"the only row\") == ";
     out << ((cs->may_contain(scan_ctx.get())) ? "true" : "false") << "\n";
 
     ssbuilder.clear();
     ssbuilder.add_row_interval("absent row", true, "absent row", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()),&range,schema);
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()),&range,schema);
     out << "may_contain(ROW=\"absent row\") == ";
     out << ((cs->may_contain(scan_ctx.get())) ? "true" : "false") << "\n";
 

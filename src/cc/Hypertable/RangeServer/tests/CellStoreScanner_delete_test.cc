@@ -512,7 +512,7 @@ int main(int argc, char **argv) {
 
     InetAddr::initialize(&addr, "localhost", port);
 
-    ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_mgr = std::make_shared<ConnectionManager>();
     client = std::make_shared<FsBroker::Lib::Client>(conn_mgr, addr, 15000);
 
     Global::dfs = client;
@@ -530,10 +530,10 @@ int main(int argc, char **argv) {
     SchemaPtr schema( Schema::new_instance(schema_str) );
 
     String csname = testdir + "/cs0";
-    PropertiesPtr cs_props = make_shared<Properties>();
+    PropertiesPtr cs_props = std::make_shared<Properties>();
     // make sure blocks are small so only one key value pair fits in a block
     cs_props->set("blocksize", int32_t(32));
-    cs = make_shared<CellStoreV7>(Global::dfs.get(), schema);
+    cs = std::make_shared<CellStoreV7>(Global::dfs.get(), schema);
     HT_TRY("creating cellstore", cs->create(csname.c_str(), 24000, cs_props, &table_id));
 
     DynamicBuffer dbuf(512000);
@@ -762,7 +762,7 @@ int main(int argc, char **argv) {
     row = delete_row;
     column = (String)"tag:" + qualifier;
     ssbuilder.add_cell(row.c_str(), column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -770,14 +770,14 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval(row.c_str(),"tag:a", true,
         row.c_str(), "tag:z", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
     ssbuilder.clear();
     ssbuilder.add_row(row.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -787,7 +787,7 @@ int main(int argc, char **argv) {
     row = delete_cf;
     column = (String)"tag:" + qualifier;
     ssbuilder.add_cell(row.c_str(), column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -795,7 +795,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval(row.c_str(),"tag:a", true,
         row.c_str(), "tag:z", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -803,14 +803,14 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval(row.c_str(),"tag", true,
         row.c_str(), "tag:z", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
     ssbuilder.clear();
     ssbuilder.add_row(row.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -821,7 +821,7 @@ int main(int argc, char **argv) {
     row = delete_row_cf;
     column = (String)"tag:" + qualifier;
     ssbuilder.add_cell(row.c_str(), column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -829,7 +829,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval(row.c_str(),"tag", true,
         row.c_str(), "tag", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -839,7 +839,7 @@ int main(int argc, char **argv) {
     row = delete_cell;
     column = (String)"tag:" + qualifier;
     ssbuilder.add_cell(row.c_str(), column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -847,7 +847,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval(row.c_str(),"tag", true,
         row.c_str(), "tag", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -857,7 +857,7 @@ int main(int argc, char **argv) {
     row = delete_cell_version;
     column = (String)"tag:" + qualifier;
     ssbuilder.add_cell(row.c_str(), column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -865,7 +865,7 @@ int main(int argc, char **argv) {
     ssbuilder.clear();
     ssbuilder.add_cell_interval(row.c_str(),"tag", true,
         row.c_str(), "tag", true);
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -875,7 +875,7 @@ int main(int argc, char **argv) {
     row = delete_none;
     column = (String) "tag:"+qualifier;
     ssbuilder.add_cell(row.c_str(), column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
@@ -885,12 +885,12 @@ int main(int argc, char **argv) {
     row = delete_large;
     column = (String)"tag:" + qualifier;
     ssbuilder.add_cell(row.c_str(), column.c_str());
-    scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
+    scan_ctx = std::make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
-    int64_t delete_count = boost::any_cast<int64_t>(cs->get_trailer()->get("delete_count"));
+    int64_t delete_count = std::any_cast<int64_t>(cs->get_trailer()->get("delete_count"));
     out << "trailer.delete_count= " << delete_count << "\n";
     if (delete_count != num_deletes) {
       out << "Expected " << num_deletes << " deletes in CellStore, but trailer.delete_count="

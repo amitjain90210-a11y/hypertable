@@ -23,7 +23,7 @@
 #define HYPERTABLE_CELLSTORETRAILER_H
 
 #include <iostream>
-#include <boost/any.hpp>
+#include <any>
 #include "Common/String.h"
 
 namespace Hypertable {
@@ -76,7 +76,7 @@ namespace Hypertable {
      */
     virtual void display_multiline(std::ostream &os) = 0;
 
-    virtual boost::any get(const String& prop) = 0;
+    virtual std::any get(const String& prop) = 0;
   };
 
   /**

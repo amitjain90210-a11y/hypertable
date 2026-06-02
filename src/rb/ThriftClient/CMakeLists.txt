@@ -43,7 +43,7 @@ add_custom_command(
 add_custom_target(ThriftGenRb ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hypertable/gen-rb/hql_types.rb)
 
 if (RUBYTHRIFT_FOUND)
-  add_test(ThriftClient-ruby ruby -I ${INSTALL_DIR}/lib/rb
+  add_test(ThriftClient-ruby ruby -I ${CMAKE_CURRENT_SOURCE_DIR}
       ${CMAKE_CURRENT_SOURCE_DIR}/client_test.rb)
 endif ()
 

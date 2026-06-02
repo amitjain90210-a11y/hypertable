@@ -48,7 +48,7 @@
 #include <Common/Filesystem.h>
 #include <Common/Serialization.h>
 
-#include <boost/shared_array.hpp>
+#include <memory>
 
 using namespace Hypertable;
 using namespace std;
@@ -81,7 +81,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
   amount = (file_length < HT_DIRECT_IO_ALIGNMENT) ? file_length : HT_DIRECT_IO_ALIGNMENT;
   offset = file_length - amount;
 
-  boost::shared_array<uint8_t> trailer_buf( new uint8_t [amount] );
+  std::unique_ptr<uint8_t[]> trailer_buf( new uint8_t [amount] );
 
   nread = Global::dfs->pread(fd, trailer_buf.get(), amount, offset, second_try);
 
@@ -124,7 +124,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
       throw;
     }
 
-    cellstore = make_shared<CellStoreV7>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV7>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v7);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",
@@ -153,7 +153,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
       throw;
     }
 
-    cellstore = make_shared<CellStoreV6>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV6>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v6);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",
@@ -170,7 +170,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
 
     trailer_v5.deserialize(trailer_buf.get() + (amount - trailer_v5.size()));
 
-    cellstore = make_shared<CellStoreV5>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV5>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v5);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",
@@ -187,7 +187,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
 
     trailer_v4.deserialize(trailer_buf.get() + (amount - trailer_v4.size()));
 
-    cellstore = make_shared<CellStoreV4>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV4>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v4);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",
@@ -204,7 +204,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
 
     trailer_v3.deserialize(trailer_buf.get() + (amount - trailer_v3.size()));
 
-    cellstore = make_shared<CellStoreV3>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV3>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v3);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",
@@ -221,7 +221,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
 
     trailer_v2.deserialize(trailer_buf.get() + (amount - trailer_v2.size()));
 
-    cellstore = make_shared<CellStoreV2>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV2>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v2);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",
@@ -238,7 +238,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
 
     trailer_v1.deserialize(trailer_buf.get() + (amount - trailer_v1.size()));
 
-    cellstore = make_shared<CellStoreV1>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV1>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v1);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",
@@ -255,7 +255,7 @@ CellStorePtr CellStoreFactory::open(const String &name,
 
     trailer_v0.deserialize(trailer_buf.get() + (amount - trailer_v0.size()));
 
-    cellstore = make_shared<CellStoreV0>(Global::dfs.get());
+    cellstore = std::make_shared<CellStoreV0>(Global::dfs.get());
     cellstore->open(name, start, end, fd, file_length, &trailer_v0);
     if (!cellstore)
       HT_ERRORF("Failed to open CellStore %s [%s..%s], length=%llu",

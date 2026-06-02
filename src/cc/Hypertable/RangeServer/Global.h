@@ -22,6 +22,7 @@
 #ifndef HYPERTABLE_RANGESERVER_GLOBAL_H
 #define HYPERTABLE_RANGESERVER_GLOBAL_H
 
+#include <atomic>
 #include <string>
 
 #include <boost/thread/thread.hpp>
@@ -51,6 +52,7 @@
 #include "MetaLogEntityRemoveOkLogs.h"
 #include "TableInfo.h"
 
+#include <atomic>
 #include <mutex>
 
 namespace Hypertable {
@@ -89,6 +91,7 @@ namespace Hypertable {
     static int32_t        cell_cache_scanner_cache_size;
     static Hypertable::FileBlockCache *block_cache;
     static TablePtr       metadata_table;
+    static std::atomic<bool> metadata_table_initialized;
     static TablePtr       rs_metrics_table;
     static int64_t        range_metadata_split_size;
     static Hypertable::MemoryTracker *memory_tracker;
@@ -103,7 +106,7 @@ namespace Hypertable {
     // amount of unused physical memory to achieve according
     // to the current memory situation
     static int64_t        memory_limit_ensure_unused_current;
-    static uint64_t       access_counter;
+    static std::atomic<uint64_t> access_counter;
     static bool           enable_shadow_cache;
     static std::string    toplevel_dir;
     static int32_t        metrics_interval;

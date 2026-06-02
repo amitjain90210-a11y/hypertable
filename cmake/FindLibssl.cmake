@@ -49,10 +49,11 @@ if (Libssl_INCLUDE_DIR AND Libssl_LIBRARY)
   set(Libssl_FOUND TRUE)
   set(Libssl_LIBRARIES ${Libssl_LIBRARY} ${Libcrypto_LIBRARY})
 
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-               ARGS ${Libssl_LIBRARY}
-               OUTPUT_VARIABLE LDD_OUT
-               RETURN_VALUE LDD_RETURN)
+  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh ${Libssl_LIBRARY}
+                  OUTPUT_VARIABLE LDD_OUT
+                  RESULT_VARIABLE LDD_RETURN
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+                  ERROR_QUIET)
 
   if (LDD_RETURN STREQUAL "0")
     string(REGEX MATCH "[ \t](/[^ ]+/libssl\\.[^ \n]+)" dummy ${LDD_OUT})
@@ -83,12 +84,11 @@ endif ()
 
 if (Libssl_FOUND)
   message(STATUS "Found Libssl: ${Libssl_LIBRARY}")
-  set(TC_TRY_OUT "foo")
   try_run(TC_CHECK TC_CHECK_BUILD
           ${HYPERTABLE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
           ${HYPERTABLE_SOURCE_DIR}/cmake/CheckLibssl.cc
           CMAKE_FLAGS -DINCLUDE_DIRECTORIES=${Libssl_INCLUDE_DIR}
-                      -DLINK_LIBRARIES=${Libssl_LIBRARY}
+                      -DLINK_LIBRARIES=${Libssl_LIBRARY};${Libcrypto_LIBRARY}
           RUN_OUTPUT_VARIABLE TC_TRY_OUT)
   if (TC_CHECK_BUILD AND NOT TC_CHECK STREQUAL "0")
     message(STATUS "${TC_TRY_OUT}")

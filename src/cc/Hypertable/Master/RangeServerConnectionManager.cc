@@ -295,7 +295,7 @@ void RangeServerConnectionManager::get_valid_connections(StringSet &locations,
 
 void RangeServerConnectionManager::set_servers_balanced(const vector<RangeServerConnectionPtr> &unbalanced) {
   lock_guard<mutex> lock(m_mutex);
-  for (const auto rsc : unbalanced)
+  for (const auto& rsc : unbalanced)
     rsc->set_balanced();
 }
 

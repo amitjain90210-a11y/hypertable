@@ -1,5 +1,14 @@
 *.pyc
 .DS_Store
+thrift-table-refresh.output
+src/cc/ThriftBroker/gen-cpp/
+src/js/node/node_modules/hypertable/lib/hypertable/*.js
+!src/js/node/node_modules/hypertable/lib/hypertable/index.js
+src/perl/ThriftClient/gen-perl/
+src/php/ThriftClient/gen-php/Hypertable_ThriftGen/
+src/php/ThriftClient/gen-php/Hypertable_ThriftGen2/
+src/py/ThriftClient/gen-py/
+src/rb/ThriftClient/hypertable/gen-rb/
 src/rb/Monitoring/log/*
 src/rb/Monitoring/public/images/rs*.png
 run/monitoring/copy_of*.txt
