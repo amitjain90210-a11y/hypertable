@@ -169,6 +169,7 @@ public class HypertableStorage extends LoadFunc implements StoreFuncInterface, O
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Tuple getNext() throws IOException {
         try {
             if (reader.nextKeyValue()) {
@@ -258,6 +259,7 @@ public class HypertableStorage extends LoadFunc implements StoreFuncInterface, O
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void putNext(Tuple t) throws IOException {
         byte[] rowValue = getBytesForField(t, 0);
         byte[] columnFamilyValue = getBytesForField(t, 1);

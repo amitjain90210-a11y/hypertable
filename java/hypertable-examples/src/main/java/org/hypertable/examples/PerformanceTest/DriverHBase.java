@@ -53,6 +53,7 @@ public class DriverHBase extends Driver {
       this.admin = new HBaseAdmin( this.conf );
   }
 
+  @SuppressWarnings("deprecation")
   public void setup(Setup setup) {
     super.setup(setup);
     try {
@@ -73,6 +74,7 @@ public class DriverHBase extends Driver {
   public void teardown() {
   }
 
+  @SuppressWarnings("deprecation")
   public void runTask(Task task) throws IOException {
     long randi;
     ByteBuffer keyByteBuf = ByteBuffer.allocate(8);

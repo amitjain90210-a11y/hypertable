@@ -20,13 +20,13 @@ package org.hypertable.hadoop.hive;
 
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
-import org.apache.hadoop.hive.serde2.Deserializer;
 import org.apache.hadoop.hive.serde2.SerDeException;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
 import java.util.Properties;
 
+@SuppressWarnings("deprecation")
 public abstract class AbstractHypertableKeyFactory implements HypertableKeyFactory {
 
   protected HypertableSerDeParameters hypertableParams;
@@ -46,7 +46,8 @@ public abstract class AbstractHypertableKeyFactory implements HypertableKeyFacto
   }
 
   @Override
-  public DecomposedPredicate decomposePredicate(JobConf jobConf, Deserializer deserializer, ExprNodeDesc predicate) {
+  @SuppressWarnings("deprecation")
+  public DecomposedPredicate decomposePredicate(JobConf jobConf, org.apache.hadoop.hive.serde2.Deserializer deserializer, ExprNodeDesc predicate) {
     return HypertableStorageHandler.decomposePredicate(jobConf, (HypertableSerDe) deserializer, predicate);
   }
 }

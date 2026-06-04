@@ -54,8 +54,6 @@ import org.apache.hadoop.hive.ql.metadata.HiveStoragePredicateHandler;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.ExprNodeGenericFuncDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
-import org.apache.hadoop.hive.serde2.Deserializer;
-import org.apache.hadoop.hive.serde2.SerDe;
 import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputFormat;
@@ -66,6 +64,7 @@ import org.apache.hadoop.util.StringUtils;
  * HypertableStorageHandler provides a HiveStorageHandler implementation for
  * Hypertable.
  */
+@SuppressWarnings("deprecation")
 public class HypertableStorageHandler extends DefaultStorageHandler
   implements HiveMetaHook, HiveStoragePredicateHandler {
 
@@ -241,7 +240,8 @@ public class HypertableStorageHandler extends DefaultStorageHandler
   }
 
   @Override
-  public Class<? extends SerDe> getSerDeClass() {
+  @SuppressWarnings("deprecation")
+  public Class<? extends org.apache.hadoop.hive.serde2.SerDe> getSerDeClass() {
     return HypertableSerDe.class;
   }
 
@@ -308,9 +308,10 @@ public class HypertableStorageHandler extends DefaultStorageHandler
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public DecomposedPredicate decomposePredicate(
     JobConf jobConf,
-    Deserializer deserializer,
+    org.apache.hadoop.hive.serde2.Deserializer deserializer,
     ExprNodeDesc predicate)
   {
     HypertableKeyFactory keyFactory = ((HypertableSerDe) deserializer).getKeyFactory();

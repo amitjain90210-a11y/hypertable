@@ -140,7 +140,7 @@ public class Client {
 
   public static void main(String [] args)
     throws InterruptedException, IOException {
-    Integer waitObj = new Integer(0);
+    Object waitObj = new Object();
     int port = DEFAULT_PORT;
     int thriftbroker_port = DriverHypertable.DEFAULT_THRIFTBROKER_PORT;
     String host = null;
@@ -311,7 +311,7 @@ public class Client {
       if (error == Error.COMM_NOT_CONNECTED) {
         if (retries == 5)
           throw new HypertableException(Error.COMM_CONNECT_ERROR, "timeout");
-        Integer waitObj = new Integer(0);
+        Object waitObj = new Object();
         synchronized (waitObj) {
           waitObj.wait(1000);
         }

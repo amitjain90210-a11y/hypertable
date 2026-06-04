@@ -214,7 +214,7 @@ public class Tokenizer {
     assert mState.nextChar() == '"' || mState.nextChar() == '\'' || 
       mState.nextChar() == '`' || mState.nextChar() == '{';
 
-    scope.push(new Character(mState.nextChar()));
+    scope.push(Character.valueOf(mState.nextChar()));
     mState.incrementOffset();
 
     while (mState.hasRemaining()) {
@@ -255,7 +255,7 @@ public class Tokenizer {
         else if (mState.nextChar() == '"' ||
                  mState.nextChar() == '\'' ||
                  mState.nextChar() == '`')
-          scope.push(new Character(mState.nextChar()));
+          scope.push(Character.valueOf(mState.nextChar()));
         else if (mState.nextChar() == '{') {
           if (mState.previousChar() == '$') {
             if (!mState.seekToChar('}'))
@@ -263,7 +263,7 @@ public class Tokenizer {
             mState.incrementOffset();
           }
           else
-            scope.push(new Character(mState.nextChar()));
+            scope.push(Character.valueOf(mState.nextChar()));
         }
       }
       mState.incrementOffset();

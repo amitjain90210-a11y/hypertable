@@ -102,7 +102,7 @@ public class MetricsCollectorGanglia implements MetricsCollector {
    * @param value Metric value
    */
   public void update(String name, short value) {
-    mValuesInt.put(mPrefix+name, new Integer((int)value));
+    mValuesInt.put(mPrefix+name, Integer.valueOf((int)value));
   }
 
   /** Updates integer metric value.
@@ -112,7 +112,7 @@ public class MetricsCollectorGanglia implements MetricsCollector {
    * @param value Metric value
    */
   public void update(String name, int value) {
-    mValuesInt.put(mPrefix+name, new Integer(value));
+    mValuesInt.put(mPrefix+name, Integer.valueOf(value));
   }
 
   /** Updates float metric value.
@@ -122,7 +122,7 @@ public class MetricsCollectorGanglia implements MetricsCollector {
    * @param value Metric value
    */
   public void update(String name, float value) {
-    mValuesDouble.put(mPrefix+name, new Double((double)value));
+    mValuesDouble.put(mPrefix+name, Double.valueOf((double)value));
   }
 
   /** Updates double metric value.
@@ -132,7 +132,7 @@ public class MetricsCollectorGanglia implements MetricsCollector {
    * @param value Metric value
    */
   public void update(String name, double value) {
-    mValuesDouble.put(mPrefix+name, new Double(value));
+    mValuesDouble.put(mPrefix+name, Double.valueOf(value));
   }
 
   /** Publishes metric values to Ganglia hypertable extension.

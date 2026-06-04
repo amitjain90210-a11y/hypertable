@@ -68,6 +68,7 @@ public class HiveHypertableInputFormat<K extends BytesWritable, V extends Row>
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public RecordReader<K, V> getRecordReader(InputSplit split, JobConf jobConf,
                                          Reporter reporter) throws IOException {
     HiveHypertableSplit htSplit = (HiveHypertableSplit)split;

@@ -69,6 +69,7 @@ public class MetricsProcess {
    * @param now Current time in milliseconds
    * @param collector Metrics collector
    */
+  @SuppressWarnings("deprecation")
   public void collect(long now, MetricsCollector collector) {
     HashMap<GarbageCollectorMXBean, Long> collectionCounts = new HashMap<GarbageCollectorMXBean, Long>();
     HashMap<GarbageCollectorMXBean, Long> collectionTimes = new HashMap<GarbageCollectorMXBean, Long>();

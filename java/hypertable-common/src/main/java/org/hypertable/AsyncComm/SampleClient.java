@@ -201,7 +201,7 @@ public class SampleClient {
                         System.out.println("Connection timeout.");
                         System.exit(1);
                     }
-                    Integer intObj = new Integer(0);
+                    Object intObj = new Object();
                     synchronized (intObj) {
                         intObj.wait(1000);
                     }

@@ -53,6 +53,7 @@ public class DriverHypertable extends Driver {
       mThriftBrokerPort = broker_port;
   }
 
+  @SuppressWarnings("deprecation")
   protected void finalize() {
     if (mSetup.parallelism == 0) {
       try {
