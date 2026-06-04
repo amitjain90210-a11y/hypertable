@@ -1,0 +1,3 @@
+# False positive: non-instrumented libstdc++ Rb_tree node pointer fields written
+# without MSAN shadow update. The actual values are valid bytes from string literals.
+fun:std::_Rb_tree*

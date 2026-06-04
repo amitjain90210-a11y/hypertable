@@ -1,0 +1,8 @@
+# Boost.Python uses misaligned placement-new for its internal holder objects.
+# This is a known limitation of the system Boost.Python library, not our code.
+# The UB is detected at the innermost instrumented frame, which varies by Boost
+# version: sometimes boost::python itself, sometimes STL headers (unique_ptr.h,
+# pointer_holder.hpp) called from Boost.Python.
+alignment:boost::python
+alignment:pointer_holder.hpp
+alignment:unique_ptr.h

@@ -38,9 +38,9 @@ done
 kill -9 `cat $PIDFILE`
 \rm -f $PIDFILE
 
-n=`fgrep "Switching from minor to major" rangeserver.output | wc -l`
+n=`fgrep -a "Switching from minor to major" rangeserver.output | wc -l`
 if [ $n -eq 0 ] ; then
-  n=`fgrep "Starting GC Compaction" rangeserver.output | wc -l`
+  n=`fgrep -a "Starting GC Compaction" rangeserver.output | wc -l`
   if [ $n -eq 0 ] ; then
     echo "RangeServer did not commence a GC compaction"
     exit 1

@@ -60,6 +60,26 @@ foreach(_cf_rel ${_tracked_conf_list})
   endif()
 endforeach()
 
+# For TSan builds, symlink tsan.supp into conf/ so ht-start-test-servers.sh
+# can locate it via $INSTALL_DIR/conf/tsan.supp without requiring make install.
+if (SANITIZE STREQUAL "thread" AND EXISTS ${CMAKE_SOURCE_DIR}/tsan.supp)
+  if(NOT EXISTS ${HYPERTABLE_BINARY_DIR}/conf/tsan.supp)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+                    ${CMAKE_SOURCE_DIR}/tsan.supp
+                    ${HYPERTABLE_BINARY_DIR}/conf/tsan.supp)
+  endif()
+endif()
+
+# For UBSan builds, symlink ubsan.supp into conf/ so ht-start-test-servers.sh
+# can locate it via $INSTALL_DIR/conf/ubsan.supp without requiring make install.
+if (SANITIZE STREQUAL "undefined" AND EXISTS ${CMAKE_SOURCE_DIR}/ubsan.supp)
+  if(NOT EXISTS ${HYPERTABLE_BINARY_DIR}/conf/ubsan.supp)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+                    ${CMAKE_SOURCE_DIR}/ubsan.supp
+                    ${HYPERTABLE_BINARY_DIR}/conf/ubsan.supp)
+  endif()
+endif()
+
 # Symlink cronolog into sbin so the server startup scripts can find it.
 file(MAKE_DIRECTORY ${HYPERTABLE_BINARY_DIR}/sbin)
 if(NOT EXISTS ${HYPERTABLE_BINARY_DIR}/sbin/cronolog)
@@ -90,9 +110,21 @@ add_dependencies(runtestservers ${_test_server_targets})
 macro(add_test_target target dir)
   add_custom_target(${target})
   add_dependencies(${target} runtestservers)
-  add_custom_command(TARGET ${target} POST_BUILD
-                     COMMAND ${BUILD_BIN_DIR}/ht $(MAKE) test
-                     WORKING_DIRECTORY ${dir})
+  if (SANITIZE STREQUAL "address")
+    # Skip the 'ht' wrapper for ASAN builds: ht-env.sh prepends the installed
+    # (non-ASAN) lib dir into LD_LIBRARY_PATH, which would cause the unfixed
+    # installed libraries to load instead of the ASAN-built ones.  Running
+    # ctest directly lets each binary's RUNPATH resolve to the ASAN build libs.
+    add_custom_command(TARGET ${target} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E env
+                               "LSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/lsan.supp"
+                               $(MAKE) test
+                       WORKING_DIRECTORY ${dir})
+  else ()
+    add_custom_command(TARGET ${target} POST_BUILD
+                       COMMAND ${BUILD_BIN_DIR}/ht $(MAKE) test
+                       WORKING_DIRECTORY ${dir})
+  endif ()
 endmacro()
 
 # custom target must be globally unique to support IDEs like Xcode, VS etc.

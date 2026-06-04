@@ -13,14 +13,19 @@ RUN_DIR=`pwd`
 
 \rm -f output
 
+master_log_files() {
+    echo "$HT_HOME/log/Master.log" \
+        $(ls -t "$HT_HOME/log/archive"/*/*/Master.log 2>/dev/null | head -2)
+}
+
 wait_for_recovery() {
   grep "Leaving RecoverServer rs1 state=COMPLETE" \
-      $HT_HOME/log/Master.log
+      $(master_log_files) 2>/dev/null
   while [ $? -ne "0" ]
   do
     sleep 2
     grep "Leaving RecoverServer rs1 state=COMPLETE" \
-        $HT_HOME/log/Master.log
+        $(master_log_files) 2>/dev/null
   done
 }
 

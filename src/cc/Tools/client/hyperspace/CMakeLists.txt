@@ -51,6 +51,11 @@ endif()
 add_test(NAME Hyperspace COMMAND $<TARGET_FILE:hyperspaceTest>
          WORKING_DIRECTORY ${DST_DIR})
 
+if (SANITIZE STREQUAL "thread")
+  set_tests_properties(Hyperspace PROPERTIES
+    ENVIRONMENT "TSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/tsan.supp")
+endif ()
+
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_hyperspace RUNTIME DESTINATION bin)
 endif ()

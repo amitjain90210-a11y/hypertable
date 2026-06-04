@@ -1,0 +1,18 @@
+# LSan suppression file for known third-party leaks.
+# Use with: LSAN_OPTIONS=suppressions=/path/to/lsan.supp
+
+# sigar_os_open allocates OS-level state that is never freed (by design).
+leak:sigar_os_open
+
+# OpenSSL 3.x provider/decoder infrastructure caches loaded algorithms
+# globally and does not release them at exit (known upstream behaviour).
+leak:libcrypto.so
+
+# ncurses/terminfo initialises terminal state that is never freed (by design).
+leak:libtinfo.so
+
+# boost::python module initialisation registers Python type/function objects
+# into the interpreter's global type registry via PyInit_libHyperPython.
+# Python's type system holds these references permanently (by design).
+leak:PyInit_libHyperPython
+leak:libboost_python

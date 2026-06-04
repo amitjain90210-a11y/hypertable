@@ -108,6 +108,11 @@ configure_file(${SRC_DIR}/bdb_fs_test.golden ${DST_DIR}/bdb_fs_test.golden)
 
 add_test(NAME BerkeleyDbFilesystem COMMAND $<TARGET_FILE:bdb_fs_test>)
 
+if (SANITIZE STREQUAL "thread")
+  set_tests_properties(BerkeleyDbFilesystem PROPERTIES
+    ENVIRONMENT "TSAN_OPTIONS=suppressions=${CMAKE_SOURCE_DIR}/tsan.supp")
+endif ()
+
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB HEADERS *.h)
 

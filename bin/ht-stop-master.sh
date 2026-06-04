@@ -59,8 +59,28 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Read the PID before shutting down so we can wait for the process to exit
+master_pid=""
+pidfile=$(server_pidfile master)
+if [ -f "$pidfile" ]; then
+  master_pid=$(cat "$pidfile")
+fi
+
 echo 'shutdown' | $HYPERTABLE_HOME/bin/ht master --batch --silent $@
 wait_for_critical master "Master" "$@"
 if [ $? -ne 0 ]; then
   stop_server master
+else
+  # Poll until the process actually exits (it may still be cleaning up
+  # after closing its listening socket, or running ASAN teardown)
+  if [ -n "$master_pid" ]; then
+    retries=0
+    while kill -0 $master_pid 2>/dev/null && [ $retries -lt 30 ]; do
+      sleep 1
+      let retries=retries+1
+    done
+    if kill -0 $master_pid 2>/dev/null; then
+      kill -9 $master_pid 2>/dev/null
+    fi
+  fi
 fi

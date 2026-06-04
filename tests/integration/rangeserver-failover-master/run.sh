@@ -281,6 +281,11 @@ run_test() {
     # shut down remaining servers
     $HT_HOME/bin/ht-stop-servers.sh
 
+    # Remove bulky per-test artifacts on success to avoid filling the disk.
+    # Failures are handled by save_failure_state which archives them first.
+    \rm -f master.output.$TEST rangeserver.rs?.output.$TEST \
+            dbdump.$TEST dbdump.md5 locations.$TEST
+
 }
 
 if [ $TEST == 0 ] ; then
@@ -391,4 +396,10 @@ echo "**** TEST REPORT ****"
 echo ""
 cat report.txt
 grep FAILED report.txt > /dev/null && exit 1
+
+# All tests passed: remove shared artifacts and the DFS data left by the
+# last test (earlier tests are already cleared by ht-start-test-servers --clear).
+\rm -f golden_dump.txt golden_dump.md5 report.txt
+\rm -rf $HT_HOME/fs/local
+
 exit 0

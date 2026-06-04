@@ -1,0 +1,22 @@
+# MSAN ignorelist: suppress instrumentation in third-party library internals
+# that trigger false positives due to partial instrumentation.
+#
+# Root cause: libstdc++.so and libboost are NOT MSAN-instrumented.  Their
+# out-of-line functions (e.g. _Rb_tree_insert_and_rebalance, store()) write
+# to memory without updating MSAN shadow.  When the compiler instantiates
+# std::map<>/std::set<> template bodies in Hypertable TUs those instantiations
+# ARE instrumented and then read the uninitialised shadow, producing spurious
+# "use-of-uninitialized-value" reports that do not represent real Hypertable
+# bugs.  Listing those headers here removes MSAN instrumentation from their
+# template instantiations so that only genuine Hypertable issues are reported.
+
+# libstdc++ Rb_tree internals (std::map, std::set, std::multimap, …)
+src:*/bits/stl_tree.h
+src:*/bits/stl_map.h
+src:*/bits/stl_set.h
+src:*/bits/stl_multimap.h
+src:*/bits/stl_multiset.h
+
+# boost::program_options (variables_map / store() pipeline)
+src:*/boost/program_options/*
+src:*/boost/program_options.hpp

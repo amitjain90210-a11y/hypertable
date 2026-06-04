@@ -1,0 +1,54 @@
+# TSan suppressions for Hypertable
+#
+# BerkeleyDB 5.3 acquires its internal rwlocks in an order that TSan
+# flags as a potential cycle.  This is a false positive: libdb_cxx
+# manages its own lock hierarchy correctly and all lock acquisitions
+# here stay inside the library with no user-code interleaving.
+# The called_from_lib: rule covers race-type reports; the deadlock: rules
+# below cover lock-order-inversion reports (GCC 13 TSan does not honour
+# called_from_lib: for deadlock-type suppressions).
+called_from_lib:libdb_cxx-5.3.so
+deadlock:Hyperspace::BerkeleyDbFilesystem::create_event
+deadlock:Hyperspace::Master::open
+deadlock:Hyperspace::Master::Master
+deadlock:Hyperspace::Master::create_event
+
+# logging_test uses siglongjmp() to escape SIGABRT signal handlers when testing
+# HT_FATAL/HT_FATAL_OUT.  TSan does not update its "inside signal" thread state
+# on siglongjmp, so it incorrectly flags subsequent heap operations in the
+# resumed normal-execution context as signal-unsafe.  This is a false positive.
+signal:test_basic_logging
+
+# Range::m_initialized is a one-way flag set once during deferred_initialization()
+# under RangeMaintenanceGuard (a Barrier), then only read thereafter.  TSan does
+# not model Barrier::ScopedActivator as a synchronization point, so it flags the
+# read/write pair as a race; in practice it is safely published.
+race:Hypertable::Range::deferred_initialization
+
+# Range::need_maintenance reads several Range members without holding m_mutex.
+# These are best-effort reads of loosely-synchronized state used for heuristic
+# maintenance scheduling decisions; stale reads are benign.
+race:Hypertable::Range::need_maintenance
+
+# Context::startup_in_progress reads m_startup without a lock while
+# set_startup_status writes it under mutex.  m_startup is a one-way flag
+# that transitions once during startup; stale reads are benign.
+race:Hypertable::Context::startup_in_progress
+
+# At process exit the static ReactorFactory::ms_reactors vector is destroyed
+# while ConnectionManager's retry thread is still alive (the shared_ptr
+# keeping SharedImpl alive has not yet been released).  This races only
+# during program teardown and does not affect runtime correctness.
+race:Hypertable::ReactorFactory::get_reactor
+
+# TableMutatorAsync has a theoretical M0(queue_mutex)->M1(member_mutex)->M2(Reactor)
+# ->M0 cycle: flush_with_tablequeue holds M0 then M1; set_cells holds M1 then
+# triggers a RangeLocator cache-miss Hyperspace call that acquires M2; the Reactor
+# thread holds M2 and acquires M0 via TableMutatorQueue::add.  Fixing this requires
+# consistently inverting the M0/M1 ordering across both flush_with_tablequeue and
+# buffer_finish (which also nests M1 inside M0).  The cycle cannot actually deadlock:
+# set_cells and flush_with_tablequeue are always dispatched sequentially from the
+# same application thread, so M0 is never held concurrently while M1 is held from
+# the write path.
+deadlock:Hypertable::TableMutatorAsync::flush_with_tablequeue
+

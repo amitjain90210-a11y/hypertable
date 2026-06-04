@@ -66,6 +66,22 @@ while [ $# -gt 0 ]; do
   shift
 done
 
+# For TSan builds, ensure server processes inherit halt_on_error and suppressions.
+# tsan.supp is installed to conf/ only when the build was configured with
+# SANITIZE=tsan, so its presence reliably indicates a TSan build.
+_tsan_supp="$INSTALL_DIR/conf/tsan.supp"
+if [ -z "$TSAN_OPTIONS" ] && [ -f "$_tsan_supp" ]; then
+  export TSAN_OPTIONS="suppressions=$_tsan_supp:halt_on_error=1"
+fi
+unset _tsan_supp
+
+# For UBSan builds, ensure server processes inherit halt_on_error.
+# ubsan.supp is installed to conf/ only when the build was configured with
+# SANITIZE=ubsan, so its presence reliably indicates a UBSan build.
+if [ -z "$UBSAN_OPTIONS" ] && [ -f "$INSTALL_DIR/conf/ubsan.supp" ]; then
+  export UBSAN_OPTIONS="suppressions=$INSTALL_DIR/conf/ubsan.supp:halt_on_error=1:print_stacktrace=1"
+fi
+
 if [ "$clear" ]; then
   $INSTALL_DIR/bin/ht-start-fsbroker.sh $HT_TEST_FS
   $INSTALL_DIR/bin/ht destroy-database "$@"
