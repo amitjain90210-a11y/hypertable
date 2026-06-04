@@ -3,6 +3,32 @@ $:.push(File.dirname(__FILE__) + '/gen-rb')
 
 require 'thrift'
 require 'thrift/protocol/binary_protocol_accelerated'
+
+# Thrift 0.19.0 generated code calls receive_message_begin() and reply_seqid()
+# which don't exist in the 0.16.0 gem.  It also expects receive_message() to
+# read only the result struct (header already consumed by receive_message_begin).
+# Add these shims so the generated code works against the older runtime.
+unless ::Thrift::Client.method_defined?(:receive_message_begin)
+  module ::Thrift
+    module Client
+      def receive_message_begin
+        @iprot.read_message_begin
+      end
+
+      def reply_seqid(_rseqid)
+        true
+      end
+
+      def receive_message(result_klass)
+        result = result_klass.new
+        result.read(@iprot)
+        @iprot.read_message_end
+        result
+      end
+    end
+  end
+end
+
 require 'hql_service'
 
 module Hypertable

@@ -99,12 +99,12 @@ int main(int argc, char **argv) {
     Thrift::ClientPtr client;
     {
       ConsoleOutputSquelcher temp;
-      client = make_shared<Thrift::Client>(host, port, timeout_ms);
+      client = std::make_shared<Thrift::Client>(host, port, timeout_ms);
     }
     
-    CommandInterpreterPtr interp = make_shared<thriftbroker::CommandInterpreter>(client, nowait);
+    CommandInterpreterPtr interp = std::make_shared<thriftbroker::CommandInterpreter>(client, nowait);
 
-    CommandShellPtr shell = make_shared<CommandShell>("thriftbroker", "ThriftBroker", interp, properties);
+    CommandShellPtr shell = std::make_shared<CommandShell>("thriftbroker", "ThriftBroker", interp, properties);
 
     error = shell->run();
   }

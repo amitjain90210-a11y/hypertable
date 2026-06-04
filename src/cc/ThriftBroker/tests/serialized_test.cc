@@ -123,13 +123,13 @@ void test_reader(Thrift::Client *client) {
 int main() {
   try {
     // connect to the local ThriftBroker
-    Thrift::Client *client = new Thrift::Client("localhost", 15867);
+    Thrift::Client client("localhost", 15867);
 
     // insert a couple of cells using the SerializedCellsWriter
-    test_writer(client);
+    test_writer(&client);
 
     // then fetch them using the SerializedCellsReader
-    test_reader(client);
+    test_reader(&client);
   }
   catch (Thrift::TException &ex) {
     std::cout << "Caught an exception! Next steps: " << std::endl
