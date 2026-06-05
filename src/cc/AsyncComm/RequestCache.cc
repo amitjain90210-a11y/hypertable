@@ -137,17 +137,17 @@ bool RequestCache::get_next_timeout(ClockT::time_point &now, IOHandler *&handler
 
 
 
-void RequestCache::purge_requests(IOHandler *handler, int32_t error) {
+void RequestCache::purge_requests(IOHandler *handler, const String &proxy, int32_t error,
+                                   std::vector<PendingEvent> &pending) {
   for (CacheNode *node = m_tail; node != 0; node = node->next) {
     if (node->handler == handler) {
-      String proxy = handler->get_proxy();
-      EventPtr event;
       HT_DEBUGF("Purging request id %d", node->id);
+      EventPtr event;
       if (proxy.empty())
-        event = make_shared<Event>(Event::ERROR, handler->get_address(), error);
+        event = std::make_shared<Event>(Event::ERROR, handler->get_address(), error);
       else
-        event = make_shared<Event>(Event::ERROR, handler->get_address(), proxy, error);
-      handler->deliver_event(event, node->dh);
+        event = std::make_shared<Event>(Event::ERROR, handler->get_address(), proxy, error);
+      pending.push_back({node->dh, event});
       node->handler = 0;  // mark for deletion
     }
   }

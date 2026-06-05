@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
 
-    ConnectionManagerPtr conn_manager_ptr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_manager_ptr = std::make_shared<ConnectionManager>();
 
     String log_path = get_str("log-path");
     String log_host = get("log-host", String());
@@ -178,9 +178,9 @@ int main(int argc, char **argv) {
 
     // Population Defintion map
     std::unordered_map<String, MetaLog::DefinitionPtr> defmap;
-    MetaLog::DefinitionPtr def = make_shared<MetaLog::DefinitionRangeServer>("");
+    MetaLog::DefinitionPtr def = std::make_shared<MetaLog::DefinitionRangeServer>("");
     defmap[def->name()] = def;
-    def = make_shared<MetaLog::DefinitionMaster>("");
+    def = std::make_shared<MetaLog::DefinitionMaster>("");
     defmap[def->name()] = def;
 
     FilesystemPtr fs = dfs_client;
@@ -199,11 +199,11 @@ int main(int argc, char **argv) {
 
     int reader_flags = dump_all ? MetaLog::Reader::LOAD_ALL_ENTITIES : 0;
     if (is_file) {
-      rsml_reader = make_shared<MetaLog::Reader>(fs, def, reader_flags);
+      rsml_reader = std::make_shared<MetaLog::Reader>(fs, def, reader_flags);
       rsml_reader->load_file(log_path);
     }
     else
-      rsml_reader = make_shared<MetaLog::Reader>(fs, def, log_path, reader_flags);
+      rsml_reader = std::make_shared<MetaLog::Reader>(fs, def, log_path, reader_flags);
 
     if (!metadata_tsv && !print_logs)
       cout << "log version: " << rsml_reader->version() << "\n";

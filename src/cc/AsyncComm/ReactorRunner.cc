@@ -59,8 +59,9 @@ extern "C" {
 using namespace Hypertable;
 using namespace std;
 
-bool Hypertable::ReactorRunner::shutdown = false;
+std::atomic<bool> Hypertable::ReactorRunner::shutdown {false};
 bool Hypertable::ReactorRunner::record_arrival_time = false;
+uint32_t Hypertable::ReactorRunner::dispatch_delay {};
 HandlerMapPtr Hypertable::ReactorRunner::handler_map;
 
 
@@ -75,12 +76,7 @@ void ReactorRunner::operator()() {
   std::vector<struct pollfd> pollfds;
   std::vector<IOHandler *> handlers;
 
-  HT_EXPECT(Config::properties, Error::FAILED_EXPECTATION);
-
-  uint32_t dispatch_delay {};
-
-  if (Config::properties->has("Comm.DispatchDelay"))
-    dispatch_delay = Config::properties->get_i32("Comm.DispatchDelay");
+  uint32_t dispatch_delay = ReactorRunner::dispatch_delay;
 
   if (ReactorFactory::use_poll) {
 

@@ -31,11 +31,7 @@
 #include <mutex>
 #include <random>
 
-#if defined(__APPLE__)
 #define LOCK_GLOBAL_MUTEX(m) std::lock_guard<std::mutex> lock(m)
-#else
-#define LOCK_GLOBAL_MUTEX(m) (void)m
-#endif
 
 using namespace Hypertable;
 using namespace std;

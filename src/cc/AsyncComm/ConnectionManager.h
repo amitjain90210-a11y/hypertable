@@ -113,7 +113,10 @@ namespace Hypertable {
       /** Destructor.
        */
       ~SharedImpl() {
-        shutdown = true;
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          shutdown = true;
+        }
         retry_cond.notify_one();
         if (thread.joinable())
           thread.join();

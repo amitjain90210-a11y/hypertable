@@ -108,14 +108,14 @@ Writer::Writer(FilesystemPtr &fs, DefinitionPtr &definition, const string &path,
 
   write_header();
 
-  m_write_scheduler = make_shared<WriteScheduler>(this);
+  m_write_scheduler = std::make_shared<WriteScheduler>(this);
 
   // Write existing entries
   record_state(initial_entities);
 
   // Write "Recover" entity
   if (!skip_recover_entry)
-    record_state(make_shared<EntityRecover>());
+    record_state(std::make_shared<EntityRecover>());
 
 }
 
@@ -323,7 +323,7 @@ void Writer::record_state(EntityPtr entity) {
   {
     lock_guard<Entity> lock(*entity);
     length = EntityHeader::LENGTH + (entity->marked_for_removal() ? 0 : entity->encoded_length());
-    buf = make_shared<StaticBuffer>(length);
+    buf = std::make_shared<StaticBuffer>(length);
     uint8_t *ptr = buf->base;
 
     if (entity->marked_for_removal())
@@ -391,7 +391,7 @@ void Writer::record_state(std::vector<EntityPtr> &entities) {
     i++;
   }
 
-  StaticBufferPtr buf = make_shared<StaticBuffer>(total_length);
+  StaticBufferPtr buf = std::make_shared<StaticBuffer>(total_length);
   ptr = buf->base;
   for (i=0; i<entities.size(); i++) {
     memcpy(ptr, buffers.get()[i].base, buffers.get()[i].size);
@@ -411,7 +411,7 @@ void Writer::record_state(std::vector<EntityPtr> &entities) {
 
 void Writer::record_removal(EntityPtr entity) {
   unique_lock<mutex> lock(m_mutex);
-  StaticBufferPtr buf = make_shared<StaticBuffer>(EntityHeader::LENGTH);
+  StaticBufferPtr buf = std::make_shared<StaticBuffer>(EntityHeader::LENGTH);
   uint8_t *ptr = buf->base;
 
   if (m_fd == -1)
@@ -448,7 +448,7 @@ void Writer::record_removal(std::vector<EntityPtr> &entities) {
     HT_THROWF(Error::CLOSED, "MetaLog '%s' has been closed", m_path.c_str());
 
   size_t length = entities.size() * EntityHeader::LENGTH;
-  StaticBufferPtr buf = make_shared<StaticBuffer>(length);
+  StaticBufferPtr buf = std::make_shared<StaticBuffer>(length);
   uint8_t *ptr = buf->base;
 
   for (auto &entity : entities) {

@@ -30,6 +30,7 @@
 
 #include <Common/Crontab.h>
 
+#include <atomic>
 #include <vector>
 
 namespace Hypertable {
@@ -63,6 +64,14 @@ namespace Hypertable {
 
     /// Default constructor.
     TimeWindow() : m_within_window(false), m_enabled(true) { }
+
+    /// Move-assignment operator (atomics are non-copyable/movable by default).
+    TimeWindow& operator=(TimeWindow&& other) {
+      m_crontabs = std::move(other.m_crontabs);
+      m_within_window.store(other.m_within_window.load());
+      m_enabled.store(other.m_enabled.load());
+      return *this;
+    }
 
     /// Constructor initialized with crontab specs.
     /// This function constructs a Crontab object with each of the specs in
@@ -106,10 +115,10 @@ namespace Hypertable {
     std::vector<Crontab> m_crontabs;
 
     /// Set to <i>true</i> if currently within the time window
-    bool m_within_window;
+    std::atomic<bool> m_within_window;
 
     /// Set to <i>true</i> if the time window is enabled
-    bool m_enabled;
+    std::atomic<bool> m_enabled;
   };
 
   /// @}

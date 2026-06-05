@@ -74,6 +74,8 @@ namespace Hypertable {
      */
     static FailureInducer *instance;
 
+    ~FailureInducer() { clear(); }
+
     /** Returns true if the FailureInducer is enabled (= if an instance was
      * allocated)
      */

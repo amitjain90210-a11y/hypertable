@@ -67,6 +67,8 @@ void test1(const String &outfile) {
       os << "Caught exception with code " << e.code() << "-" << e.what() << endl;
     }
   }
+  delete FailureInducer::instance;
+  FailureInducer::instance = nullptr;
 }
 
 void test2(const String &outfile) {
@@ -84,6 +86,8 @@ void test2(const String &outfile) {
       os << "Caught exception with code " << e.code() << "-" << e.what() << endl;
     }
   }
+  delete FailureInducer::instance;
+  FailureInducer::instance = nullptr;
 }
 
 } // namespace

@@ -45,6 +45,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <random>
 
 using namespace Hypertable;
 using namespace Config;
@@ -108,7 +109,7 @@ namespace Hypertable {
       uint16_t version() override { return 1; }
       const char *name() override { return "foo"; }
       EntityPtr create(const EntityHeader &header) override {
-        return make_shared<EntityGeneric>(header);
+        return std::make_shared<EntityGeneric>(header);
       }
     };
 
@@ -127,19 +128,22 @@ namespace {
 
   typedef Meta::list<MyPolicy, FsClientPolicy, DefaultCommPolicy> Policies;
 
-  MetaLog::DefinitionPtr g_test_definition = make_shared<MetaLog::TestDefinition>();
+  MetaLog::DefinitionPtr g_test_definition = std::make_shared<MetaLog::TestDefinition>();
 
   vector<MetaLog::EntityPtr> g_entities;
 
+  mt19937 g_rng;
+
   void create_entities(int count) {
     for (size_t i=65536; i<=(size_t)65536+count; i++)
-      g_entities.push_back( make_shared<MetaLog::EntityGeneric>(i) );
+      g_entities.push_back( std::make_shared<MetaLog::EntityGeneric>(i) );
   }
 
-  void randomly_change_states(MetaLog::WriterPtr &writer) {    
+  void randomly_change_states(MetaLog::WriterPtr &writer) {
     size_t j;
+    uniform_int_distribution<uint32_t> dist(0, g_entities.size() - 1);
     for (size_t i=0; i<256; i++) {
-      j = Random::number32() % g_entities.size();
+      j = dist(g_rng);
       if (g_entities[j]) {
         dynamic_pointer_cast<MetaLog::EntityGeneric>(g_entities[j])->increment();
         if ((i%127)==0) {
@@ -153,8 +157,9 @@ namespace {
   }
 
   void randomly_set_values(MetaLog::WriterPtr &writer) {
+    uniform_int_distribution<uint32_t> dist(0, 999999);
     for (auto & entity : g_entities)
-      dynamic_pointer_cast<MetaLog::EntityGeneric>(entity)->set_value( Random::number32() % 1000000 );
+      dynamic_pointer_cast<MetaLog::EntityGeneric>(entity)->set_value( dist(g_rng) );
     writer->record_state(g_entities);
   }
 
@@ -174,7 +179,7 @@ main(int ac, char *av[]) {
   try {
     init_with_policies<Policies>(ac, av);
 
-    Random::seed(1);
+    g_rng.seed(1);
 
     int timeout = has("fs-timeout") ? get_i32("fs-timeout") : 180000;
     String host = get_str("fs-host");
@@ -201,7 +206,7 @@ main(int ac, char *av[]) {
      *  Write initital log
      */
 
-    writer = make_shared<MetaLog::Writer>(fs, g_test_definition,
+    writer = std::make_shared<MetaLog::Writer>(fs, g_test_definition,
                                           testdir + "/" + g_test_definition->name(),
                                           g_entities);
 
@@ -211,7 +216,7 @@ main(int ac, char *av[]) {
       ofstream out("metalog_test.out");
       randomly_change_states(writer);
       writer = 0;
-      reader = make_shared<MetaLog::Reader>(fs, g_test_definition,
+      reader = std::make_shared<MetaLog::Reader>(fs, g_test_definition,
                                             testdir + "/" + g_test_definition->name());
       g_entities.clear();
       reader->get_entities(g_entities);
@@ -225,7 +230,7 @@ main(int ac, char *av[]) {
      *  Write some more
      */
 
-    writer = make_shared<MetaLog::Writer>(fs, g_test_definition,
+    writer = std::make_shared<MetaLog::Writer>(fs, g_test_definition,
                                           testdir + "/" + g_test_definition->name(),
                                           g_entities);
 
@@ -233,7 +238,7 @@ main(int ac, char *av[]) {
       ofstream out("metalog_test2.out");
       randomly_change_states(writer);
       writer.reset();
-      reader = make_shared<MetaLog::Reader>(fs, g_test_definition,
+      reader = std::make_shared<MetaLog::Reader>(fs, g_test_definition,
                                             testdir + "/" + g_test_definition->name());
       g_entities.clear();
       reader->get_entities(g_entities);
@@ -248,7 +253,7 @@ main(int ac, char *av[]) {
      *  Log file rollover test
      */
     Config::properties->set("Hypertable.MetaLog.MaxFileSize", (int64_t)50000);
-    writer = make_shared<MetaLog::Writer>(fs, g_test_definition,
+    writer = std::make_shared<MetaLog::Writer>(fs, g_test_definition,
                                           testdir + "/" + g_test_definition->name(),
                                           g_entities);
 
@@ -259,7 +264,7 @@ main(int ac, char *av[]) {
       randomly_set_values(writer);
       randomly_set_values(writer);
       writer.reset();
-      reader = make_shared<MetaLog::Reader>(fs, g_test_definition,
+      reader = std::make_shared<MetaLog::Reader>(fs, g_test_definition,
                                             testdir + "/" + g_test_definition->name());
       g_entities.clear();
       reader->get_entities(g_entities);
@@ -275,14 +280,14 @@ main(int ac, char *av[]) {
 
     MetaLog::Writer::skip_recover_entry = true;
 
-    writer = make_shared<MetaLog::Writer>(fs, g_test_definition,
+    writer = std::make_shared<MetaLog::Writer>(fs, g_test_definition,
                                           testdir + "/" + g_test_definition->name(),
                                           g_entities);
     writer.reset();
 
     try {
       reader =
-        make_shared<MetaLog::Reader>(fs, g_test_definition,
+        std::make_shared<MetaLog::Reader>(fs, g_test_definition,
                                      testdir + "/" + g_test_definition->name());
       HT_ASSERT(!"METALOG missing RECOVER entity exception not thrown");
     }

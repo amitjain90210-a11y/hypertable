@@ -35,6 +35,7 @@
 
 #include <boost/thread/thread.hpp>
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -122,10 +123,7 @@ namespace Hypertable {
      * cancelled
      * @param error Error code to deliver with ERROR events
      */
-    void cancel_requests(IOHandler *handler, int32_t error=Error::COMM_BROKEN_CONNECTION) {
-      std::lock_guard<std::mutex> lock(m_mutex);
-      m_request_cache.purge_requests(handler, error);
-    }
+    void cancel_requests(IOHandler *handler, int32_t error=Error::COMM_BROKEN_CONNECTION);
 
     /** Adds a timer.
      * Pushes timer onto #m_timer_heap and interrupts the polling loop so that
@@ -278,7 +276,7 @@ namespace Hypertable {
     int m_interrupt_sd;           //!< Interrupt socket
 
     /// Set to <i>true</i> if poll loop interrupt in progress
-    bool m_interrupt_in_progress {};
+    std::atomic<bool> m_interrupt_in_progress {};
 
     /// Vector of poll descriptor state structures for use with POSIX
     /// <code>poll()</code>.

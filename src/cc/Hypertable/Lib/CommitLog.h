@@ -36,6 +36,7 @@
 #include <Common/Properties.h>
 #include <Common/Filesystem.h>
 
+#include <atomic>
 #include <deque>
 #include <map>
 #include <memory>
@@ -211,12 +212,12 @@ namespace Hypertable {
     std::set<CommitLogFileInfo *> m_reap_set;
     std::unique_ptr<BlockCompressionCodec> m_compressor;
     std::string                  m_cur_fragment_fname;
-    int64_t                 m_cur_fragment_length;
+    std::atomic<int64_t>    m_cur_fragment_length {};
     int64_t                 m_max_fragment_size;
     uint32_t                m_cur_fragment_num;
     int32_t                 m_fd;
     int32_t                 m_replication;
-    bool                    m_needs_roll;
+    std::atomic<bool>       m_needs_roll {};
   };
 
   /// Smart pointer to CommitLog

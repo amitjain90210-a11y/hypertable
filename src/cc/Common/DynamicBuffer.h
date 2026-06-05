@@ -95,6 +95,8 @@ namespace Hypertable {
     void reserve(size_t len, bool nocopy = false) {
       if (len > remaining())
         grow(fill() + len, nocopy);
+      else if (!base)
+        grow(1, nocopy);
     }
 
     /** Adds additional data without boundary checks
@@ -104,8 +106,8 @@ namespace Hypertable {
      * @return A pointer to the added data
      */
     uint8_t *add_unchecked(const void *data, size_t len) {
-      if (data == 0)
-        return 0;
+      if (data == 0 || len == 0)
+        return ptr;
       uint8_t *rptr = ptr;
       memcpy(ptr, data, len);
       ptr += len;

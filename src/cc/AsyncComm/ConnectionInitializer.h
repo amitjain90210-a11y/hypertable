@@ -43,6 +43,8 @@ namespace Hypertable {
   class ConnectionInitializer {
   public:
 
+    virtual ~ConnectionInitializer() = default;
+
     /** Creates a connection initialization message.
      * @return Initialization message (freed by caller)
      */

@@ -35,6 +35,7 @@
 #include <Common/Error.h>
 #include <Common/FileUtils.h>
 #include <Common/Logger.h>
+#include <Common/Random.h>
 #include <Common/Time.h>
 
 #include <cassert>
@@ -99,7 +100,7 @@ Reactor::Reactor() {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     // Arbitray ephemeral port that won't conflict with our reserved ports    
-    uint16_t port = (uint16_t)(49152 + std::uniform_int_distribution<>(0, 16382)(ReactorFactory::rng));
+    uint16_t port = (uint16_t)(49152 + Random::number32(16383));
     addr.sin_port = htons(port);
 
     // bind socket
@@ -167,13 +168,28 @@ Reactor::Reactor() {
 }
 
 
+void Reactor::cancel_requests(IOHandler *handler, int32_t error) {
+  String proxy = handler->get_proxy();
+  std::vector<RequestCache::PendingEvent> pending;
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_request_cache.purge_requests(handler, proxy, error, pending);
+  }
+  for (auto &pe : pending)
+    handler->deliver_event(pe.event, pe.dh);
+}
+
 void Reactor::handle_timeouts(PollTimeout &next_timeout) {
   vector<ExpireTimer> expired_timers;
   EventPtr event;
   ClockT::time_point now, next_req_timeout;
   ExpireTimer timer;
 
+  struct TimeoutEntry { IOHandlerData *handler; DispatchHandler *dh; };
+  vector<TimeoutEntry> timeout_entries;
+
   while(true) {
+    timeout_entries.clear();
     {
       lock_guard<mutex> lock(m_mutex);
       IOHandler *handler;
@@ -182,11 +198,18 @@ void Reactor::handle_timeouts(PollTimeout &next_timeout) {
       now = ClockT::now();
 
       while (m_request_cache.get_next_timeout(now, handler, dh,
-                                              &next_req_timeout)) {
-        event = make_shared<Event>(Event::ERROR, ((IOHandlerData *)handler)->get_address(), Error::REQUEST_TIMEOUT);
-        event->set_proxy(((IOHandlerData *)handler)->get_proxy());
-        handler->deliver_event(event, dh);
-      }
+                                              &next_req_timeout))
+        timeout_entries.push_back({(IOHandlerData *)handler, dh});
+    }
+
+    for (auto &e : timeout_entries) {
+      event = std::make_shared<Event>(Event::ERROR, e.handler->get_address(), Error::REQUEST_TIMEOUT);
+      event->set_proxy(e.handler->get_proxy());
+      e.handler->deliver_event(event, e.dh);
+    }
+
+    {
+      lock_guard<mutex> lock(m_mutex);
 
       if (next_req_timeout != ClockT::time_point()) {
         next_timeout.set(now, next_req_timeout);
@@ -221,7 +244,7 @@ void Reactor::handle_timeouts(PollTimeout &next_timeout) {
      * Deliver timer events
      */
     for (size_t i=0; i<expired_timers.size(); i++) {
-      event = make_shared<Event>(Event::TIMER, Error::OK);
+      event = std::make_shared<Event>(Event::TIMER, Error::OK);
       if (expired_timers[i].handler)
         expired_timers[i].handler->handle(event);
     }

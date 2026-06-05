@@ -359,8 +359,6 @@ void md5_hmac( unsigned char *key, int keylen,
     memset( &ctx, 0, sizeof( md5_context ) );
 }
 
-static const char _md5_src[] = "_md5_src";
-
 static const char hex_digits[] = "0123456789ABCDEF";
 
 void md5_hex(const void *input, size_t len, char output[33]) {

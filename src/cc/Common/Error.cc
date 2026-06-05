@@ -361,12 +361,52 @@ namespace Hypertable {
     return "";
   }
 
+  // Normalize a __PRETTY_FUNCTION__ string to a canonical form that is
+  // identical regardless of whether it was produced by GCC or clang:
+  //   1. Ensure a space before '*' and '&' (clang omits it, GCC includes it).
+  //   2. Strip namespace qualifiers from parameter types (clang fully qualifies
+  //      types like 'Hypertable::Key', GCC drops the qualifier for types in the
+  //      function's own namespace).
+  std::string normalize_func(const char *func) {
+    if (!func)
+      return {};
+    std::string s(func);
+
+    for (size_t i = 1; i < s.size(); ++i) {
+      if ((s[i] == '*' || s[i] == '&') && s[i-1] != ' ' && s[i-1] != '*') {
+        s.insert(i, 1, ' ');
+        ++i;
+      }
+    }
+
+    size_t paren = s.find('(');
+    if (paren != std::string::npos) {
+      size_t i = paren + 1;
+      while (i < s.size()) {
+        if (!isalpha((unsigned char)s[i]) && s[i] != '_') {
+          ++i;
+          continue;
+        }
+        size_t j = i;
+        while (j < s.size() && (isalnum((unsigned char)s[j]) || s[j] == '_'))
+          ++j;
+        if (j + 1 < s.size() && s[j] == ':' && s[j+1] == ':') {
+          s.erase(i, j - i + 2);
+        } else {
+          i = j;
+        }
+      }
+    }
+
+    return s;
+  }
+
 std::ostream &operator<<(std::ostream &out, const Exception &e) {
   out <<"Hypertable::Exception: "<< e.message() <<" - "
       << Error::get_text(e.code());
 
   if (e.line()) {
-    out <<"\n\tat "<< e.func() <<" (";
+    out <<"\n\tat "<< normalize_func(e.func()) <<" (";
     if (Logger::get()->show_line_numbers())
       out << e.file() <<':'<< e.line();
     else
@@ -377,7 +417,7 @@ std::ostream &operator<<(std::ostream &out, const Exception &e) {
   int prev_code = e.code();
 
   for (Exception *prev = e.prev; prev; prev = prev->prev) {
-    out <<"\n\tat "<< (prev->func() ? prev->func() : "-") <<" (";
+    out <<"\n\tat "<< normalize_func(prev->func() ? prev->func() : "-") <<" (";
     if (Logger::get()->show_line_numbers())
       out << (prev->file() ? prev->file() : "-") <<':'<< prev->line();
     else

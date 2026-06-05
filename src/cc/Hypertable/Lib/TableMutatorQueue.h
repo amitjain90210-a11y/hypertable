@@ -50,6 +50,9 @@ namespace Hypertable {
 
     ~TableMutatorQueue () { }
 
+    virtual void shutdown() {}
+    virtual void join() {}
+
     /**
      */
     virtual void add(ApplicationHandler *app_handler) {

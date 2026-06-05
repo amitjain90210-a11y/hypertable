@@ -39,7 +39,6 @@ using namespace std;
 
 std::vector<ReactorPtr> ReactorFactory::ms_reactors;
 boost::thread_group ReactorFactory::ms_threads;
-default_random_engine ReactorFactory::rng {1};
 mutex ReactorFactory::ms_mutex;
 atomic<int> ReactorFactory::ms_next_reactor(0);
 bool ReactorFactory::ms_epollet = true;
@@ -53,7 +52,7 @@ void ReactorFactory::initialize(uint16_t reactor_count) {
     return;
   ReactorPtr reactor;
   ReactorRunner rrunner;
-  ReactorRunner::handler_map = make_shared<HandlerMap>();
+  ReactorRunner::handler_map = std::make_shared<HandlerMap>();
   signal(SIGPIPE, SIG_IGN);
   assert(reactor_count > 0);
 
@@ -73,9 +72,12 @@ void ReactorFactory::initialize(uint16_t reactor_count) {
       Config::properties->get_bool("Comm.UsePoll"))
     use_poll = true;
 
+  if (Config::properties->has("Comm.DispatchDelay"))
+    ReactorRunner::dispatch_delay = (uint32_t)Config::properties->get_i32("Comm.DispatchDelay");
+
   ms_reactors.reserve(reactor_count+2);
   for (uint16_t i=0; i<reactor_count+2; i++) {
-    reactor = make_shared<Reactor>();
+    reactor = std::make_shared<Reactor>();
     ms_reactors.push_back(reactor);
     rrunner.set_reactor(reactor);
     ms_threads.create_thread(rrunner);

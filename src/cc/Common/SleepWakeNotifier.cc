@@ -45,8 +45,10 @@ using namespace Hypertable;
 
 SleepWakeNotifier::SleepWakeNotifier(std::function<void()> sleep_callback,
                                    std::function<void()> wakeup_callback)
-  : m_thread(&SleepWakeNotifier::thread_func, this),
-    m_callback_sleep(sleep_callback), m_callback_wakeup(wakeup_callback) {
+  : m_callback_sleep(sleep_callback), m_callback_wakeup(wakeup_callback) {
+#if defined(__APPLE__)
+  m_thread = std::thread(&SleepWakeNotifier::thread_func, this);
+#endif
 }
 
 void SleepWakeNotifier::handle_sleep() {
@@ -152,20 +154,20 @@ SleepWakeNotifier::~SleepWakeNotifier() {
   CFRunLoopRemoveSource( CFRunLoopGetCurrent(),
                          IONotificationPortGetRunLoopSource(m_notify_port_ref),
                          kCFRunLoopCommonModes );
- 
+
   // deregister for system sleep notifications
   IODeregisterForSystemPower( &m_notifier_object );
- 
+
   // IORegisterForSystemPower implicitly opens the Root Power Domain IOService
   // so we close it here
   IOServiceClose( m_root_port );
- 
+
   // destroy the notification port allocated by IORegisterForSystemPower
   IONotificationPortDestroy( m_notify_port_ref );
 
   // stop run loop
   CFRunLoopStop(m_run_loop);
-#endif
 
   m_thread.join();
+#endif
 }

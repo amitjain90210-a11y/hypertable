@@ -57,7 +57,12 @@ namespace Hypertable {
     CommitLogReader(FilesystemPtr &fs, const std::string &log_dir,
                     const std::vector<int32_t> &fragment_filter);
 
-    virtual ~CommitLogReader() { }
+    virtual ~CommitLogReader() {
+      for (auto fi : m_fragment_queue) {
+        delete fi->block_stream;
+        delete fi;
+      }
+    }
 
     void get_init_fragment_ids(std::vector<uint32_t> &ids);
 

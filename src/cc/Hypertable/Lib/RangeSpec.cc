@@ -164,9 +164,9 @@ void RangeSpecManaged::decode_internal(uint8_t version, const uint8_t **bufp,
 
 /** @relates RangeSpec */
 ostream &Hypertable::operator<<(ostream &os, const RangeSpec &range) {
-  os <<"{RangeSpec:";
-  HT_DUMP_CSTR(os, start, range.start_row);
-  HT_DUMP_CSTR(os, end, range.end_row);
-  os <<'}';
+  os << "{RangeSpec:";
+  os << " start='" << format_row_key(range.start_row) << "'";
+  os << " end='"   << format_row_key(range.end_row)   << "'";
+  os << '}';
   return os;
 }

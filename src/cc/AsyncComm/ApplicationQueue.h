@@ -372,6 +372,7 @@ namespace Hypertable {
      * completion of the shutdown.
      */
     void shutdown() {
+      std::lock_guard<std::mutex> lock(m_state.mutex);
       m_state.shutdown = true;
       m_state.cond.notify_all();
     }

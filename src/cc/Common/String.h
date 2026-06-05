@@ -211,7 +211,8 @@ namespace Hypertable {
       if (value >= 0)
         format_unsigned(value);
       else {
-        format_unsigned(-value);
+        typedef typename std::make_unsigned<T>::type UT;
+        format_unsigned(UT(0) - static_cast<UT>(value));
         *--s = '-';
       }
     }

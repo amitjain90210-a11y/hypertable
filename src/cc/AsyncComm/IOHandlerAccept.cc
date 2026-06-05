@@ -170,7 +170,7 @@ bool IOHandlerAccept::handle_incoming_connection() {
 
     ReactorRunner::handler_map->decrement_reference_count(handler);
 
-    EventPtr event = make_shared<Event>(Event::CONNECTION_ESTABLISHED, addr, Error::OK);
+    EventPtr event = std::make_shared<Event>(Event::CONNECTION_ESTABLISHED, addr, Error::OK);
     deliver_event(event);
   }
 

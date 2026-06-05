@@ -64,6 +64,12 @@ CommitLog::CommitLog(FilesystemPtr &fs, const string &log_dir, bool is_meta)
 
 CommitLog::~CommitLog() {
   close();
+  for (auto fi : m_fragment_queue) {
+    delete fi->block_stream;
+    delete fi;
+  }
+  for (auto fi : m_reap_set)
+    delete fi;
 }
 
 void
@@ -185,8 +191,10 @@ CommitLog::write(uint64_t cluster_id, DynamicBuffer &buffer, int64_t revision,
 
   if (m_needs_roll) {
     lock_guard<mutex> lock(m_mutex);
-    if ((error = roll()) != Error::OK)
-      return error;
+    if (m_needs_roll) {
+      if ((error = roll()) != Error::OK)
+	return error;
+    }
   }
 
   /**
@@ -200,8 +208,10 @@ CommitLog::write(uint64_t cluster_id, DynamicBuffer &buffer, int64_t revision,
    */
   if (m_cur_fragment_length > m_max_fragment_size) {
     lock_guard<mutex> lock(m_mutex);
-    if ((error = roll()) != Error::OK)
-      return error;
+    if (m_cur_fragment_length > m_max_fragment_size) {
+      if ((error = roll()) != Error::OK)
+	return error;
+    }
   }
 
   return Error::OK;
@@ -553,7 +563,7 @@ void CommitLog::get_stats(const string &prefix, string &result) {
       result += prefix + String("-log-fragment[") + frag->num + "]\trevision\t" + frag->revision + "\n";
       result += prefix + String("-log-fragment[") + frag->num + "]\tdir\t" + frag->log_dir + "\n";
     }
-    result += prefix + String("-log-fragment[") + m_cur_fragment_num + "]\tsize\t" + m_cur_fragment_length + "\n";
+    result += prefix + String("-log-fragment[") + m_cur_fragment_num + "]\tsize\t" + m_cur_fragment_length.load() + "\n";
     result += prefix + String("-log-fragment]") + m_cur_fragment_num + "]\trevision\t" + m_latest_revision + "\n";
     result += prefix + String("-log-fragment]") + m_cur_fragment_num + "]\tdir\t" + m_log_dir + "\n";
   }

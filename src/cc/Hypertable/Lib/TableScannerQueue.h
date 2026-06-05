@@ -47,6 +47,9 @@ namespace Hypertable {
 
     ~TableScannerQueue () { }
 
+    virtual void shutdown() {}
+    virtual void join() {}
+
     /**
      */
     virtual void add(ApplicationHandler *app_handler) {

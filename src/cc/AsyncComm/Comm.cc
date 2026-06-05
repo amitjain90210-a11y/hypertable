@@ -38,6 +38,7 @@
 #include <Common/Config.h>
 #include <Common/Error.h>
 #include <Common/InetAddr.h>
+#include <Common/Random.h>
 #include <Common/FileUtils.h>
 #include <Common/ScopeGuard.h>
 #include <Common/SystemInfo.h>
@@ -134,7 +135,6 @@ int
 Comm::connect(const CommAddress &addr, const DispatchHandlerPtr &default_handler) {
   int sd;
   int error = m_handler_map->contains_data_handler(addr);
-  uint16_t port;
 
   if (error == Error::OK)
     return Error::COMM_ALREADY_CONNECTED;
@@ -150,17 +150,18 @@ Comm::connect(const CommAddress &addr, const DispatchHandlerPtr &default_handler
     }
 
     // Get arbitray ephemeral port that won't conflict with our reserved ports
-    port = (uint16_t)(49152 + std::uniform_int_distribution<>(0, 16382)(ReactorFactory::rng));
-    m_local_addr.sin_port = htons(port);
+    // Use a local copy to avoid a race when multiple threads call connect().
+    InetAddr local_addr = m_local_addr;
+    local_addr.sin_port = htons((uint16_t)(49152 + Random::number32(16383)));
 
     // bind socket to local address
-    if ((::bind(sd, (const sockaddr *)&m_local_addr, sizeof(sockaddr_in))) < 0) {
+    if ((::bind(sd, (const sockaddr *)&local_addr, sizeof(sockaddr_in))) < 0) {
       if (errno == EADDRINUSE) {
         ::close(sd);
         continue;
       }
       if (m_verbose)
-        HT_ERRORF( "bind: %s: %s", m_local_addr.format().c_str(), strerror(errno));
+        HT_ERRORF( "bind: %s: %s", local_addr.format().c_str(), strerror(errno));
       return Error::COMM_BIND_ERROR;
     }
     break;

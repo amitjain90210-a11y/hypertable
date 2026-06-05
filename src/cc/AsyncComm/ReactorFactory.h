@@ -36,7 +36,6 @@
 #include <atomic>
 #include <cassert>
 #include <mutex>
-#include <random>
 #include <set>
 #include <vector>
 
@@ -100,9 +99,6 @@ namespace Hypertable {
 
     /// Boost thread_group for managing reactor threads
     static boost::thread_group ms_threads;
-
-    /// Pseudo random number generator
-    static std::default_random_engine rng;
 
     /// Use "edge triggered" epoll
     static bool ms_epollet;

@@ -34,16 +34,14 @@ namespace {
 volatile int n_sigs = 0;
 volatile bool last_try = false;
 const int N_EXPECTED_SIGS = 4;
-jmp_buf jmp_ctx;
+sigjmp_buf jmp_ctx;
 
 #define DEF_SIG_HANDLER(_sig_) \
 void _sig_##_handler(int) { \
   if (++n_sigs >= N_EXPECTED_SIGS && !last_try) { \
-    HT_INFO("Caught unexpected " #_sig_ " signal, aborting..."); \
-    exit(EXIT_FAILURE); \
+    _exit(EXIT_FAILURE); \
   } \
-  HT_INFO("Caught " #_sig_ " signal, continuing..."); \
-  longjmp(jmp_ctx, 1); \
+  siglongjmp(jmp_ctx, 1); \
 }
 
 #define INSTALL_SIG_HANDLER(_sig_) do { \
@@ -55,7 +53,7 @@ void _sig_##_handler(int) { \
 } while (0)
 
 #define TRY_FATAL(_code_) do { \
-  if (setjmp(jmp_ctx) == 0) { \
+  if (sigsetjmp(jmp_ctx, 1) == 0) { \
     _code_; \
   } \
 } while (0)

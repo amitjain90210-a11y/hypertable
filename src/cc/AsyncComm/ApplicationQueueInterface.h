@@ -43,6 +43,8 @@ namespace Hypertable {
 
   public:
 
+    virtual ~ApplicationQueueInterface() = default;
+
     /** Adds an application handler to queue.
      */
     virtual void add(ApplicationHandler *app_handler) = 0;
@@ -53,6 +55,12 @@ namespace Hypertable {
      * where access serialization is handled by the caller.
      */
     virtual void add_unlocked(ApplicationHandler *app_handler) = 0;
+
+    /** Initiates queue shutdown, signalling all worker threads to stop. */
+    virtual void shutdown() = 0;
+
+    /** Waits for all worker threads to exit after shutdown. */
+    virtual void join() = 0;
 
   };
 

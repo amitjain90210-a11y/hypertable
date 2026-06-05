@@ -311,7 +311,7 @@ int main(int argc, char **argv) {
 
   if (udp_mode) {
     assert(inet_addr.sin_port == 0);
-    dhp = make_shared<ResponseHandlerUDP>();
+    dhp = std::make_shared<ResponseHandlerUDP>();
     resp_handler = static_cast<ResponseHandler *>(dhp.get());
     port++;
     InetAddr::initialize(&inet_addr, INADDR_ANY, port);
@@ -319,7 +319,7 @@ int main(int argc, char **argv) {
     comm->create_datagram_receive_socket(udp_send_addr, 0, dhp);
   }
   else {
-    dhp = make_shared<ResponseHandlerTCP>();
+    dhp = std::make_shared<ResponseHandlerTCP>();
     resp_handler = static_cast<ResponseHandler *>(dhp.get());
 
     if (inet_addr.sin_port == 0) {
@@ -329,7 +329,7 @@ int main(int argc, char **argv) {
       }
     }
     else {
-      ConnectionHandlerFactoryPtr handler_factory = make_shared<HandlerFactory>(dhp);
+      ConnectionHandlerFactoryPtr handler_factory = std::make_shared<HandlerFactory>(dhp);
       comm->listen(inet_addr, handler_factory, dhp);
     }
     if (!((ResponseHandlerTCP *)resp_handler)->wait_for_connection())

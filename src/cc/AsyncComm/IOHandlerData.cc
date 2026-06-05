@@ -574,7 +574,7 @@ void IOHandlerData::handle_message_header(ClockT::time_point arrival_time) {
     return;
   }
 
-  m_event = make_shared<Event>(Event::MESSAGE, m_addr);
+  m_event = std::make_shared<Event>(Event::MESSAGE, m_addr);
   m_event->load_message_header(m_message_header, header_len);
   m_event->arrival_time = arrival_time;
 
@@ -583,8 +583,9 @@ void IOHandlerData::handle_message_header(ClockT::time_point arrival_time) {
 #if defined(__linux__)
   if (m_event->header.alignment > 0) {
     void *vptr = 0;
-    posix_memalign(&vptr, m_event->header.alignment,
-		   m_event->header.total_len - header_len);
+    if (posix_memalign(&vptr, m_event->header.alignment,
+                       m_event->header.total_len - header_len) != 0)
+      HT_THROW(Error::BAD_MEMORY_ALLOCATION, "posix_memalign failed");
     m_message = (uint8_t *)vptr;
     m_message_aligned = true;
   }
@@ -725,7 +726,7 @@ bool IOHandlerData::handle_write_readiness() {
         return true;
       }
     }
-    EventPtr event = make_shared<Event>(Event::CONNECTION_ESTABLISHED, m_addr,
+    EventPtr event = std::make_shared<Event>(Event::CONNECTION_ESTABLISHED, m_addr,
                                         m_proxy, Error::OK);
     deliver_event(event);
   }
@@ -737,18 +738,30 @@ bool IOHandlerData::handle_write_readiness() {
 int
 IOHandlerData::send_message(CommBufPtr &cbp, uint32_t timeout_ms,
                             DispatchHandler *disp_handler) {
-  lock_guard<mutex> lock(m_mutex);
-  bool initially_empty = m_send_queue.empty() ? true : false;
-  int error = Error::OK;
-
-  if (m_decomissioned)
-    return Error::COMM_NOT_CONNECTED;
-
-  // If request, Add message ID to request cache
+  // Register the request in the reactor cache BEFORE acquiring m_mutex to
+  // avoid a lock-order cycle: m_mutex -> Reactor::m_mutex (this path) vs.
+  // Reactor::m_mutex -> callback -> m_mutex (via purge_requests/deliver_event).
+  // The message cannot be sent (and thus no response can arrive) until it is
+  // pushed onto m_send_queue below, so pre-registration is safe.  If the
+  // handler turns out to be decommissioned we remove the entry afterwards.
+  bool request_registered = false;
   if (cbp->header.id != 0 && disp_handler != 0
       && cbp->header.flags & CommHeader::FLAGS_BIT_REQUEST) {
     auto expire_time = ClockT::now() + chrono::milliseconds(timeout_ms);
     m_reactor->add_request(cbp->header.id, this, disp_handler, expire_time);
+    request_registered = true;
+  }
+
+  lock_guard<mutex> lock(m_mutex);
+  bool initially_empty = m_send_queue.empty() ? true : false;
+  int error = Error::OK;
+
+  if (m_decomissioned) {
+    if (request_registered) {
+      DispatchHandler *unused;
+      m_reactor->remove_request(cbp->header.id, unused);
+    }
+    return Error::COMM_NOT_CONNECTED;
   }
 
   //HT_INFOF("About to send message of size %d", cbp->header.total_len);

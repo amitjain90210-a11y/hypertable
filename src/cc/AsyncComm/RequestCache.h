@@ -30,8 +30,10 @@
 
 #include <AsyncComm/Clock.h>
 #include <AsyncComm/DispatchHandler.h>
+#include <AsyncComm/Event.h>
 
 #include <unordered_map>
+#include <vector>
 
 namespace Hypertable {
 
@@ -110,12 +112,16 @@ namespace Hypertable {
     /** Purges all requests assocated with <code>handler</code>.  This
      * method walks the entire cache and purges all requests whose
      * handler is equal to <code>handler</code>.  For each purged
-     * request, an ERROR event with error code <code>error</code> is
-     * delivered via the request's dispatch handler.
+     * request, the dispatch handler and error code are added to
+     * <code>pending</code> for delivery by the caller outside any lock.
      * @param handler IOHandler of requests to purge
+     * @param proxy Proxy name to include in the ERROR event
      * @param error Error code to be delivered with ERROR event
+     * @param pending Output vector of {dh, event} pairs to deliver after lock release
      */
-    void purge_requests(IOHandler *handler, int32_t error);
+    struct PendingEvent { DispatchHandler *dh; EventPtr event; };
+    void purge_requests(IOHandler *handler, const String &proxy, int32_t error,
+                        std::vector<PendingEvent> &pending);
 
   private:
     IdHandlerMap m_id_map; //!< RequestID-to-CacheNode map

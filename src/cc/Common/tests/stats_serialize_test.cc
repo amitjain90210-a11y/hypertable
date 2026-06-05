@@ -38,37 +38,37 @@ int main(int argc, char *argv[]) {
   dirs.push_back("/");
   dirs.push_back("/tmp");
 
-  StatsSystem *stats = new StatsSystem(StatsSystem::CPUINFO |
-                                       StatsSystem::CPU |
-                                       StatsSystem::LOADAVG |
-                                       StatsSystem::MEMORY |
-                                       StatsSystem::DISK |
-                                       StatsSystem::SWAP |
-                                       StatsSystem::NETINFO |
-                                       StatsSystem::NET |
-                                       StatsSystem::OSINFO |
-                                       StatsSystem::PROCINFO |
-                                       StatsSystem::PROC |
-                                       StatsSystem::FS |
-                                       StatsSystem::TERMINFO,
-                                       dirs);
+  StatsSystem stats(StatsSystem::CPUINFO |
+                    StatsSystem::CPU |
+                    StatsSystem::LOADAVG |
+                    StatsSystem::MEMORY |
+                    StatsSystem::DISK |
+                    StatsSystem::SWAP |
+                    StatsSystem::NETINFO |
+                    StatsSystem::NET |
+                    StatsSystem::OSINFO |
+                    StatsSystem::PROCINFO |
+                    StatsSystem::PROC |
+                    StatsSystem::FS |
+                    StatsSystem::TERMINFO,
+                    dirs);
 
-  size_t len = stats->encoded_length();
-  
-  uint8_t *buf = new uint8_t[ len ];
-  uint8_t *ptr = buf;
+  size_t len = stats.encoded_length();
 
-  stats->encode(&ptr);
+  std::vector<uint8_t> buf(len);
+  uint8_t *ptr = buf.data();
 
-  HT_ASSERT((size_t)(ptr-buf) == len);
+  stats.encode(&ptr);
 
-  StatsSystem *stats2 = new StatsSystem();
+  HT_ASSERT((size_t)(ptr - buf.data()) == len);
 
-  const uint8_t *ptr2 = buf;
-  stats2->decode(&ptr2, &len);
+  StatsSystem stats2;
+
+  const uint8_t *ptr2 = buf.data();
+  stats2.decode(&ptr2, &len);
 
   HT_ASSERT(len == 0);
 
-  HT_ASSERT(*stats == *stats2);
+  HT_ASSERT(stats == stats2);
 
 }

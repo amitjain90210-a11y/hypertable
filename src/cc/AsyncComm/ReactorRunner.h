@@ -31,6 +31,8 @@
 #include "HandlerMap.h"
 #include "Reactor.h"
 
+#include <atomic>
+
 namespace Hypertable {
 
   /** @addtogroup AsyncComm
@@ -60,11 +62,14 @@ namespace Hypertable {
     void set_reactor(ReactorPtr &reactor) { m_reactor = reactor; }
 
     /// Flag indicating that reactor thread is being shut down
-    static bool shutdown;
+    static std::atomic<bool> shutdown;
 
     /// If set to <i>true</i> arrival time is recorded and passed into
     /// IOHandler#handle
     static bool record_arrival_time;
+
+    /// Dispatch delay in milliseconds (0 = disabled), set before threads start
+    static uint32_t dispatch_delay;
 
     /// Smart pointer to HandlerMap
     static HandlerMapPtr handler_map;

@@ -39,7 +39,8 @@ uint32_t murmurhash2(const void *key, size_t len, uint32_t seed) {
   const unsigned char * data = (const unsigned char *)key;
 
   while (len >= 4) {
-    uint32_t k = *(uint32_t *)data;
+    uint32_t k;
+    memcpy(&k, data, 4);
 
     k *= m;
     k ^= k >> r;

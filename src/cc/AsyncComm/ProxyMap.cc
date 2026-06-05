@@ -131,7 +131,7 @@ CommBufPtr ProxyMap::create_update_message() {
   header.flags |= CommHeader::FLAGS_BIT_PROXY_MAP_UPDATE;
   for (ProxyMapT::iterator iter = m_forward_map.begin(); iter != m_forward_map.end(); ++iter)
     payload += (*iter).first + "\t" + (*iter).second.hostname + "\t" + (*iter).second.addr.format() + "\n";
-  CommBufPtr cbuf = make_shared<CommBuf>(header, payload.length());
+  CommBufPtr cbuf = std::make_shared<CommBuf>(header, payload.length());
   if (payload.length())
     cbuf->append_bytes((uint8_t *)payload.c_str(), payload.length());
   return cbuf;

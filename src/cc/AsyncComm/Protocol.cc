@@ -79,7 +79,7 @@ String Protocol::string_format_message(const Event *event) {
 
 CommBufPtr
 Protocol::create_error_message(CommHeader &header, int error, const char *msg){
-  CommBufPtr cbuf = make_shared<CommBuf>(header, 4 + encoded_length_str16(msg));
+  CommBufPtr cbuf = std::make_shared<CommBuf>(header, 4 + encoded_length_str16(msg));
   cbuf->append_i32(error);
   cbuf->append_str16(msg);
   return cbuf;
