@@ -32,6 +32,7 @@ namespace Hypertable {
   public:
     enum { TIMESTAMP_FORMAT_DEFAULT, TIMESTAMP_FORMAT_NANOS };
 
+    virtual ~CommandInterpreter() = default;
     CommandInterpreter();
     virtual int execute_line(const String &line) = 0;
     void set_timestamp_output_format(const String &format);

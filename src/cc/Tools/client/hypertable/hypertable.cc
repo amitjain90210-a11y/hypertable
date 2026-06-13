@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
     }
     else
       hypertable = new Hypertable::Client();
-    interp = make_shared<HqlCommandInterpreter>(hypertable, profile);
-    shell = make_shared<CommandShell>("hypertable", "Hypertable", interp, properties);
+    interp = std::make_shared<HqlCommandInterpreter>(hypertable, profile);
+    shell = std::make_shared<CommandShell>("hypertable", "Hypertable", interp, properties);
     shell->set_namespace(get_str("namespace"));
     interp->set_silent(shell->silent());
     interp->set_test_mode(shell->test_mode());

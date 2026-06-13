@@ -253,7 +253,6 @@ std::set<String> read_hadoop(const String &fname)
     exit(1);
   }
 
-  unsigned lineno = 1;
   while (fgets(buffer, 10*1024*1024, fp)) {
     // skip directories
     if (buffer[0] == 'd')
@@ -272,8 +271,6 @@ std::set<String> read_hadoop(const String &fname)
 
     ret.insert(p);
     // cout << p << endl;
-
-    lineno++;
   }
 
   delete[] buffer;
@@ -738,7 +735,7 @@ void handle_default()
 	  range_state.soft_limit = range_state_managed.soft_limit;
 	}
 	(*dangling_iter)->entity->get_table_identifier(table);
-	gap->entity = make_shared<MetaLogEntityRange>(table, range_spec, range_state, false);
+	gap->entity = std::make_shared<MetaLogEntityRange>(table, range_spec, range_state, false);
 	gap->entity->set_load_acknowledged(true);
 	gap->location = (*dangling_iter)->location;
       }
@@ -830,7 +827,7 @@ void handle_default()
 	    range_state.soft_limit = range_state_managed.soft_limit;
 	  }
 	  (*dangling_iter)->entity->get_table_identifier(table);
-	  ri->entity = make_shared<MetaLogEntityRange>(table, range_spec, range_state, false);
+	  ri->entity = std::make_shared<MetaLogEntityRange>(table, range_spec, range_state, false);
 	  ri->entity->set_load_acknowledged(true);
 	  printf("Creating new MetaLog entity from pre-split entity for %s\n", ri->to_str().c_str());
 	}
@@ -846,7 +843,7 @@ void handle_default()
 	      tid = &dummy_tid;
 	    }
 	  }
-	  ri->entity = make_shared<MetaLogEntityRange>(*tid, range_spec, range_state, false);
+	  ri->entity = std::make_shared<MetaLogEntityRange>(*tid, range_spec, range_state, false);
 	  ri->entity->set_load_acknowledged(true);
 	  printf("Creating new MetaLog entity for %s\n", ri->to_str().c_str());
 	}
@@ -910,12 +907,12 @@ void handle_default()
     for (entities_map_iter = entities_map.begin(); 
          entities_map_iter != entities_map.end(); ++entities_map_iter) {
 
-      rsml_definition = make_shared<MetaLog::DefinitionRangeServer>(entities_map_iter->first.c_str());
+      rsml_definition = std::make_shared<MetaLog::DefinitionRangeServer>(entities_map_iter->first.c_str());
 
       printf("Repairing RSML %s, writing %d entities\n", entities_map_iter->first.c_str(),
              (int)entities_map_iter->second->size());
 
-      rsml_writer = make_shared<MetaLog::Writer>(fs, rsml_definition,
+      rsml_writer = std::make_shared<MetaLog::Writer>(fs, rsml_definition,
                                         toplevel_dir + "/servers/" + entities_map_iter->first + "/log/" + rsml_definition->name(),
                                         *(entities_map_iter->second));
       rsml_writer->close();
@@ -951,8 +948,8 @@ int main(int argc, char **argv) {
     toplevel_dir = Config::properties->get_str("Hypertable.Directory");
     boost::trim_if(toplevel_dir, boost::is_any_of("/"));
     toplevel_dir = String("/") + toplevel_dir;
-    conn_manager = make_shared<ConnectionManager>();
-    hyperspace = make_shared<Hyperspace::Session>(conn_manager->get_comm(),
+    conn_manager = std::make_shared<ConnectionManager>();
+    hyperspace = std::make_shared<Hyperspace::Session>(conn_manager->get_comm(),
 					 Config::properties);
 
     if (!hyperspace->wait_for_connection(10000)) {

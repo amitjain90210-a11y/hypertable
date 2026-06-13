@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
 
-    ConnectionManagerPtr conn_manager_ptr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_manager_ptr = std::make_shared<ConnectionManager>();
 
     String log_dir = get_str("log-dir");
     String log_host = get("log-host", String());
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
 
     boost::trim_right_if(log_dir, boost::is_any_of("/"));    
 
-    CommitLogReaderPtr log_reader = make_shared<CommitLogReader>(fs, log_dir);
+    CommitLogReaderPtr log_reader = std::make_shared<CommitLogReader>(fs, log_dir);
 
     if (block_summary) {
       printf("LOG %s\n", log_dir.c_str());
@@ -151,8 +151,6 @@ namespace {
     ByteString bs;
     Key key;
     String value;
-    uint32_t blockno=0;
-
     while (log_reader->next(&base, &len, &header)) {
 
       HT_ASSERT(header.check_magic(CommitLog::MAGIC_DATA));
@@ -198,7 +196,6 @@ namespace {
         if (ptr > end)
           HT_THROW(Error::REQUEST_TRUNCATED, "Problem decoding value");
       }
-      blockno++;
     }
   }
 

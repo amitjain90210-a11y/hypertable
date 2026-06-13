@@ -62,9 +62,9 @@ RsmlReader::RsmlReader(FilesystemPtr &fs, StringSet &valid_locations, StringSet 
         valid_locations.count(listing[i].name) == 0)
       continue;
 
-    rsml_definition = make_shared<MetaLog::DefinitionRangeServer>( listing[i].name.c_str() );
+    rsml_definition = std::make_shared<MetaLog::DefinitionRangeServer>( listing[i].name.c_str() );
 
-    rsml_reader = make_shared<MetaLog::Reader>(fs, rsml_definition,
+    rsml_reader = std::make_shared<MetaLog::Reader>(fs, rsml_definition,
 				      toplevel + "/servers/" + listing[i].name + "/log/" + rsml_definition->name());
 
     entities.clear();

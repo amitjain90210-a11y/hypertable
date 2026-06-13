@@ -121,16 +121,20 @@ void FsBroker::Lib::copy_from_local(ClientPtr &client, const string &from, const
     // send 3 appends
     for (int i=0; i<3; i++) {
       buf = new uint8_t [BUFFER_SIZE];
-      if ((nread = fread(buf, 1, BUFFER_SIZE, fp)) == 0)
+      if ((nread = fread(buf, 1, BUFFER_SIZE, fp)) == 0) {
+        delete[] buf;
         goto done;
+      }
       send_buf.set(buf, nread, true);
       client->append(fd, send_buf);
     }
 
     while (true) {
       buf = new uint8_t [BUFFER_SIZE];
-      if ((nread = fread(buf, 1, BUFFER_SIZE, fp)) == 0)
+      if ((nread = fread(buf, 1, BUFFER_SIZE, fp)) == 0) {
+        delete[] buf;
         break;
+      }
       send_buf.set(buf, nread, true);
       client->append(fd, send_buf);
     }

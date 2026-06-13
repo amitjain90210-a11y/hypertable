@@ -102,7 +102,7 @@ namespace {
 int main(int argc, char **argv) {
 
   System::initialize();
-  Config::properties = make_shared<Properties>();
+  Config::properties = std::make_shared<Properties>();
   ReactorFactory::initialize(System::get_processor_count());
 
   string host_spec;
@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
   g_handlers.reserve(hosts.size());
 
   for (auto & host : hosts)
-    g_handlers.push_back(make_shared<SshSocketHandler>(host));
+    g_handlers.push_back(std::make_shared<SshSocketHandler>(host));
 
   auto now = chrono::system_clock::now();
   auto deadline = now + std::chrono::seconds(30);

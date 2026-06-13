@@ -113,9 +113,11 @@ static __inline ui32 fast_read(void const *src, ui32 bytes)
 	}
 	return 0;
 #else
-	if (bytes >= 1 && bytes <= 4)
-		return *((ui32*)src);
-	else
+	if (bytes >= 1 && bytes <= 4) {
+		ui32 v;
+		memcpy(&v, src, sizeof(ui32));
+		return v;
+	} else
 		return 0;
 #endif
 }
@@ -157,15 +159,17 @@ static __inline void fast_write(ui32 f, void *dst, size_t bytes)
 #else
 	switch (bytes)
 	{
-		case 4: 
-			*((ui32*)dst) = f;
+		case 4:
+			memcpy(dst, &f, sizeof(ui32));
 			return;
 		case 3:
-			*((ui32*)dst) = f;
+			memcpy(dst, &f, sizeof(ui32));
 			return;
-		case 2:
-			*((ui16 *)dst) = (ui16)f;
+		case 2: {
+			ui16 v = (ui16)f;
+			memcpy(dst, &v, sizeof(ui16));
 			return;
+		}
 		case 1:
 			*((unsigned char*)dst) = (unsigned char)f;
 			return;
@@ -214,7 +218,7 @@ static __inline void memcpy_up(unsigned char *dst, const unsigned char *src, ui3
 	ui32 f = 0;
 	do
 	{
-		*(ui32 *)(dst + f) = *(ui32 *)(src + f);
+		{ ui32 _v_; memcpy(&_v_, src + f, 4); memcpy(dst + f, &_v_, 4); }
 		f += MINOFFSET + 1;
 	}
 	while (f < n);
@@ -686,7 +690,7 @@ static size_t qlz_decompress_core(const unsigned char *source, unsigned char *de
 			{
 				unsigned int n = bitlut[cword_val & 0xf];
 #ifdef X86X64
-				*(ui32 *)dst = *(ui32 *)src;
+				{ ui32 _v_; memcpy(&_v_, src, 4); memcpy(dst, &_v_, 4); }
 #else
 				memcpy_up(dst, src, 4);
 #endif

@@ -132,11 +132,11 @@ int main(int argc, char **argv) {
       quick_exit(output_only ? 0 : 2);
     }
 
-    FsBroker::Lib::ClientPtr client = make_shared<FsBroker::Lib::Client>(comm, addr, timeout_ms);
+    FsBroker::Lib::ClientPtr client = std::make_shared<FsBroker::Lib::Client>(comm, addr, timeout_ms);
 
-    CommandInterpreterPtr interp = make_shared<fsbroker::CommandInterpreter>(client, nowait);
+    CommandInterpreterPtr interp = std::make_shared<fsbroker::CommandInterpreter>(client, nowait);
 
-    CommandShellPtr shell = make_shared<CommandShell>("fsbroker", "FsBroker", interp, properties);
+    CommandShellPtr shell = std::make_shared<CommandShell>("fsbroker", "FsBroker", interp, properties);
 
     error = shell->run();
   }

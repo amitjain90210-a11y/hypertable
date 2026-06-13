@@ -132,12 +132,14 @@ namespace {
     len = lf->cursor - ptr;
 
     /* Convert last word to multibyte encoding, so we can compare to it */
-    wctomb(NULL, 0); /* Reset shift state */
+    [[maybe_unused]] int wctomb_r = wctomb(NULL, 0); /* Reset shift state */
     mblen = MB_LEN_MAX * len + 1;
     buf = bptr = (char *)malloc(mblen);
     for (i = 0; i < len; ++i) {
-      /* Note: really should test for -1 return from wctomb */
-      bptr += wctomb(bptr, ptr[i]);
+      int n = wctomb(bptr, ptr[i]);
+      if (n < 0)
+        HT_FATALF("wctomb failed for wide character 0x%x", (unsigned)ptr[i]);
+      bptr += n;
     }
     *bptr = 0; /* Terminate multibyte string */
     mblen = bptr - buf;
@@ -225,7 +227,7 @@ CommandShell::CommandShell(const string &prompt_str, const string &service_name,
   m_notify = m_props->has("notification-address");
   if (m_notify) {
     String notification_address = m_props->get_str("notification-address");
-    m_notifier_ptr = make_shared<Notifier>(notification_address.c_str());
+    m_notifier_ptr = std::make_shared<Notifier>(notification_address.c_str());
   }
 
   if (m_props->has("execute")) {

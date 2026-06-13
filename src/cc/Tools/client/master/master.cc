@@ -104,9 +104,9 @@ int main(int argc, char **argv) {
 
     Comm *comm = Comm::instance();
 
-    Lib::Master::ClientPtr client = make_shared<Lib::Master::Client>(comm, addr, timeout);
+    Lib::Master::ClientPtr client = std::make_shared<Lib::Master::Client>(comm, addr, timeout);
 
-    DispatchHandlerPtr dispatch_handler_ptr = make_shared<MasterDispatchHandler>(silent);
+    DispatchHandlerPtr dispatch_handler_ptr = std::make_shared<MasterDispatchHandler>(silent);
 
     // connect to Master
     if ((error = comm->connect(addr, dispatch_handler_ptr)) != Error::OK) {
@@ -117,9 +117,9 @@ int main(int argc, char **argv) {
 
     this_thread::sleep_for(chrono::milliseconds(100));
 
-    CommandInterpreterPtr interp = make_shared<MasterCommandInterpreter>(client);
+    CommandInterpreterPtr interp = std::make_shared<MasterCommandInterpreter>(client);
 
-    CommandShellPtr shell = make_shared<CommandShell>("master", "Master", interp, properties);
+    CommandShellPtr shell = std::make_shared<CommandShell>("master", "Master", interp, properties);
 
     error = shell->run();
   }

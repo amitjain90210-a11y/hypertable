@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
     bool display_json {};
 
     System::initialize();
-    Config::properties = make_shared<Properties>();
+    Config::properties = std::make_shared<Properties>();
     ReactorFactory::initialize(System::get_processor_count());
 
     // environment settings and cluster options
@@ -275,8 +275,8 @@ int main(int argc, char **argv) {
     if (!arguments.empty())
       exec_command(compiler.output_script(), environment, arguments);
 
-    interp = make_shared<ClusterCommandInterpreter>(compiler.output_script());
-    shell = make_shared<CommandShell>("cluster", "Cluster", interp, properties);
+    interp = std::make_shared<ClusterCommandInterpreter>(compiler.output_script());
+    shell = std::make_shared<CommandShell>("cluster", "Cluster", interp, properties);
 
     // Entire line is command
     shell->set_line_command_mode(true);

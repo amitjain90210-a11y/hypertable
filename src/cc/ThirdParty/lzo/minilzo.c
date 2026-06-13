@@ -2177,6 +2177,36 @@ LZO_COMPILE_TIME_ASSERT_HEADER(sizeof(lzo_uintptr_t) >= sizeof(lzo_voidp))
 #  endif
 #endif
 
+/* Override UA_GET/SET macros with memcpy-based versions to avoid UBSan
+ * alignment errors.  GCC/Clang compile these down to single unaligned
+ * load/store instructions on x86-64, so there is no performance cost. */
+#if defined(__GNUC__) || defined(__clang__)
+#  ifdef UA_GET16
+#    undef  UA_GET16
+#    undef  UA_SET16
+#    undef  UA_COPY16
+#    define UA_GET16(p)    ({ unsigned short _v_; memcpy(&_v_, (p), 2); _v_; })
+#    define UA_SET16(p,v)  do { unsigned short _v_ = (unsigned short)(v); memcpy((p), &_v_, 2); } while(0)
+#    define UA_COPY16(d,s) UA_SET16(d, UA_GET16(s))
+#  endif
+#  ifdef UA_GET32
+#    undef  UA_GET32
+#    undef  UA_SET32
+#    undef  UA_COPY32
+#    define UA_GET32(p)    ({ lzo_uint32 _v_; memcpy(&_v_, (p), 4); _v_; })
+#    define UA_SET32(p,v)  do { lzo_uint32 _v_ = (lzo_uint32)(v); memcpy((p), &_v_, 4); } while(0)
+#    define UA_COPY32(d,s) UA_SET32(d, UA_GET32(s))
+#  endif
+#  ifdef UA_GET64
+#    undef  UA_GET64
+#    undef  UA_SET64
+#    undef  UA_COPY64
+#    define UA_GET64(p)    ({ lzo_uint64 _v_; memcpy(&_v_, (p), 8); _v_; })
+#    define UA_SET64(p,v)  do { lzo_uint64 _v_ = (lzo_uint64)(v); memcpy((p), &_v_, 8); } while(0)
+#    define UA_COPY64(d,s) UA_SET64(d, UA_GET64(s))
+#  endif
+#endif
+
 #define MEMCPY8_DS(dest,src,len) \
     lzo_memcpy(dest,src,len); dest += len; src += len
 
@@ -2639,6 +2669,9 @@ static __lzo_noinline lzo_voidp u2p(lzo_voidp ptr, lzo_uint off)
 }
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((no_sanitize("alignment")))
+#endif
 LZO_PUBLIC(int)
 _lzo_config_check(void)
 {

@@ -45,9 +45,9 @@ EmitterStdout::EmitterStdout() {
   Comm *comm = Comm::instance();
   m_toplevel_dir = String("/") + properties->get_str("Hypertable.Directory");
 
-  m_hyperspace = make_shared<Hyperspace::Session>(comm, properties);
+  m_hyperspace = std::make_shared<Hyperspace::Session>(comm, properties);
 
-  m_name_id_mapper = make_shared<NameIdMapper>(m_hyperspace, m_toplevel_dir);
+  m_name_id_mapper = std::make_shared<NameIdMapper>(m_hyperspace, m_toplevel_dir);
 }
 
 EmitterStdout::~EmitterStdout() {

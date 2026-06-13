@@ -114,9 +114,9 @@ int main(int argc, char **argv) {
     Comm *comm = Comm::instance();
 
     // Create Range Server client object
-    RangeServer::ClientPtr client = make_shared<RangeServer::Client>(comm, timeout);
+    RangeServer::ClientPtr client = std::make_shared<RangeServer::Client>(comm, timeout);
 
-    DispatchHandlerPtr dispatch_handler_ptr = make_shared<RangeServerDispatchHandler>(silent);
+    DispatchHandlerPtr dispatch_handler_ptr = std::make_shared<RangeServerDispatchHandler>(silent);
     // connect to RangeServer
     if ((error = comm->connect(addr, dispatch_handler_ptr)) != Error::OK) {
       if (!silent)
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
     // Maybe connect to Hyperspace
     Hyperspace::SessionPtr hyperspace;
     if (!no_hyperspace) {
-      hyperspace = make_shared<Hyperspace::Session>(comm, properties);
+      hyperspace = std::make_shared<Hyperspace::Session>(comm, properties);
       if (!hyperspace->wait_for_connection(timeout)) {
         if (!silent)
           cout << "RangeServer CRITICAL - Unable to connecto to Hyperspace" << endl;
@@ -138,9 +138,9 @@ int main(int argc, char **argv) {
     }
 
     CommandInterpreterPtr interp =
-      make_shared<RangeServerCommandInterpreter>(hyperspace, addr, client);
+      std::make_shared<RangeServerCommandInterpreter>(hyperspace, addr, client);
 
-    CommandShellPtr shell = make_shared<CommandShell>("rangeserver", "RangeServer", interp, properties);
+    CommandShellPtr shell = std::make_shared<CommandShell>("rangeserver", "RangeServer", interp, properties);
 
     error = shell->run();
   }

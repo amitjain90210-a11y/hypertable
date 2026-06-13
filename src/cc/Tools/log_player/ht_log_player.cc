@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
 
-    ConnectionManagerPtr conn_manager_ptr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_manager_ptr = std::make_shared<ConnectionManager>();
 
     String log_dir = get_str("log-dir");
     String log_host = get("log-host", String());
@@ -205,10 +205,10 @@ int main(int argc, char **argv) {
       int log_port = get_i16("log-port");
       InetAddr addr(log_host, log_port);
 
-      dfs_client = make_shared<FsBroker::Lib::Client>(conn_manager_ptr, addr, timeout);
+      dfs_client = std::make_shared<FsBroker::Lib::Client>(conn_manager_ptr, addr, timeout);
     }
     else {
-      dfs_client = make_shared<FsBroker::Lib::Client>(conn_manager_ptr, properties);
+      dfs_client = std::make_shared<FsBroker::Lib::Client>(conn_manager_ptr, properties);
     }
 
     if (!dfs_client->wait_for_connection(timeout)) {
@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
 
     boost::trim_right_if(log_dir, boost::is_any_of("/"));    
 
-    CommitLogReaderPtr log_reader = make_shared<CommitLogReader>(fs, log_dir);
+    CommitLogReaderPtr log_reader = std::make_shared<CommitLogReader>(fs, log_dir);
 
     if (stdout)
       emitter = new EmitterStdout();

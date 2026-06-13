@@ -51,9 +51,11 @@
 
 #include <boost/algorithm/string.hpp>
 
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <thread>
 
 extern "C" {
 #include <netdb.h>
@@ -186,7 +188,7 @@ namespace {
       quick_exit(EXIT_SUCCESS);
     }
 
-    hyperspace = make_shared<Hyperspace::Session>(conn_mgr->get_comm(), properties);
+    hyperspace = std::make_shared<Hyperspace::Session>(conn_mgr->get_comm(), properties);
 
     if (!hyperspace->wait_for_connection(max_wait_ms))
       HT_THROW(Error::REQUEST_TIMEOUT, "connecting to hyperspace");
@@ -213,12 +215,12 @@ namespace {
     }
 
     if (!hyperspace) {
-      hyperspace = make_shared<Hyperspace::Session>(conn_mgr->get_comm(), properties);
+      hyperspace = std::make_shared<Hyperspace::Session>(conn_mgr->get_comm(), properties);
       if (!hyperspace->wait_for_connection(wait_ms))
         HT_THROW(Error::REQUEST_TIMEOUT, "connecting to hyperspace");
     }
 
-    ApplicationQueueInterfacePtr app_queue = make_shared<ApplicationQueue>(1);
+    ApplicationQueueInterfacePtr app_queue = std::make_shared<ApplicationQueue>(1);
 
     String toplevel_dir = properties->get_str("Hypertable.Directory");
     boost::trim_if(toplevel_dir, boost::is_any_of("/"));
@@ -307,15 +309,20 @@ namespace {
     wait_for_connection("range server", conn_mgr, addr, wait_ms, wait_ms);
 
     RangeServer::ClientPtr range_server
-      = make_shared<RangeServer::Client>(conn_mgr->get_comm(), wait_ms);
+      = std::make_shared<RangeServer::Client>(conn_mgr->get_comm(), wait_ms);
     Timer timer(wait_ms, true);
-    Status status;
-    range_server->status(addr, status, timer);
-    Status::Code code;
+    Status::Code code = Status::Code::CRITICAL;
     string text;
-    status.get(&code, text);
-    if (code > ready_status)
-      HT_THROW(Error::FAILED_EXPECTATION, text);
+    while (true) {
+      Status status;
+      range_server->status(addr, status, timer);
+      status.get(&code, text);
+      if (code <= ready_status)
+        break;
+      if (timer.remaining() <= 0)
+        HT_THROW(Error::FAILED_EXPECTATION, text);
+      this_thread::sleep_for(chrono::milliseconds(500));
+    }
   }
 
   void check_thriftbroker(ConnectionManagerPtr &conn_mgr, int wait_ms) {
@@ -376,7 +383,7 @@ int main(int argc, char **argv) {
     String server_name = get("server-name", String());
     bool verbose = get_bool("verbose");
 
-    ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_mgr = std::make_shared<ConnectionManager>();
     conn_mgr->set_quiet_mode(silent);
 
     properties->set("FsBroker.Timeout", (int32_t)wait_ms);
