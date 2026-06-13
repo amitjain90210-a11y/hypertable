@@ -114,7 +114,7 @@ void OperationRegisterServer::execute() {
   }
 
   if (!m_rsc)
-    m_rsc = make_shared<RangeServerConnection>(m_location, m_params.system_stats().net_info.host_name, m_public_addr);
+    m_rsc = std::make_shared<RangeServerConnection>(m_location, m_params.system_stats().net_info.host_name, m_public_addr);
   else
     m_context->rsc_manager->disconnect_server(m_rsc);
 
@@ -231,7 +231,7 @@ void OperationRegisterServer::execute() {
         format("Server registration error for %s (%s)", m_location.c_str(),
                m_rsc->hostname().c_str());
       m_context->notification_hook(notification_subject, notification_body);
-      OperationPtr operation = make_shared<OperationRecover>(m_context, m_rsc);
+      OperationPtr operation = std::make_shared<OperationRecover>(m_context, m_rsc);
       try {
         m_context->op->add_operation(operation);
       }
@@ -256,7 +256,7 @@ void OperationRegisterServer::execute() {
   m_context->add_available_server(m_location);
 
   // Prevent subsequent registration until lock is released
-  operation = make_shared<OperationRegisterServerBlocker>(m_context,
+  operation = std::make_shared<OperationRegisterServerBlocker>(m_context,
                                                           m_rsc->location());
   m_context->op->add_operation(operation);
 

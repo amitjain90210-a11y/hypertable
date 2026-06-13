@@ -112,7 +112,7 @@ void OperationRenameTable::execute() {
 
       boost::trim_if(old_index, boost::is_any_of("/ "));
       boost::trim_if(new_index, boost::is_any_of("/ "));
-      stage_subop(make_shared<OperationRenameTable>(m_context, old_index, new_index));
+      stage_subop(std::make_shared<OperationRenameTable>(m_context, old_index, new_index));
       set_state(OperationState::RENAME_QUALIFIER_INDEX);
       record_state();
       break;
@@ -133,7 +133,7 @@ void OperationRenameTable::execute() {
 
       boost::trim_if(old_index, boost::is_any_of("/ "));
       boost::trim_if(new_index, boost::is_any_of("/ "));
-      stage_subop(make_shared<OperationRenameTable>(m_context, old_index, new_index));
+      stage_subop(std::make_shared<OperationRenameTable>(m_context, old_index, new_index));
       set_state(OperationState::STARTED);
       record_state();
       break;

@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
     init_with_policies<Policies>(argc, argv);
     DependencySet dependencies, exclusivities, obstructions;
     std::vector<OperationPtr> operations;
-    ContextPtr context = make_shared<Context>(properties);
+    ContextPtr context = std::make_shared<Context>(properties);
     OperationPtr operation;
     std::vector<String> results;
     std::set<String> seen;
@@ -135,15 +135,15 @@ int main(int argc, char **argv) {
     String log_dir = context->toplevel_dir + "/servers/master/log";
     boost::trim_if(context->toplevel_dir, boost::is_any_of("/"));
     context->toplevel_dir = String("/") + context->toplevel_dir;
-    context->mml_definition = make_shared<MetaLog::DefinitionMaster>(context, "master");
+    context->mml_definition = std::make_shared<MetaLog::DefinitionMaster>(context, "master");
     context->mml_writer =
-      make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+      std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                    log_dir + "/" + context->mml_definition->name(),
                                    entities);
 
     context->response_manager->set_mml_writer(context->mml_writer);
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
 
     /**
      *  TEST 1
@@ -151,19 +151,19 @@ int main(int argc, char **argv) {
 
     dependencies.insert("op1");
     exclusivities.clear();
-    operation = make_shared<OperationTest>(context, results, "A", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "A", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
-    operation = make_shared<OperationTest>(context, results, "B", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "B", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
     dependencies.insert("op2");
     exclusivities.clear();
-    operation = make_shared<OperationTest>(context, results, "C", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "C", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
-    operation = make_shared<OperationTest>(context, results, "D", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "D", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
     dependencies.insert("op4");
     exclusivities.clear();
     exclusivities.insert("op1");
-    operation = make_shared<OperationTest>(context, results, "E", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "E", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     dependencies.insert("rs2");
     exclusivities.clear();
     exclusivities.insert("op2");
-    operation = make_shared<OperationTest>(context, results, "F", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "F", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
     dependencies.insert("op5");
     exclusivities.clear();
     exclusivities.insert("op3");
-    operation = make_shared<OperationTest>(context, results, "G", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "G", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
     dependencies.insert("rs1");
     exclusivities.clear();
     exclusivities.insert("op4");
-    operation = make_shared<OperationTest>(context, results, "H", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "H", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
@@ -205,31 +205,31 @@ int main(int argc, char **argv) {
     dependencies.insert("rs2");
     exclusivities.clear();
     exclusivities.insert("op5");
-    operation = make_shared<OperationTest>(context, results, "I", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "I", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
     exclusivities.clear();
     exclusivities.insert("/n1");
-    operation = make_shared<OperationTest>(context, results, "J", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "J", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
     exclusivities.clear();
     exclusivities.insert("/n2");
-    operation = make_shared<OperationTest>(context, results, "K", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "K", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
     exclusivities.clear();
     exclusivities.insert("rs1");
-    operation = make_shared<OperationTest>(context, results, "L", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "L", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.clear();
     exclusivities.clear();
     exclusivities.insert("rs2");
-    operation = make_shared<OperationTest>(context, results, "M", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "M", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     context->op->add_operations(operations);
@@ -255,50 +255,50 @@ int main(int argc, char **argv) {
     obstructions.clear();
 
     dependencies.insert("foo");
-    operation = make_shared<OperationTest>(context, results, "A", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "A", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
     dependencies.clear();
 
     exclusivities.insert("foo");
-    operation = make_shared<OperationTest>(context, results, "E", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "E", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
-    operation = make_shared<OperationTest>(context, results, "D", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "D", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     dependencies.insert("rs1");
-    operation = make_shared<OperationTest>(context, results, "C", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "C", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
     dependencies.clear();
     
-    operation = make_shared<OperationTest>(context, results, "B", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "B", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
     exclusivities.clear();
 
     dependencies.insert("rs1");
-    operation = make_shared<OperationTest>(context, results, "F", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "F", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
-    operation = make_shared<OperationTest>(context, results, "G", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "G", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
     dependencies.clear();
 
     dependencies.insert("wow");
     obstructions.insert("rs1");
-    operation = make_shared<OperationTest>(context, results, "H", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "H", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
     dependencies.clear();
     obstructions.clear();
 
     dependencies.insert("wow");
     obstructions.insert("foo");
-    operation = make_shared<OperationTest>(context, results, "I", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "I", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
     dependencies.clear();
     obstructions.clear();
 
     obstructions.insert("wow");
     dependencies.insert("unknown");
-    operation = make_shared<OperationTest>(context, results, "J", dependencies, exclusivities, obstructions);
+    operation = std::make_shared<OperationTest>(context, results, "J", dependencies, exclusivities, obstructions);
     operations.push_back(operation);
 
     context->op->add_operations(operations);
@@ -319,8 +319,8 @@ int main(int argc, char **argv) {
      *  TEST 3 (test blocked state)
      */
 
-    OperationTestPtr operation_foo = make_shared<OperationTest>(context, results, "foo", OperationState::STARTED);
-    OperationTestPtr operation_bar = make_shared<OperationTest>(context, results, "bar", OperationState::STARTED);
+    OperationTestPtr operation_foo = std::make_shared<OperationTest>(context, results, "foo", OperationState::STARTED);
+    OperationTestPtr operation_bar = std::make_shared<OperationTest>(context, results, "bar", OperationState::STARTED);
 
     operations.clear();
     operation_foo->block();
@@ -349,9 +349,9 @@ int main(int argc, char **argv) {
      *  TEST 4 (make sure blocked operations hold up their dependencies)
      */
 
-    operation_foo = make_shared<OperationTest>(context, results, "foo", OperationState::STARTED);
-    operation_bar = make_shared<OperationTest>(context, results, "bar", OperationState::STARTED);
-    OperationTestPtr operation_baz = make_shared<OperationTest>(context, results, "baz", OperationState::STARTED);
+    operation_foo = std::make_shared<OperationTest>(context, results, "foo", OperationState::STARTED);
+    operation_bar = std::make_shared<OperationTest>(context, results, "bar", OperationState::STARTED);
+    OperationTestPtr operation_baz = std::make_shared<OperationTest>(context, results, "baz", OperationState::STARTED);
 
     /*
      *  foo -> bar -> baz
@@ -385,9 +385,9 @@ int main(int argc, char **argv) {
 
     // again, this time unblock in forward direction
 
-    operation_foo = make_shared<OperationTest>(context, results, "foo", OperationState::STARTED);
-    operation_bar = make_shared<OperationTest>(context, results, "bar", OperationState::STARTED);
-    operation_baz = make_shared<OperationTest>(context, results, "baz", OperationState::STARTED);
+    operation_foo = std::make_shared<OperationTest>(context, results, "foo", OperationState::STARTED);
+    operation_bar = std::make_shared<OperationTest>(context, results, "bar", OperationState::STARTED);
+    operation_baz = std::make_shared<OperationTest>(context, results, "baz", OperationState::STARTED);
 
     operation_foo->add_dependency("bar");
     operation_bar->add_dependency("baz");
@@ -423,7 +423,7 @@ int main(int argc, char **argv) {
     obstructions.clear();
     obstructions.insert("yabadabadoo");
     OperationTestPtr operation_perp =
-      make_shared<OperationTest>(context, results, "perp", dependencies,
+      std::make_shared<OperationTest>(context, results, "perp", dependencies,
                                  exclusivities, obstructions);
     operation_perp->set_is_perpetual(true);
     obstructions.clear();
@@ -432,8 +432,8 @@ int main(int argc, char **argv) {
     context->op->wait_for_idle();
 
     dependencies.insert("yabadabadoo");
-    operation_foo = make_shared<OperationTest>(context, results, "foo", dependencies, exclusivities, obstructions);
-    operation_bar = make_shared<OperationTest>(context, results, "bar", dependencies, exclusivities, obstructions);
+    operation_foo = std::make_shared<OperationTest>(context, results, "foo", dependencies, exclusivities, obstructions);
+    operation_bar = std::make_shared<OperationTest>(context, results, "bar", dependencies, exclusivities, obstructions);
 
     operations.clear();
     operations.push_back(operation_foo);

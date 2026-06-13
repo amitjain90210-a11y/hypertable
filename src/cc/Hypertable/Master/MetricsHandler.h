@@ -35,6 +35,7 @@
 #include <Common/Properties.h>
 #include <Common/metrics>
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 
@@ -100,7 +101,7 @@ namespace Hypertable {
     interval_metric<int64_t> m_operations {};
 
     /// Collection has started
-    bool m_started {};
+    std::atomic<bool> m_started {};
   };
 
   /// Smart pointer to MetricsHandler

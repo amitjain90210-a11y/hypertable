@@ -111,36 +111,36 @@ void ConnectionHandler::handle(EventPtr &event) {
 
       switch (event->header.command) {
       case Lib::Master::Protocol::COMMAND_STATUS:
-        operation = make_shared<OperationStatus>(m_context, event);
+        operation = std::make_shared<OperationStatus>(m_context, event);
         m_context->response_manager->add_delivery_info(operation->id(), event);
         m_context->op->add_operation(operation);
         return;
       case Lib::Master::Protocol::COMMAND_SYSTEM_STATUS:
-        operation = make_shared<OperationSystemStatus>(m_context, event);
+        operation = std::make_shared<OperationSystemStatus>(m_context, event);
         m_context->response_manager->add_delivery_info(operation->id(), event);
         m_context->op->add_operation(operation);
         return;
       case Lib::Master::Protocol::COMMAND_COMPACT:
-        operation = make_shared<OperationCompact>(m_context, event);
+        operation = std::make_shared<OperationCompact>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_CREATE_TABLE:
-        operation = make_shared<OperationCreateTable>(m_context, event);
+        operation = std::make_shared<OperationCreateTable>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_DROP_TABLE:
-        operation = make_shared<OperationDropTable>(m_context, event);
+        operation = std::make_shared<OperationDropTable>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_ALTER_TABLE:
-        operation = make_shared<OperationAlterTable>(m_context, event);
+        operation = std::make_shared<OperationAlterTable>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_RENAME_TABLE:
-        operation = make_shared<OperationRenameTable>(m_context, event);
+        operation = std::make_shared<OperationRenameTable>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_REGISTER_SERVER:
-        operation = make_shared<OperationRegisterServer>(m_context, event);
+        operation = std::make_shared<OperationRegisterServer>(m_context, event);
         m_context->op->add_operation(operation);
         return;
       case Lib::Master::Protocol::COMMAND_MOVE_RANGE:
-        operation = make_shared<OperationMoveRange>(m_context, event);
+        operation = std::make_shared<OperationMoveRange>(m_context, event);
         if (!m_context->add_move_operation(operation)) {
           HT_INFOF("Skipping %s because already in progress",
                   operation->label().c_str());
@@ -153,16 +153,16 @@ void ConnectionHandler::handle(EventPtr &event) {
         m_context->op->add_operation(operation);
         return;
       case Lib::Master::Protocol::COMMAND_RELINQUISH_ACKNOWLEDGE:
-        operation = make_shared<OperationRelinquishAcknowledge>(m_context, event);
+        operation = std::make_shared<OperationRelinquishAcknowledge>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_BALANCE:
-        operation = make_shared<OperationBalance>(m_context, event);
+        operation = std::make_shared<OperationBalance>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_SET_STATE:
-        operation = make_shared<OperationSetState>(m_context, event);
+        operation = std::make_shared<OperationSetState>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_STOP:
-        operation = make_shared<OperationStop>(m_context, event);
+        operation = std::make_shared<OperationStop>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_SHUTDOWN:
         HT_INFO("Received shutdown command");
@@ -170,13 +170,13 @@ void ConnectionHandler::handle(EventPtr &event) {
         send_ok_response(event, true);
         return;
       case Lib::Master::Protocol::COMMAND_CREATE_NAMESPACE:
-        operation = make_shared<OperationCreateNamespace>(m_context, event);
+        operation = std::make_shared<OperationCreateNamespace>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_DROP_NAMESPACE:
-        operation = make_shared<OperationDropNamespace>(m_context, event);
+        operation = std::make_shared<OperationDropNamespace>(m_context, event);
         break;
       case Lib::Master::Protocol::COMMAND_RECREATE_INDEX_TABLES:
-        operation = make_shared<OperationRecreateIndexTables>(m_context, event);
+        operation = std::make_shared<OperationRecreateIndexTables>(m_context, event);
         break;
 
       case Lib::Master::Protocol::COMMAND_FETCH_RESULT:
@@ -249,19 +249,19 @@ void ConnectionHandler::handle(EventPtr &event) {
 
       if (m_context->hyperspace->get_state() == Hyperspace::Session::STATE_SAFE) {
         if (m_context->next_monitoring_time <= now) {
-          operation = make_shared<OperationGatherStatistics>(m_context);
+          operation = std::make_shared<OperationGatherStatistics>(m_context);
           m_context->op->add_operation(operation);
           m_context->next_monitoring_time = now + (m_context->monitoring_interval/1000) - 1;
         }
 
         if (m_context->next_gc_time <= now) {
-          operation = make_shared<OperationCollectGarbage>(m_context);
+          operation = std::make_shared<OperationCollectGarbage>(m_context);
           m_context->op->add_operation(operation);
           m_context->next_gc_time = now + (m_context->gc_interval/1000) - 1;
         }
 
         if (m_context->balancer->balance_needed()) {
-          operation = make_shared<OperationBalance>(m_context);
+          operation = std::make_shared<OperationBalance>(m_context);
           m_context->op->add_operation(operation);
         }
       }

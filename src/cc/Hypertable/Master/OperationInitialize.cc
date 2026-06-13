@@ -77,7 +77,7 @@ void OperationInitialize::execute() {
                                   OPEN_FLAG_READ|OPEN_FLAG_WRITE|OPEN_FLAG_CREATE);
     }
 
-    stage_subop(make_shared<OperationCreateNamespace>(m_context, "/sys", 0));
+    stage_subop(std::make_shared<OperationCreateNamespace>(m_context, "/sys", 0));
     set_state(OperationState::STARTED);
     record_state();
     HT_MAYBE_FAIL("initialize-INITIAL");
@@ -179,9 +179,9 @@ void OperationInitialize::execute() {
       m_context->metadata_table = m_context->new_table(TableIdentifier::METADATA_NAME);
     filename = System::install_dir + "/conf/RS_METRICS.xml";
     schema = FileUtils::file_to_string(filename);
-    stage_subop(make_shared<OperationCreateTable>(m_context, "/sys/RS_METRICS", schema,
+    stage_subop(std::make_shared<OperationCreateTable>(m_context, "/sys/RS_METRICS", schema,
                                                   TableParts(TableParts::ALL)));
-    stage_subop(make_shared<OperationCreateNamespace>(m_context, "/tmp", 0));
+    stage_subop(std::make_shared<OperationCreateNamespace>(m_context, "/tmp", 0));
     set_state(OperationState::FINALIZE);
     record_state();
     HT_MAYBE_FAIL("initialize-CREATE_RS_METRICS");

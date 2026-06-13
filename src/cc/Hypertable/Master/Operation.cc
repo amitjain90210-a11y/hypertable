@@ -365,8 +365,16 @@ bool Operation::removal_approved() {
 }
 
 void Operation::record_state(std::vector<MetaLog::EntityPtr> &additional) {
+  // Snapshot m_sub_ops under lock: OperationRelinquishAcknowledge can call
+  // record_state() on this operation concurrently with our own complete_ok().
+  std::vector<int64_t> sub_ops_snapshot;
+  {
+    lock_guard<mutex> lock(m_mutex);
+    sub_ops_snapshot = m_sub_ops;
+  }
+
   std::vector<MetaLog::EntityPtr> entities;
-  entities.reserve(1 + additional.size() + m_sub_ops.size());
+  entities.reserve(1 + additional.size() + sub_ops_snapshot.size());
   // Add this
   if (removal_approved())
     mark_for_removal();
@@ -380,7 +388,7 @@ void Operation::record_state(std::vector<MetaLog::EntityPtr> &additional) {
   }
   // Add sub operations
   std::vector<int64_t> new_sub_ops;
-  for (int64_t id : m_sub_ops) {
+  for (int64_t id : sub_ops_snapshot) {
     OperationPtr op = m_context->reference_manager->get(id);
     if (op->removal_approved())
       op->mark_for_removal();
@@ -394,7 +402,10 @@ void Operation::record_state(std::vector<MetaLog::EntityPtr> &additional) {
     if (op && op->marked_for_removal())
       m_context->reference_manager->remove(op);
   }
-  m_sub_ops.swap(new_sub_ops);
+  {
+    lock_guard<mutex> lock(m_mutex);
+    m_sub_ops.swap(new_sub_ops);
+  }
 }
 
 void Operation::complete_error(int error, const String &msg,

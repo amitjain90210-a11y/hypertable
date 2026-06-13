@@ -65,7 +65,7 @@ OperationProcessor::OperationProcessor(ContextPtr &context, size_t thread_count)
     Path data_dir = Path(context->props->get_str("Hypertable.DataDirectory"));
     string run_dir = (data_dir /= "/run").string();
     string filename = run_dir + "/graphviz-stream";
-    m_graphviz_out = make_unique<std::ofstream>(filename.c_str(), ofstream::out|ofstream::app);
+    m_graphviz_out = std::make_unique<std::ofstream>(filename.c_str(), ofstream::out|ofstream::app);
   }
 
   m_context.execution_order_iter = m_context.execution_order.end();
@@ -205,10 +205,12 @@ bool OperationProcessor::wait_for_idle(std::chrono::milliseconds max_wait) {
 }
 
 size_t OperationProcessor::size() {
+  std::lock_guard<std::mutex> lock(m_context.mutex);
   return num_vertices(m_context.graph);
 }
 
 bool OperationProcessor::empty() {
+  std::lock_guard<std::mutex> lock(m_context.mutex);
   return num_vertices(m_context.graph) == 0;
 }
 
@@ -675,8 +677,8 @@ void OperationProcessor::retire_operation(Vertex v, OperationPtr &operation) {
   if (in_degree(v, m_context.graph) > 0)
     m_context.need_order_recompute = true;
   clear_vertex(v, m_context.graph);
-  remove_vertex(v, m_context.graph);
   m_context.live.erase(v);
+  remove_vertex(v, m_context.graph);
   m_context.operation_hash.erase(operation->hash_code());
   if (operation->exclusive())
     m_context.exclusive_ops.erase(operation->name());
@@ -792,7 +794,6 @@ void OperationProcessor::recompute_order() {
 
 bool OperationProcessor::load_current() {
   size_t blocked = 0;
-  size_t retired = 0;
 
   m_context.current.clear();
   m_context.current_active.clear();
@@ -808,8 +809,6 @@ bool OperationProcessor::load_current() {
           m_context.ops[m_context.execution_order_iter->vertex]->is_blocked())
         blocked++;
     }
-    else
-      retired++;
   }
 
   //HT_INFOF("current size = %lu, blocked = %lu", m_context.current.size(), blocked);

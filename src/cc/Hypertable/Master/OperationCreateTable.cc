@@ -272,7 +272,7 @@ void OperationCreateTable::execute() {
         HT_INFOF("  creating index for table %s", m_params.name().c_str()); 
         Utility::prepare_index(m_context, m_params.name(), m_params.schema(),
                                false, index_name, index_schema);
-        stage_subop(make_shared<OperationCreateTable>(m_context, index_name, index_schema,
+        stage_subop(std::make_shared<OperationCreateTable>(m_context, index_name, index_schema,
                                                       TableParts(TableParts::PRIMARY)));
       }
       catch (Exception &e) {
@@ -308,7 +308,7 @@ void OperationCreateTable::execute() {
         HT_INFOF("  creating qualifier index for table %s", m_params.name().c_str()); 
         Utility::prepare_index(m_context, m_params.name(), m_params.schema(),
                         true, index_name, index_schema);
-        stage_subop(make_shared<OperationCreateTable>(m_context, index_name, index_schema,
+        stage_subop(std::make_shared<OperationCreateTable>(m_context, index_name, index_schema,
                                                       TableParts(TableParts::PRIMARY)));
       }
       catch (Exception &e) {

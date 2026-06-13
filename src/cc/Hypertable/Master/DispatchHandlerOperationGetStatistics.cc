@@ -42,7 +42,7 @@ void DispatchHandlerOperationGetStatistics::initialize(std::vector<RangeServerSt
     m_index[results[i].addr] = &results[i];
     results[i].fetch_error = Error::NO_RESPONSE;
     results[i].fetch_timestamp = now;
-    results[i].stats = make_shared<StatsRangeServer>();
+    results[i].stats = std::make_shared<StatsRangeServer>();
   }
   m_context->system_state->get(m_specs, &m_generation);
   m_timer.start();

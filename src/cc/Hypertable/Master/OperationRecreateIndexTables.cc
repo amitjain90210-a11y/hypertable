@@ -183,7 +183,7 @@ void OperationRecreateIndexTables::execute() {
     // drop through ...
 
   case OperationState::SUSPEND_TABLE_MAINTENANCE:
-    stage_subop(make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
+    stage_subop(std::make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
                                                              TableMaintenance::OFF));
     set_state(OperationState::DROP_INDICES);
     record_state();
@@ -192,7 +192,7 @@ void OperationRecreateIndexTables::execute() {
   case OperationState::DROP_INDICES:
     if (!validate_subops())
       break;
-    stage_subop(make_shared<OperationDropTable>(m_context, m_params.name(), true, m_parts));
+    stage_subop(std::make_shared<OperationDropTable>(m_context, m_params.name(), true, m_parts));
     set_state(OperationState::CREATE_INDICES);
     record_state();
     break;
@@ -205,7 +205,7 @@ void OperationRecreateIndexTables::execute() {
       string schema;
       if (!fetch_schema(schema))
         break;
-      stage_subop(make_shared<OperationCreateTable>(m_context, m_params.name(), schema, m_parts));
+      stage_subop(std::make_shared<OperationCreateTable>(m_context, m_params.name(), schema, m_parts));
     }
     set_state(OperationState::RESUME_TABLE_MAINTENANCE);
     record_state();
@@ -216,7 +216,7 @@ void OperationRecreateIndexTables::execute() {
     if (!validate_subops())
       break;
 
-    stage_subop(make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
+    stage_subop(std::make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
                                                              TableMaintenance::ON));
     set_state(OperationState::FINALIZE);
     HT_MAYBE_FAIL("recreate-index-tables-RESUME_TABLE_MAINTENANCE-a");

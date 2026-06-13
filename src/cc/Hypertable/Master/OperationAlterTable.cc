@@ -268,7 +268,7 @@ void OperationAlterTable::execute() {
 
   case OperationState::CREATE_INDICES:
     if (m_parts.value_index() || m_parts.qualifier_index())
-      stage_subop(make_shared<OperationCreateTable>(m_context, m_params.name(), m_schema, m_parts));
+      stage_subop(std::make_shared<OperationCreateTable>(m_context, m_params.name(), m_schema, m_parts));
     set_state(OperationState::SCAN_METADATA);
     record_state();
     break;
@@ -296,7 +296,7 @@ void OperationAlterTable::execute() {
   case OperationState::ISSUE_REQUESTS:
     table.id = m_id.c_str();
     table.generation = 0;
-    op_handler = make_shared<DispatchHandlerOperationAlterTable>(m_context, table, m_schema);
+    op_handler = std::make_shared<DispatchHandlerOperationAlterTable>(m_context, table, m_schema);
     op_handler->start(m_servers);
     if (!op_handler->wait_for_completion()) {
       std::set<DispatchHandlerOperation::Result> results;
@@ -344,7 +344,7 @@ void OperationAlterTable::execute() {
     break;
 
   case OperationState::SUSPEND_TABLE_MAINTENANCE:
-    stage_subop(make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
+    stage_subop(std::make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
                                                              TableMaintenance::OFF));
     set_state(OperationState::DROP_INDICES);
     record_state();
@@ -353,7 +353,7 @@ void OperationAlterTable::execute() {
   case OperationState::DROP_INDICES:
     if (!validate_subops())
       break;
-    stage_subop(make_shared<OperationDropTable>(m_context, m_params.name(), true, m_parts));
+    stage_subop(std::make_shared<OperationDropTable>(m_context, m_params.name(), true, m_parts));
     set_state(OperationState::RESUME_TABLE_MAINTENANCE);
     record_state();
     break;
@@ -361,7 +361,7 @@ void OperationAlterTable::execute() {
   case OperationState::RESUME_TABLE_MAINTENANCE:
     if (!validate_subops())
       break;
-    stage_subop(make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
+    stage_subop(std::make_shared<OperationToggleTableMaintenance>(m_context, m_params.name(),
                                                              TableMaintenance::ON));
     set_state(OperationState::FINALIZE);
     record_state();

@@ -209,7 +209,7 @@ void OperationDropTable::execute() {
         m_context->namemap->name_to_id(index_name, index_id)) {
       HT_INFOF("  Dropping index table %s (id %s)", 
                index_name.c_str(), index_id.c_str());
-      stage_subop(make_shared<OperationDropTable>(m_context, index_name, false,
+      stage_subop(std::make_shared<OperationDropTable>(m_context, index_name, false,
                                                   TableParts(TableParts::PRIMARY)));
       HT_MAYBE_FAIL("drop-table-DROP_VALUE_INDEX-1");
       record_state();
@@ -236,7 +236,7 @@ void OperationDropTable::execute() {
                                        qualifier_index_id)) {
       HT_INFOF("  Dropping qualifier index table %s (id %s)", 
                qualifier_index_name.c_str(), qualifier_index_id.c_str());
-      stage_subop(make_shared<OperationDropTable>(m_context, qualifier_index_name,
+      stage_subop(std::make_shared<OperationDropTable>(m_context, qualifier_index_name,
                                                   false, TableParts(TableParts::PRIMARY)));
       HT_MAYBE_FAIL("drop-table-DROP_QUALIFIER_INDEX-1");
       record_state();
@@ -277,7 +277,7 @@ void OperationDropTable::execute() {
       if (!m_context->test_mode) {
         table.id = m_id.c_str();
         table.generation = 0;
-        op_handler = make_shared<DispatchHandlerOperationDropTable>(m_context, table);
+        op_handler = std::make_shared<DispatchHandlerOperationDropTable>(m_context, table);
         op_handler->start(m_servers);
         if (!op_handler->wait_for_completion()) {
           std::set<DispatchHandlerOperation::Result> results;

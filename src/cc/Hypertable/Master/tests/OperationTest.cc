@@ -64,7 +64,7 @@ void OperationTest::execute() {
       DependencySet exclusivities;
       DependencySet dependencies;
       DependencySet obstructions;
-      stage_subop(make_shared<OperationTest>(m_context, m_results, m_name+"[0]",
+      stage_subop(std::make_shared<OperationTest>(m_context, m_results, m_name+"[0]",
                                              dependencies, exclusivities,
                                              obstructions));
       set_state(OperationState::STARTED);

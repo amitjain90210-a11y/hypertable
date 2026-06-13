@@ -216,7 +216,7 @@ void OperationToggleTableMaintenance::execute() {
       table.id = m_id.c_str();
       table.generation = 0;
       DispatchHandlerOperationPtr op_handler =
-        make_shared<DispatchHandlerOperationToggleTableMaintenance>(m_context, table, m_toggle_on);
+        std::make_shared<DispatchHandlerOperationToggleTableMaintenance>(m_context, table, m_toggle_on);
       op_handler->start(m_servers);
       if (!op_handler->wait_for_completion()) {
         std::set<DispatchHandlerOperation::Result> results;

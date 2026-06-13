@@ -139,7 +139,7 @@ void OperationGatherStatistics::execute() {
 
       if (m_context->system_state->auto_set(SystemVariable::READONLY,
                                             readonly_mode, message))
-        m_context->op->add_operation(make_shared<OperationSetState>(m_context));
+        m_context->op->add_operation(std::make_shared<OperationSetState>(m_context));
       else {
         // This isn't necessary in above block because OperationSetState does it
         std::vector<NotificationMessage> notifications;

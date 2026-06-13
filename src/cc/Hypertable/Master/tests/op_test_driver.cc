@@ -126,7 +126,7 @@ namespace {
 
     while (true) {
 
-      rsc = make_shared<RangeServerConnection>("rs1", "rs1.hypertable.com", InetAddr("72.14.204.99", g_rs_port));
+      rsc = std::make_shared<RangeServerConnection>("rs1", "rs1.hypertable.com", InetAddr("72.14.204.99", g_rs_port));
       context->rsc_manager->connect_server(rsc, "rs1.hypertable.com", InetAddr("72.14.204.99", 33567), InetAddr("72.14.204.99", g_rs_port));
       context->add_available_server("rs1");
       g_rsc.push_back(rsc);
@@ -135,7 +135,7 @@ namespace {
       if (++server_index == server_count)
         break;
 
-      rsc = make_shared<RangeServerConnection>("rs2", "rs2.hypertable.com", InetAddr("69.147.125.65", g_rs_port));
+      rsc = std::make_shared<RangeServerConnection>("rs2", "rs2.hypertable.com", InetAddr("69.147.125.65", g_rs_port));
       context->rsc_manager->connect_server(rsc, "rs2.hypertable.com", InetAddr("69.147.125.65", 30569), InetAddr("69.147.125.65", g_rs_port));
       context->add_available_server("rs2");
       g_rsc.push_back(rsc);
@@ -144,7 +144,7 @@ namespace {
       if (++server_index == server_count)
         break;
 
-      rsc = make_shared<RangeServerConnection>("rs3", "rs3.hypertable.com", InetAddr("72.14.204.98", g_rs_port));
+      rsc = std::make_shared<RangeServerConnection>("rs3", "rs3.hypertable.com", InetAddr("72.14.204.98", g_rs_port));
       context->rsc_manager->connect_server(rsc, "rs3.hypertable.com", InetAddr("72.14.204.98", 33572), InetAddr("72.14.204.98", g_rs_port));
       context->add_available_server("rs3");
       g_rsc.push_back(rsc);
@@ -153,7 +153,7 @@ namespace {
       if (++server_index == server_count)
         break;
 
-      rsc = make_shared<RangeServerConnection>("rs4", "rs4.hypertable.com", InetAddr("69.147.125.62", g_rs_port));
+      rsc = std::make_shared<RangeServerConnection>("rs4", "rs4.hypertable.com", InetAddr("69.147.125.62", g_rs_port));
       context->rsc_manager->connect_server(rsc, "rs4.hypertable.com", InetAddr("69.147.125.62", 30569), InetAddr("69.147.125.62", g_rs_port));
       context->add_available_server("rs4");
       g_rsc.push_back(rsc);
@@ -162,7 +162,7 @@ namespace {
       if (++server_index == server_count)
         break;
 
-      rsc = make_shared<RangeServerConnection>("rs5", "rs5.hypertable.com", InetAddr("70.147.125.62", g_rs_port));
+      rsc = std::make_shared<RangeServerConnection>("rs5", "rs5.hypertable.com", InetAddr("70.147.125.62", g_rs_port));
       context->rsc_manager->connect_server(rsc, "rs5.hypertable.com", InetAddr("70.147.125.62", 30569), InetAddr("70.147.125.62", g_rs_port));
       context->add_available_server("rs5");
       g_rsc.push_back(rsc);
@@ -172,7 +172,7 @@ namespace {
     }
 
     context->mml_writer =
-      make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+      std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                    g_mml_dir, entities);
     
   }
@@ -181,9 +181,9 @@ namespace {
                        std::vector<MetaLog::EntityPtr> &entities) {
     OperationPtr operation;
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
     context->mml_writer =
-      make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+      std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                    g_mml_dir, entities);
     for (auto &entity : entities) {
       operation = dynamic_pointer_cast<Operation>(entity);
@@ -205,7 +205,7 @@ namespace {
     std::vector<OperationPtr> operations;
     std::vector<MetaLog::EntityPtr> tmp_entities;
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
 
     FailureInducer::instance->clear();
     if (failure_point != "")
@@ -234,7 +234,7 @@ namespace {
 
     context->mml_writer = 0;
     MetaLog::ReaderPtr mml_reader =
-      make_shared<MetaLog::Reader>(context->dfs, context->mml_definition, g_mml_dir);
+      std::make_shared<MetaLog::Reader>(context->dfs, context->mml_definition, g_mml_dir);
     entities.clear();
     mml_reader->get_entities(entities);
 
@@ -270,7 +270,7 @@ namespace {
     context->reference_manager->clear();
 
     context->mml_writer =
-      make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+      std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                    g_mml_dir, entities);
   }
 
@@ -286,7 +286,7 @@ namespace {
 #endif
     out.open(devnull);
 
-    entities.push_back(make_shared<OperationCreateTable>(context, table_name, schema,
+    entities.push_back(std::make_shared<OperationCreateTable>(context, table_name, schema,
 							 TableParts(TableParts::ALL)));
 
     run_test2(context, entities, "", out);
@@ -381,26 +381,26 @@ int main(int argc, char **argv) {
     replicas.push_back("localhost");
     properties->set("Hyperspace.Replica.Host", replicas);
 
-    Hyperspace::SessionPtr hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
+    Hyperspace::SessionPtr hyperspace = std::make_shared<Hyperspace::Session>(Comm::instance(), properties);
 
-    context = make_shared<Context>(properties, hyperspace);
+    context = std::make_shared<Context>(properties, hyperspace);
     context->test_mode = true;
 
     boost::trim_if(context->toplevel_dir, boost::is_any_of("/"));
     context->toplevel_dir = String("/") + context->toplevel_dir;
-    context->monitoring = make_shared<Monitoring>(context.get());
+    context->monitoring = std::make_shared<Monitoring>(context.get());
 
-    context->mml_definition = make_shared<MetaLog::DefinitionMaster>(context, "master");
+    context->mml_definition = std::make_shared<MetaLog::DefinitionMaster>(context, "master");
     g_mml_dir = context->toplevel_dir + "/servers/master/log/" + context->mml_definition->name();
     context->mml_writer =
-      make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+      std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                    g_mml_dir, entities);
 
     MetaLog::EntityPtr entity;
     context->get_balance_plan_authority(entity);
     BalancePlanAuthorityPtr bpa = static_pointer_cast<BalancePlanAuthority>(entity);
 
-    context->recovered_servers = make_shared<RecoveredServers>();
+    context->recovered_servers = std::make_shared<RecoveredServers>();
 
     FailureInducer::instance = new FailureInducer();
     context->request_timeout = 600;
@@ -454,10 +454,10 @@ void create_namespace_test(ContextPtr &context) {
   std::vector<MetaLog::EntityPtr> entities;
 
   context->mml_writer =
-    make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+    std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                  g_mml_dir, entities);
 
-  entities.push_back(make_shared<OperationCreateNamespace>(context, "foo", 0) );
+  entities.push_back(std::make_shared<OperationCreateNamespace>(context, "foo", 0) );
 
   ofstream out("create_namespace.output", ios::out|ios::trunc);
 
@@ -483,10 +483,10 @@ void drop_namespace_test(ContextPtr &context) {
   std::vector<MetaLog::EntityPtr> entities;
 
   context->mml_writer =
-    make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+    std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                  g_mml_dir, entities);
 
-  entities.push_back(make_shared<OperationDropNamespace>(context, "foo", 0) );
+  entities.push_back(std::make_shared<OperationDropNamespace>(context, "foo", 0) );
 
   ofstream out("drop_namespace.output", ios::out|ios::trunc);
 
@@ -539,7 +539,7 @@ void create_table_test(ContextPtr &context) {
 
   ofstream out("create_table.output", ios::out|ios::trunc);
 
-  MetaLog::EntityPtr entity = make_shared<OperationCreateTable>(context, "tablefoo", schema_str, 
+  MetaLog::EntityPtr entity = std::make_shared<OperationCreateTable>(context, "tablefoo", schema_str, 
 								TableParts(TableParts::ALL));
   dynamic_pointer_cast<Operation>(entity)->add_exclusivity("/tablefoo");
 
@@ -588,7 +588,7 @@ void drop_table_test(ContextPtr &context) {
   ofstream out("drop_table.output", ios::out|ios::trunc);
 
   OperationPtr operation = 
-    make_shared<OperationDropTable>(context, "drop_table_test", true,
+    std::make_shared<OperationDropTable>(context, "drop_table_test", true,
 				    TableParts(TableParts::ALL));
   entities.push_back(operation);
 
@@ -624,7 +624,7 @@ void create_table_with_index_test(ContextPtr &context) {
   ofstream out("create_table_with_index.output", ios::out|ios::trunc);
 
   MetaLog::EntityPtr entity =
-    make_shared<OperationCreateTable>(context, "tablefoo_index",
+    std::make_shared<OperationCreateTable>(context, "tablefoo_index",
 				      index_schema_str, TableParts(TableParts::ALL));
   dynamic_pointer_cast<Operation>(entity)->add_exclusivity("/tablefoo_index");
 
@@ -663,10 +663,10 @@ void rename_table_test(ContextPtr &context) {
   std::vector<MetaLog::EntityPtr> entities;
 
   context->mml_writer =
-    make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+    std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                  g_mml_dir, entities);
 
-  entities.push_back(make_shared<OperationRenameTable>(context, "tablefoo", "tablebar") );
+  entities.push_back(std::make_shared<OperationRenameTable>(context, "tablefoo", "tablebar") );
 
   ofstream out("rename_table.output", ios::out|ios::trunc);
 
@@ -693,7 +693,7 @@ void master_initialize_test(ContextPtr &context) {
 
   ofstream out("master_initialize.output", ios::out|ios::trunc);
 
-  entities.push_back( make_shared<OperationInitialize>(context) );
+  entities.push_back( std::make_shared<OperationInitialize>(context) );
 
   run_test2(context, entities, "initialize-INITIAL:throw:0", out);
   run_test2(context, entities, "initialize-STARTED:throw:0", out);
@@ -743,10 +743,10 @@ void system_upgrade_test(ContextPtr &context) {
   context->hyperspace->close(handle);
 
   context->mml_writer =
-    make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+    std::make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                  g_mml_dir, entities);
 
-  MetaLog::EntityPtr entity = make_shared<OperationSystemUpgrade>(context);
+  MetaLog::EntityPtr entity = std::make_shared<OperationSystemUpgrade>(context);
   entities.push_back(entity);
 
 #if defined(__WIN32__) || defined(_WIN32)
@@ -789,7 +789,7 @@ void move_range_test(ContextPtr &context) {
   context->get_balance_plan_authority(entity);
   entities.push_back(entity);
 
-  entity = make_shared<OperationMoveRange>(context, "rs1", 0, table, range,
+  entity = std::make_shared<OperationMoveRange>(context, "rs1", 0, table, range,
 					   transfer_log, soft_limit, true);
   entities.push_back(entity);
 
@@ -937,7 +937,7 @@ void toggle_table_maintenance_test(ContextPtr &context) {
   ofstream out("toggle_table_maintenance.output", ios::out|ios::trunc);
 
   MetaLog::EntityPtr entity =
-    make_shared<OperationToggleTableMaintenance>(context, "toggle", TableMaintenance::OFF);
+    std::make_shared<OperationToggleTableMaintenance>(context, "toggle", TableMaintenance::OFF);
   entities.push_back(entity);
 
   context->add_available_server(g_rsc[0]->location());
@@ -966,7 +966,7 @@ void toggle_table_maintenance_test(ContextPtr &context) {
   entities.push_back(g_rsc[0]);
   entities.push_back(g_rsc[1]);
 
-  entity = make_shared<OperationToggleTableMaintenance>(context, "toggle", TableMaintenance::ON);
+  entity = std::make_shared<OperationToggleTableMaintenance>(context, "toggle", TableMaintenance::ON);
   entities.push_back(entity);
 
   run_test2(context, entities, "toggle-table-maintenance-INITIAL:throw:0", out);
@@ -1011,7 +1011,7 @@ void recreate_index_tables_test(ContextPtr &context) {
 
   ofstream out("recreate_index_tables.output", ios::out|ios::trunc);
 
-  OperationPtr operation = make_shared<OperationRecreateIndexTables>(context, "recreate_index_tables",
+  OperationPtr operation = std::make_shared<OperationRecreateIndexTables>(context, "recreate_index_tables",
 								     TableParts(TableParts::ALL));
   entities.push_back(operation);
 

@@ -39,23 +39,23 @@ OperationTimedBarrier::OperationTimedBarrier(ContextPtr &context,
 }
 
 void OperationTimedBarrier::execute() {
-  unique_lock<mutex> lock(m_mutex);
-
   HT_INFOF("Entering TimedBarrier-%lld state=%s", (Lld)header.id,
            OperationState::get_text(m_state));
 
-  auto now = chrono::steady_clock::now();
-  while (now < m_expire_time && !m_shutdown) {
-    auto diff = chrono::duration_cast<chrono::milliseconds>(m_expire_time-now);
-    HT_INFOF("Barrier for %s will be up for %lld milliseconds",
-             m_block_dependency.c_str(), (Lld)diff.count());
-    m_cond.wait_until(lock, m_expire_time);
-    now = chrono::steady_clock::now();
+  {
+    unique_lock<mutex> lock(m_mutex);
+    auto now = chrono::steady_clock::now();
+    while (now < m_expire_time && !m_shutdown) {
+      auto diff = chrono::duration_cast<chrono::milliseconds>(m_expire_time-now);
+      HT_INFOF("Barrier for %s will be up for %lld milliseconds",
+               m_block_dependency.c_str(), (Lld)diff.count());
+      m_cond.wait_until(lock, m_expire_time);
+      now = chrono::steady_clock::now();
+    }
+    m_state = OperationState::COMPLETE;
   }
 
   m_context->op->activate(m_wakeup_dependency);
-
-  m_state = OperationState::COMPLETE;
 
   HT_INFOF("Leaving TimedBarrier-%lld state=%s", (Lld)header.id,
            OperationState::get_text(m_state));

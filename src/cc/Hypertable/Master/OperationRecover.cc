@@ -185,25 +185,25 @@ void OperationRecover::execute() {
     if (m_root_specs.size()) {
       HT_INFOF("Number of root ranges to recover for location %s = %u",
                m_location.c_str(), (unsigned)m_root_specs.size());
-      stage_subop(make_shared<OperationRecoverRanges>(m_context, m_location,
+      stage_subop(std::make_shared<OperationRecoverRanges>(m_context, m_location,
                                                       RangeSpec::ROOT));
     }
     if (m_metadata_specs.size()) {
       HT_INFOF("Number of metadata ranges to recover for location %s = %u",
                m_location.c_str(), (unsigned)m_metadata_specs.size());
-      stage_subop(make_shared<OperationRecoverRanges>(m_context, m_location,
+      stage_subop(std::make_shared<OperationRecoverRanges>(m_context, m_location,
                                                       RangeSpec::METADATA));
     }
     if (m_system_specs.size()) {
       HT_INFOF("Number of system ranges to recover for location %s = %d",
                m_location.c_str(), (int)m_system_specs.size());
-      stage_subop(make_shared<OperationRecoverRanges>(m_context, m_location,
+      stage_subop(std::make_shared<OperationRecoverRanges>(m_context, m_location,
                                                       RangeSpec::SYSTEM));
     }
     if (m_user_specs.size()) {
       HT_INFOF("Number of user ranges to recover for location %s = %d",
                m_location.c_str(), (int)m_user_specs.size());
-      stage_subop(make_shared<OperationRecoverRanges>(m_context, m_location,
+      stage_subop(std::make_shared<OperationRecoverRanges>(m_context, m_location,
                                                       RangeSpec::USER));
     }
     set_state(OperationState::FINALIZE);
@@ -346,7 +346,7 @@ void OperationRecover::create_recovery_plan() {
  void OperationRecover::read_rsml(vector<MetaLog::EntityPtr> &removable_move_ops) {
   // move rsml and commit log to some recovered dir
   MetaLog::DefinitionPtr rsml_definition
-    = make_shared<MetaLog::DefinitionRangeServer>(m_location.c_str());  
+    = std::make_shared<MetaLog::DefinitionRangeServer>(m_location.c_str());  
   MetaLogEntityRange *range;
   MetaLog::EntityTaskAcknowledgeRelinquish *ack_task;
   vector<MetaLog::EntityPtr> entities;
@@ -355,7 +355,7 @@ void OperationRecover::create_recovery_plan() {
   String logfile = m_context->toplevel_dir + "/servers/" + m_location + "/log/"
     + rsml_definition->name();
   MetaLog::ReaderPtr rsml_reader = 
-    make_shared<MetaLog::Reader>(m_context->dfs, rsml_definition, logfile);
+    std::make_shared<MetaLog::Reader>(m_context->dfs, rsml_definition, logfile);
 
   rsml_reader->get_entities(entities);
 
@@ -423,7 +423,7 @@ void OperationRecover::create_recovery_plan() {
       }
       else if ((ack_task = dynamic_cast<MetaLog::EntityTaskAcknowledgeRelinquish *>(entity.get())) != 0) {
         OperationPtr operation =
-          make_shared<OperationRelinquishAcknowledge>(m_context,
+          std::make_shared<OperationRelinquishAcknowledge>(m_context,
                                                       ack_task->location,
                                                       ack_task->range_id,
                                                       ack_task->table,
