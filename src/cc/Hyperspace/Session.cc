@@ -44,6 +44,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <vector>
 
 using namespace std;
 using namespace Hypertable;
@@ -1179,42 +1180,70 @@ int Session::status(Status &status, Timer *timer) {
 
 
 int Session::state_transition(int state) {
-  lock_guard<mutex> lock(m_mutex);
-  int old_state = m_state;
-  m_state = state;
-  if (m_state == STATE_SAFE) {
-    m_cond.notify_all();
+  std::vector<SessionCallback*> cbs;
+  int old_state;
+  int new_state;
+  bool reconnect;
+
+  {
+    lock_guard<mutex> lock(m_mutex);
+    old_state = m_state;
+    m_state = state;
+    new_state = state;
+    reconnect = m_reconnect;
+
+    // Snapshot callbacks under m_callback_mutex to avoid racing with add/remove_callback
+    {
+      lock_guard<mutex> cb_lock(m_callback_mutex);
+      for (auto &entry : m_callbacks)
+        cbs.push_back(entry.second);
+    }
+
+    // Update expire time and notify condition variable while holding m_mutex
+    if (new_state == STATE_SAFE) {
+      m_cond.notify_all();
+    }
+    else if (new_state == STATE_JEOPARDY) {
+      if (old_state == STATE_SAFE)
+        m_expire_time = chrono::steady_clock::now() +
+          chrono::milliseconds(m_grace_period);
+    }
+    else if (new_state == STATE_DISCONNECTED) {
+      if (reconnect && old_state != STATE_DISCONNECTED)
+        m_expire_time = chrono::steady_clock::now() +
+          chrono::milliseconds(m_grace_period);
+    }
+    else if (new_state == STATE_EXPIRED) {
+      m_cond.notify_all();
+    }
+  }
+
+  // Call callbacks outside m_mutex to avoid lock-order inversion: callers
+  // (e.g. Master::Client::reload_master) hold their own mutex then call
+  // Session methods that acquire m_mutex, while callbacks (e.g.
+  // hyperspace_disconnected) acquire those same caller mutexes.
+  if (new_state == STATE_SAFE) {
     if (old_state == STATE_JEOPARDY) {
-      for(CallbackMap::iterator it = m_callbacks.begin(); it != m_callbacks.end(); it++)
-        (it->second)->safe();
+      for (auto *cb : cbs) cb->safe();
     }
     else if (old_state == STATE_DISCONNECTED)
-      for(CallbackMap::iterator it = m_callbacks.begin(); it != m_callbacks.end(); it++)
-        (it->second)->reconnected();
+      for (auto *cb : cbs) cb->reconnected();
   }
-  else if (m_state == STATE_JEOPARDY) {
+  else if (new_state == STATE_JEOPARDY) {
     if (old_state == STATE_SAFE) {
-      for(CallbackMap::iterator it = m_callbacks.begin(); it != m_callbacks.end(); it++)
-        (it->second)->jeopardy();
-      m_expire_time = chrono::steady_clock::now() +
-        chrono::milliseconds(m_grace_period);
+      for (auto *cb : cbs) cb->jeopardy();
     }
   }
-  else if (m_state == STATE_DISCONNECTED) {
-    if (m_reconnect) {
+  else if (new_state == STATE_DISCONNECTED) {
+    if (reconnect) {
       if (old_state != STATE_DISCONNECTED)
-        for(CallbackMap::iterator it = m_callbacks.begin(); it != m_callbacks.end(); it++)
-          (it->second)->disconnected();
-      m_expire_time = chrono::steady_clock::now() +
-        chrono::milliseconds(m_grace_period);
+        for (auto *cb : cbs) cb->disconnected();
     }
   }
-  else if (m_state == STATE_EXPIRED) {
+  else if (new_state == STATE_EXPIRED) {
     if (old_state != STATE_EXPIRED) {
-      for(CallbackMap::iterator it = m_callbacks.begin(); it != m_callbacks.end(); it++)
-        (it->second)->expired();
+      for (auto *cb : cbs) cb->expired();
     }
-    m_cond.notify_all();
   }
   return old_state;
 }
@@ -1304,7 +1333,7 @@ void Session::decode_values(Hypertable::EventPtr& event_ptr, std::vector<Dynamic
       void *attr_val = decode_bytes32(&decode_ptr, &decode_remain,
                                       &attr_val_len);
       if (attr_val_len) {
-        value = make_shared<DynamicBuffer>(attr_val_len+1);
+        value = std::make_shared<DynamicBuffer>(attr_val_len+1);
         value->add_unchecked(attr_val, attr_val_len);
         // nul-terminate to make caller's lives easier
         *value->ptr = 0;
@@ -1388,7 +1417,7 @@ void Session::normalize_name(const String &name, String &normal) {
 }
 
 HsCommandInterpreterPtr Session::create_hs_interpreter() {
-  return make_shared<HsCommandInterpreter>(this);
+  return std::make_shared<HsCommandInterpreter>(this);
 }
 
 

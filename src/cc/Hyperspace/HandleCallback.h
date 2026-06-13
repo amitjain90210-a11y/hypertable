@@ -54,6 +54,8 @@ namespace Hyperspace {
    */
   class HandleCallback {
   public:
+    virtual ~HandleCallback() = default;
+
     /** Constructor.  Sets the event mask.
      *
      * @param event_mask mask of events to register

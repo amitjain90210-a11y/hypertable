@@ -95,7 +95,7 @@ void ClientKeepaliveHandler::start() {
 
 
 void ClientKeepaliveHandler::handle(Hypertable::EventPtr &event) {
-  lock_guard<recursive_mutex> lock(m_mutex);
+  unique_lock<recursive_mutex> lock(m_mutex);
   int error;
 
   if (m_dead)
@@ -175,14 +175,16 @@ void ClientKeepaliveHandler::handle(Hypertable::EventPtr &event) {
 
           if (error != Error::OK) {
             HT_ERRORF("Master session (%llu) error - %s", (Llu)session_id, Error::get_text(error));
-            expire_session();
+            int new_state = expire_session();
+            lock.unlock();
+            m_session->state_transition(new_state);
             return;
           }
 
           if (m_session_id == 0) {
             m_session_id = session_id;
             if (!m_conn_handler) {
-              m_conn_handler = make_shared<ClientConnectionHandler>(m_comm, m_session, m_lease_interval);
+              m_conn_handler = std::make_shared<ClientConnectionHandler>(m_comm, m_session, m_lease_interval);
               m_conn_handler->set_verbose_mode(m_verbose);
               m_conn_handler->set_session_id(m_session_id);
             }
@@ -318,14 +320,17 @@ void ClientKeepaliveHandler::handle(Hypertable::EventPtr &event) {
             }
             else if (event_mask == EVENT_MASK_LOCK_GRANTED) {
               uint32_t mode = decode_i32(&decode_ptr, &decode_remain);
-              handle_state->lock_generation = decode_i64(&decode_ptr,
-                                                         &decode_remain);
+              uint64_t lock_generation = decode_i64(&decode_ptr,
+                                                    &decode_remain);
               if (!m_delivered_events.insert(event_id).second)
                 continue;
-              handle_state->lock_status = LOCK_STATUS_GRANTED;
-              handle_state->sequencer->generation =
-                  handle_state->lock_generation;
-              handle_state->sequencer->mode = mode;
+              {
+                lock_guard<mutex> hlock(handle_state->mutex);
+                handle_state->lock_generation = lock_generation;
+                handle_state->lock_status = LOCK_STATUS_GRANTED;
+                handle_state->sequencer->generation = lock_generation;
+                handle_state->sequencer->mode = mode;
+              }
               handle_state->cond.notify_all();
             }
 
@@ -335,9 +340,6 @@ void ClientKeepaliveHandler::handle(Hypertable::EventPtr &event) {
             HT_INFOF("session_id = %lld", m_session_id);
           }
           **/
-
-          if (m_conn_handler->disconnected())
-            m_conn_handler->initiate_connection(m_master_addr);
 
           if (notifications > 0) {
             CommBufPtr cbp(Protocol::create_client_keepalive_request(
@@ -353,6 +355,15 @@ void ClientKeepaliveHandler::handle(Hypertable::EventPtr &event) {
           m_session->advance_expire_time(m_last_keep_alive_send_time);
 
           assert(m_session_id == session_id);
+
+          // Capture before releasing m_mutex; initiate_connection() acquires
+          // ClientConnectionHandler::m_mutex, creating a lock-order cycle if
+          // called while m_mutex is held.
+          auto conn_handler = m_conn_handler;
+          auto master_addr = m_master_addr;
+          lock.unlock();
+          if (conn_handler && conn_handler->disconnected())
+            conn_handler->initiate_connection(master_addr);
         }
         break;
       default:
@@ -375,7 +386,9 @@ void ClientKeepaliveHandler::handle(Hypertable::EventPtr &event) {
         m_session->state_transition(Session::STATE_JEOPARDY);
     }
     else if (m_session->expired()) {
-      expire_session();
+      int new_state = expire_session();
+      lock.unlock();
+      m_session->state_transition(new_state);
       return;
     }
 
@@ -402,8 +415,8 @@ void ClientKeepaliveHandler::handle(Hypertable::EventPtr &event) {
 }
 
 
-void ClientKeepaliveHandler::expire_session() {
-  m_session->state_transition(m_reconnect ? Session::STATE_DISCONNECTED : Session::STATE_EXPIRED);
+int ClientKeepaliveHandler::expire_session() {
+  int new_state = m_reconnect ? Session::STATE_DISCONNECTED : Session::STATE_EXPIRED;
 
   if (m_conn_handler)
     m_conn_handler->close();
@@ -438,6 +451,8 @@ void ClientKeepaliveHandler::expire_session() {
       exit(EXIT_FAILURE);
     }
   }
+
+  return new_state;
 }
 
 

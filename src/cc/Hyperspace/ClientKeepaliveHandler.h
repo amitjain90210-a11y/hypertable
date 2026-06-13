@@ -80,7 +80,7 @@ namespace Hyperspace {
     }
 
     uint64_t get_session_id() {return m_session_id;}
-    void expire_session();
+    int expire_session();
 
     void destroy_session();
     void wait_for_destroy_session();

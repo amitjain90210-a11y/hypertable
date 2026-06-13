@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
   FILE *fp;
   int ret = 0;
   bool isdir;
-  PropertiesPtr props = make_shared<Properties>();
+  PropertiesPtr props = std::make_shared<Properties>();
   init_with_policy<DefaultPolicy>(argc, argv);
 
   System::initialize(System::locate_install_dir(argv[0]));

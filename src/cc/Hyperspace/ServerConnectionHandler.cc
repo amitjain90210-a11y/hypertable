@@ -191,7 +191,8 @@ void ServerConnectionHandler::handle(EventPtr &event) {
     HT_INFOF("%s", event->to_str().c_str());
   }
   else if (event->type == Hypertable::Event::DISCONNECT) {
-    m_app_queue->add( new RequestHandlerDestroySession(m_master.get(), m_session_id) );
+    if (m_session_id != 0)
+      m_app_queue->add(new RequestHandlerDestroySession(m_master.get(), m_session_id));
     cout << flush;
   }
   else if (event->type == Hypertable::Event::TIMER) {

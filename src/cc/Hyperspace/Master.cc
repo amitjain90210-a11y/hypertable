@@ -285,6 +285,21 @@ uint64_t Hyperspace::Master::create_session(struct sockaddr_in &addr) {
   return session_id;
 }
 
+void Hyperspace::Master::expire_session_notifications(uint64_t session_id) {
+  SessionDataPtr session_data;
+  {
+    lock_guard<mutex> lock(m_session_map_mutex);
+    auto iter = m_session_map.find(session_id);
+    if (iter != m_session_map.end())
+      session_data = iter->second;
+  }
+  // Call expire_notifications() outside m_session_map_mutex: it calls
+  // decrement_notification_count() which opens a BerkeleyDB transaction,
+  // and holding m_session_map_mutex across a BDB txn risks deadlock.
+  if (session_data)
+    session_data->expire_notifications();
+}
+
 /*
  *
  */

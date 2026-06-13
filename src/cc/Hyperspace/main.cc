@@ -62,7 +62,7 @@ public:
     : m_app_queue(app_queue), m_master(master) { }
 
   virtual void get_instance(DispatchHandlerPtr &dhp) {
-    dhp = make_shared<ServerConnectionHandler>(m_app_queue, m_master);
+    dhp = std::make_shared<ServerConnectionHandler>(m_app_queue, m_master);
   }
 
 private:
@@ -78,11 +78,11 @@ int main(int argc, char **argv) {
     init_with_policy<AppPolicy>(argc, argv);
 
     Comm *comm = Comm::instance();
-    ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>(comm);
+    ConnectionManagerPtr conn_mgr = std::make_shared<ConnectionManager>(comm);
     ServerKeepaliveHandlerPtr keepalive_handler;
     ApplicationQueuePtr app_queue;
     MasterPtr master =
-      make_shared<Master>(conn_mgr, properties, keepalive_handler, app_queue);
+      std::make_shared<Master>(conn_mgr, properties, keepalive_handler, app_queue);
     function<void()> sleep_callback = [master]() -> void {master->handle_sleep();};
     function<void()> wakeup_callback = [master]() -> void {master->handle_wakeup();};
     SleepWakeNotifier sleep_wake_notifier(sleep_callback, wakeup_callback);

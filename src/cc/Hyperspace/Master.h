@@ -141,6 +141,7 @@ namespace Hyperspace {
     bool get_session(uint64_t session_id, SessionDataPtr &session_data);
 
     void destroy_session(uint64_t session_id);
+    void expire_session_notifications(uint64_t session_id);
     void initialize_session(uint64_t session_id, const String &name);
 
     /*

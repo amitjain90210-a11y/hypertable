@@ -40,6 +40,9 @@ void RequestHandlerDestroySession::run() {
 
   try {
     HT_INFOF("Destroying session %llu", (Llu)m_session_id);
+    // Drain pending notifications first so any thread blocked in
+    // wait_for_notifications() can exit cleanly before the session is torn down.
+    m_master->expire_session_notifications(m_session_id);
     m_master->destroy_session(m_session_id);
   }
   catch (Exception &e) {

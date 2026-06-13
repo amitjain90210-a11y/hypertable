@@ -134,6 +134,20 @@ namespace Hyperspace {
       expire_time = std::chrono::steady_clock::now();
     }
 
+    // Clears pending notifications and decrements their event counts so that
+    // any thread blocked in wait_for_notifications() can unblock.
+    void expire_notifications() {
+      std::lock_guard<std::mutex> lock(mutex);
+      if (expired)
+        return;
+      std::list<Notification *>::iterator iter = notifications.begin();
+      while (iter != notifications.end()) {
+        (*iter)->event_ptr->decrement_notification_count();
+        delete *iter;
+        iter = notifications.erase(iter);
+      }
+    }
+
     void set_name(const String &name_) {
       std::lock_guard<std::mutex> lock(mutex);
       name = name_;
