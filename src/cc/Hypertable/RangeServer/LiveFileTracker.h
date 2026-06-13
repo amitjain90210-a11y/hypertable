@@ -28,6 +28,7 @@
 
 #include <Common/String.h>
 
+#include <atomic>
 #include <mutex>
 #include <unordered_map>
 
@@ -136,7 +137,7 @@ namespace Hypertable {
     FileRefCountMap  m_referenced;
     std::set<String> m_live;
     std::set<String> m_blocked;
-    bool             m_need_update;
+    std::atomic<bool> m_need_update;
     bool             m_is_root;
     uint32_t         m_last_nextcsid;
     uint32_t         m_cur_nextcsid;

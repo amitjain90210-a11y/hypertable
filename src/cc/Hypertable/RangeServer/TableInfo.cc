@@ -215,6 +215,7 @@ void TableInfo::promote_staged_range(RangePtr &range) {
 }
 
 void TableInfo::add_range(RangePtr &range, bool remove_if_exists) {
+  String range_name = range->get_name();  // fetch before lock to avoid mutex-order inversion
   lock_guard<mutex> lock(m_mutex);
   String start_row, end_row;
   range->get_boundary_rows(start_row, end_row);
@@ -226,7 +227,7 @@ void TableInfo::add_range(RangePtr &range, bool remove_if_exists) {
     iter = m_active_set.end();
   }
   HT_ASSERT(iter == m_active_set.end());
-  HT_INFOF("Adding range %s to TableInfo", range->get_name().c_str());
+  HT_INFOF("Adding range %s to TableInfo", range_name.c_str());
   HT_ASSERT(m_active_set.insert(range_info).second);
 }
 

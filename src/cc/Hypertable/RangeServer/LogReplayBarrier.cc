@@ -57,7 +57,7 @@ bool LogReplayBarrier::wait_for_root(ClockT::time_point deadline) {
   unique_lock<mutex> lock(m_mutex);
   HT_INFO("Waiting for ROOT recovery to complete...");
   return m_root_complete_cond.wait_until(lock, deadline,
-                                         [this](){ return m_root_complete; });
+                                         [this](){ return m_root_complete.load(); });
 }
 
 bool LogReplayBarrier::wait_for_metadata(ClockT::time_point deadline) {
@@ -66,7 +66,7 @@ bool LogReplayBarrier::wait_for_metadata(ClockT::time_point deadline) {
   unique_lock<mutex> lock(m_mutex);
   HT_INFO("Waiting for METADATA recovery to complete...");
   return m_metadata_complete_cond.wait_until(lock, deadline,
-                                             [this](){ return m_metadata_complete; });
+                                             [this](){ return m_metadata_complete.load(); });
 }
 
 bool LogReplayBarrier::wait_for_system(ClockT::time_point deadline) {
@@ -75,7 +75,7 @@ bool LogReplayBarrier::wait_for_system(ClockT::time_point deadline) {
   unique_lock<mutex> lock(m_mutex);
   HT_INFO("Waiting for SYSTEM recovery to complete...");
   return m_system_complete_cond.wait_until(lock, deadline,
-                                           [this](){ return m_system_complete; });
+                                           [this](){ return m_system_complete.load(); });
 }
 
 bool LogReplayBarrier::wait_for_user(ClockT::time_point deadline) {
@@ -84,7 +84,7 @@ bool LogReplayBarrier::wait_for_user(ClockT::time_point deadline) {
   unique_lock<mutex> lock(m_mutex);
   HT_INFO("Waiting for USER recovery to complete...");
   return m_user_complete_cond.wait_until(lock, deadline,
-                                         [this](){ return m_user_complete; });
+                                         [this](){ return m_user_complete.load(); });
 }
 
 bool

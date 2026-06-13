@@ -519,7 +519,6 @@ void UpdatePipeline::commit() {
   std::list<UpdateContext *> coalesce_queue;
   uint64_t coalesce_amount = 0;
   int error = Error::OK;
-  uint32_t committed_transfer_data;
   bool log_needs_syncing {};
 
   while (true) {
@@ -536,7 +535,6 @@ void UpdatePipeline::commit() {
       m_commit_queue_count--;
     }
 
-    committed_transfer_data = 0;
     log_needs_syncing = false;
 
     // Commit ROOT mutations
@@ -554,7 +552,6 @@ void UpdatePipeline::commit() {
       // Iterate through all of the ranges, committing any transferring updates
       for (auto iter = table_update->range_map.begin(); iter != table_update->range_map.end(); ++iter) {
         if ((*iter).second->transfer_buf.ptr > (*iter).second->transfer_buf.mark) {
-          committed_transfer_data += (*iter).second->transfer_buf.ptr - (*iter).second->transfer_buf.mark;
           if ((error = (*iter).second->transfer_log->write(ClusterId::get(), (*iter).second->transfer_buf,
                                                            (*iter).second->latest_transfer_revision,
                                                            m_flags)) != Error::OK) {

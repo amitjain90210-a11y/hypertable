@@ -101,9 +101,9 @@ int main(int argc, char **argv) {
     int timeout = get_i32("FsBroker.Timeout");
 
     // Create Hypertable client object
-    ClientPtr hypertable_client = make_shared<Hypertable::Client>(argv[0]);
+    ClientPtr hypertable_client = std::make_shared<Hypertable::Client>(argv[0]);
     NamespacePtr ns = hypertable_client->open_namespace("/");
-    ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_mgr = std::make_shared<ConnectionManager>();
     FsBroker::Lib::ClientPtr dfs = std::make_shared<FsBroker::Lib::Client>(conn_mgr, properties);
 
     Global::dfs = dfs;

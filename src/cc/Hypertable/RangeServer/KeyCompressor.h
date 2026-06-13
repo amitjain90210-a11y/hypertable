@@ -34,6 +34,7 @@ namespace Hypertable {
 
   class KeyCompressor {
   public:
+    virtual ~KeyCompressor() = default;
     virtual void reset() = 0;
     virtual void add(const Key &key) = 0;
     virtual size_t length() = 0;

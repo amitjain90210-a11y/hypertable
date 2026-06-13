@@ -80,17 +80,17 @@ int main(int argc, char **argv) {
               System::install_dir.c_str());
 
     Comm *comm = Comm::instance();
-    ConnectionManagerPtr conn_manager = make_shared<ConnectionManager>(comm);
+    ConnectionManagerPtr conn_manager = std::make_shared<ConnectionManager>(comm);
     Global::conn_manager = conn_manager;
 
     int worker_count = get_i32("Hypertable.RangeServer.Workers");
-    Global::app_queue = make_shared<ApplicationQueue>(worker_count);
+    Global::app_queue = std::make_shared<ApplicationQueue>(worker_count);
 
     /**
      * Connect to Hyperspace
      */
     HyperspaceSessionHandler hs_handler;
-    Global::hyperspace = make_shared<Hyperspace::Session>(comm, properties);
+    Global::hyperspace = std::make_shared<Hyperspace::Session>(comm, properties);
     Global::hyperspace->add_callback(&hs_handler);
     int hyperspace_timeout = get_i32("Hyperspace.Timeout");
 

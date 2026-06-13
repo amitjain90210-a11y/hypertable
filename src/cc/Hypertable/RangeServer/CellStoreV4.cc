@@ -23,7 +23,7 @@
 #include <cassert>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/scoped_array.hpp>
+#include <memory>
 
 #include "Common/Config.h"
 #include "Common/Error.h"
@@ -109,8 +109,8 @@ CellListScannerPtr CellStoreV4::create_scanner(ScanContext *scan_ctx) {
   }
 
   if (m_64bit_index)
-    return make_shared<CellStoreScanner<CellStoreBlockIndexArray<int64_t>>>(shared_from_this(), scan_ctx, need_index ? &m_index_map64 : 0);
-  return make_shared<CellStoreScanner<CellStoreBlockIndexArray<uint32_t>>>(shared_from_this(), scan_ctx, need_index ? &m_index_map32 : 0);
+    return std::make_shared<CellStoreScanner<CellStoreBlockIndexArray<int64_t>>>(shared_from_this(), scan_ctx, need_index ? &m_index_map64 : 0);
+  return std::make_shared<CellStoreScanner<CellStoreBlockIndexArray<uint32_t>>>(shared_from_this(), scan_ctx, need_index ? &m_index_map32 : 0);
 }
 
 
@@ -121,7 +121,7 @@ CellStoreV4::create(const char *fname, size_t max_entries,
   int64_t blocksize = props->get("blocksize", 0);
   String compressor = props->get("compressor", String());
 
-  m_key_compressor = make_shared<KeyCompressorPrefix>();
+  m_key_compressor = std::make_shared<KeyCompressorPrefix>();
 
   assert(Config::properties); // requires Config::init* first
 
@@ -830,7 +830,7 @@ bool CellStoreV4::may_contain(ScanContext *scan_ctx) {
       if (may_contain(scan_ctx->start_row)) {
         SchemaPtr &schema = scan_ctx->schema;
         size_t rowlen = scan_ctx->start_row.length();
-        boost::scoped_array<char> rowcol(new char[rowlen + 2]);
+        std::unique_ptr<char[]> rowcol(new char[rowlen + 2]);
         memcpy(rowcol.get(), scan_ctx->start_row.c_str(), rowlen + 1);
 
         for (auto col : scan_ctx->spec->columns) {

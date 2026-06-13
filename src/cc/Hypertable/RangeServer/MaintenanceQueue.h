@@ -35,6 +35,7 @@
 #include <Common/Logger.h>
 #include <Common/Thread.h>
 
+#include <atomic>
 #include <cassert>
 #include <condition_variable>
 #include <memory>
@@ -81,7 +82,7 @@ namespace Hypertable {
       std::mutex mutex;
       std::condition_variable cond;
       std::condition_variable empty_cond;
-      bool shutdown {};
+      std::atomic<bool> shutdown {};
       std::set<Range *>  ranges;
       uint32_t inflight_levels[MAX_LEVELS];
       uint32_t inflight {};
@@ -121,8 +122,10 @@ namespace Hypertable {
               if (m_state.queue.empty() || 
 		  (m_state.inflight && (m_state.queue.top())->level > inflight_level))
                 m_state.cond.wait(lock);
-              else
-                m_state.cond.wait_until(lock, (m_state.queue.top())->start_time);
+              else {
+                auto deadline = m_state.queue.top()->start_time;
+                m_state.cond.wait_until(lock, deadline);
+              }
 
               inflight_level = lowest_inflight_level();
               now = std::chrono::steady_clock::now();

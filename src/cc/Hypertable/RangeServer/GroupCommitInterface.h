@@ -53,6 +53,8 @@ namespace Hypertable {
   class GroupCommitInterface {
   public:
 
+    virtual ~GroupCommitInterface() = default;
+
     /// Adds a batch of updates to the group commit queue.
     virtual void add(EventPtr &event, uint64_t cluster_id, SchemaPtr &schema,
                      const TableIdentifier &table, uint32_t count,

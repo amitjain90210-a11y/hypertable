@@ -32,6 +32,7 @@
 
 #include <AsyncComm/Clock.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -158,13 +159,13 @@ namespace Hypertable {
     /// Condition variable used to signal USER commit log replay complete.
     std::condition_variable m_user_complete_cond;
     /// Flag indicating if ROOT commit log replay is complete
-    bool m_root_complete {};
+    std::atomic<bool> m_root_complete {};
     /// Flag indicating if METADATA commit log replay is complete
-    bool m_metadata_complete {};
+    std::atomic<bool> m_metadata_complete {};
     /// Flag indicating if SYSTEM commit log replay is complete
-    bool m_system_complete {};
+    std::atomic<bool> m_system_complete {};
     /// Flag indicating if USER commit log replay is complete
-    bool m_user_complete {};
+    std::atomic<bool> m_user_complete {};
   };
 
   /// Smart pointer to LogReplayBarrier

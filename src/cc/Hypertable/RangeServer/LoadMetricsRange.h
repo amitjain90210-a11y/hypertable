@@ -29,6 +29,7 @@
 #include <Common/DynamicBuffer.h>
 #include <Common/String.h>
 
+#include <atomic>
 #include <mutex>
 
 namespace Hypertable {
@@ -60,7 +61,7 @@ namespace Hypertable {
     const char *m_end_row;
     String m_new_start_row;
     String m_new_end_row;
-    bool m_new_rows;
+    std::atomic<bool> m_new_rows;
     time_t m_timestamp;
     LoadFactors m_load_factors;
   };

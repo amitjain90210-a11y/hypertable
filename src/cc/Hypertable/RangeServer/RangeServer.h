@@ -72,6 +72,7 @@
 #include <Common/MetricsProcess.h>
 #include <Common/Properties.h>
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -283,10 +284,10 @@ namespace Apps {
     bool m_verbose {};
 
     /// Flag indicating if server is starting up
-    bool m_startup {true};
+    std::atomic<bool> m_startup {true};
 
     /// Flag indicating if server is shutting down
-    bool m_shutdown {};
+    std::atomic<bool> m_shutdown {};
 
     typedef map<String, PhantomRangeMapPtr> FailoverPhantomRangeMap;
     FailoverPhantomRangeMap m_failover_map;

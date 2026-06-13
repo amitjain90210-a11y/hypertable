@@ -38,6 +38,7 @@
 #include <Common/DynamicBuffer.h>
 #include <Common/Filesystem.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -150,7 +151,7 @@ namespace Hypertable {
     std::condition_variable m_commit_queue_cond;
 
     /// Count of objects in stage 2 input queue
-    int32_t m_commit_queue_count {};
+    std::atomic<int32_t> m_commit_queue_count {};
 
     /// Stage 2 input queue
     std::list<UpdateContext *> m_commit_queue;
@@ -186,7 +187,7 @@ namespace Hypertable {
     Filesystem::Flags m_flags {};
 
     /// Flag indicating if pipeline is being shut down
-    bool m_shutdown {};
+    std::atomic<bool> m_shutdown {};
   };
 
   /// Smart pointer to UpdatePipeline

@@ -57,14 +57,14 @@ int PhantomUpdate::error(int error, const String &msg) {
 
   if (msg.length() < max_msg_size) {
     len += Serialization::encoded_length_str16(msg);
-    cbp = make_shared<CommBuf>(header, len);
+    cbp = std::make_shared<CommBuf>(header, len);
     cbp->append_i32(error);
     cbp->append_str16(msg.c_str());
   }
   else {
     String substr = msg.substr(0, max_msg_size);
     len += Serialization::encoded_length_str16(substr);
-    cbp = make_shared<CommBuf>(header, len);
+    cbp = std::make_shared<CommBuf>(header, len);
     cbp->append_i32(error);
     cbp->append_str16(substr.c_str());
   }

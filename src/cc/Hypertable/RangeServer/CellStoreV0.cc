@@ -23,7 +23,7 @@
 #include <cassert>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/scoped_array.hpp>
+#include <memory>
 
 #include "Common/Error.h"
 #include "Common/Logger.h"
@@ -94,7 +94,7 @@ BlockCompressionCodec *CellStoreV0::create_block_compression_codec() {
 
 
 CellListScannerPtr CellStoreV0::create_scanner(ScanContext *scan_ctx) {
-  return make_shared<CellStoreScanner<CellStoreBlockIndexArray<uint32_t>>>(shared_from_this(), scan_ctx, &m_index_map32);
+  return std::make_shared<CellStoreScanner<CellStoreBlockIndexArray<uint32_t>>>(shared_from_this(), scan_ctx, &m_index_map32);
 }
 
 
@@ -606,7 +606,7 @@ bool CellStoreV0::may_contain(ScanContext *scan_ctx) {
       if (may_contain(scan_ctx->start_row)) {
         SchemaPtr &schema = scan_ctx->schema;
         size_t rowlen = scan_ctx->start_row.length();
-        boost::scoped_array<char> rowcol(new char[rowlen + 2]);
+        std::unique_ptr<char[]> rowcol(new char[rowlen + 2]);
         memcpy(rowcol.get(), scan_ctx->start_row.c_str(), rowlen + 1);
 
         for (auto col : scan_ctx->spec->columns) {

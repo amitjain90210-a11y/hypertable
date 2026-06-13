@@ -55,6 +55,7 @@
 #include <Common/fast_clock.h>
 #include <Common/String.h>
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -353,16 +354,15 @@ namespace Hypertable {
     void split_compact_and_shrink();
     void split_notify_master();
 
-    // these need to be aligned
-    uint64_t m_scans {};
-    uint64_t m_cells_scanned {};
-    uint64_t m_cells_returned {};
-    uint64_t m_cells_written {};
-    uint64_t m_updates {};
-    uint64_t m_bytes_scanned {};
-    uint64_t m_bytes_returned {};
-    uint64_t m_bytes_written {};
-    uint64_t m_disk_bytes_read {};
+    std::atomic<uint64_t> m_scans {};
+    std::atomic<uint64_t> m_cells_scanned {};
+    std::atomic<uint64_t> m_cells_returned {};
+    std::atomic<uint64_t> m_cells_written {};
+    std::atomic<uint64_t> m_updates {};
+    std::atomic<uint64_t> m_bytes_scanned {};
+    std::atomic<uint64_t> m_bytes_returned {};
+    std::atomic<uint64_t> m_bytes_written {};
+    std::atomic<uint64_t> m_disk_bytes_read {};
 
     std::mutex m_mutex;
     std::mutex m_schema_mutex;
@@ -390,7 +390,7 @@ namespace Hypertable {
     uint64_t         m_added_deletes[KEYSPEC_DELETE_MAX];
     uint64_t         m_added_inserts {};
     RangeSet        *m_range_set;
-    int32_t          m_error {};
+    std::atomic<int32_t> m_error {};
     int              m_compaction_type_needed {};
     int64_t          m_maintenance_generation {};
     LoadMetricsRange m_load_metrics;
