@@ -119,7 +119,7 @@ TableMutatorAsyncScatterBuffer::set(const Key &key, const ColumnFamilySpec *cf, 
     iter = m_buffer_map.find(range_info.addr);
 
     if (iter == m_buffer_map.end()) {
-      iter = m_buffer_map.insert(std::make_pair(range_info.addr, make_shared<TableMutatorAsyncSendBuffer>(&m_table_identifier,
+      iter = m_buffer_map.insert(std::make_pair(range_info.addr, std::make_shared<TableMutatorAsyncSendBuffer>(&m_table_identifier,
                                  &m_completion_counter, m_range_locator.get()))).first;
       (*iter).second->addr = range_info.addr;
     }
@@ -165,7 +165,7 @@ void TableMutatorAsyncScatterBuffer::set_delete(const Key &key, size_t incr_mem)
   iter = m_buffer_map.find(range_info.addr);
 
   if (iter == m_buffer_map.end()) {
-    iter = m_buffer_map.insert(std::make_pair(range_info.addr, make_shared<TableMutatorAsyncSendBuffer>(&m_table_identifier,
+    iter = m_buffer_map.insert(std::make_pair(range_info.addr, std::make_shared<TableMutatorAsyncSendBuffer>(&m_table_identifier,
                                  &m_completion_counter, m_range_locator.get()))).first;
     (*iter).second->addr = range_info.addr;
   }
@@ -211,7 +211,7 @@ TableMutatorAsyncScatterBuffer::set(SerializedKey key, ByteString value, size_t 
   iter = m_buffer_map.find(range_info.addr);
 
   if (iter == m_buffer_map.end()) {
-    iter = m_buffer_map.insert(std::make_pair(range_info.addr, make_shared<TableMutatorAsyncSendBuffer>(&m_table_identifier,
+    iter = m_buffer_map.insert(std::make_pair(range_info.addr, std::make_shared<TableMutatorAsyncSendBuffer>(&m_table_identifier,
                                &m_completion_counter, m_range_locator.get()))).first;
     (*iter).second->addr = range_info.addr;
   }
@@ -292,7 +292,7 @@ void TableMutatorAsyncScatterBuffer::send(uint32_t flags) {
       }
       HT_ASSERT((size_t)(ptr-send_buffer->pending_updates.base)==len);
       send_buffer->dispatch_handler =
-        make_shared<TableMutatorAsyncDispatchHandler>(m_app_queue, m_mutator,
+        std::make_shared<TableMutatorAsyncDispatchHandler>(m_app_queue, m_mutator,
                                                       m_id, send_buffer.get(),
                                                       m_auto_refresh);
       send_buffer->send_count = send_buffer->key_offsets.size();
@@ -307,10 +307,11 @@ void TableMutatorAsyncScatterBuffer::send(uint32_t flags) {
      */
     try {
       m_send_flags = flags;
-      send_buffer->pending_updates.own = false;
+      StaticBuffer send_buf(send_buffer->pending_updates.base,
+                            send_buffer->pending_updates.size, false);
       m_range_server.update(send_buffer->addr, ClusterId::get(),
                             m_table_identifier, send_buffer->send_count,
-                            send_buffer->pending_updates, flags,
+                            send_buf, flags,
                             send_buffer->dispatch_handler.get());
 
       outstanding = true;
@@ -340,7 +341,6 @@ void TableMutatorAsyncScatterBuffer::send(uint32_t flags) {
                   e.what());
       }
     }
-    send_buffer->pending_updates.own = true;
   }
 
   if (outstanding)
@@ -375,7 +375,7 @@ TableMutatorAsyncScatterBuffer::create_redo_buffer(uint32_t id) {
     m_timer.start();
     this_thread::sleep_for(chrono::milliseconds(m_wait_time));
     m_timer.stop();
-    redo_buffer = make_shared<TableMutatorAsyncScatterBuffer>(m_comm, m_app_queue, m_mutator,
+    redo_buffer = std::make_shared<TableMutatorAsyncScatterBuffer>(m_comm, m_app_queue, m_mutator,
         &m_table_identifier, m_schema, m_range_locator, m_auto_refresh, m_timeout_ms, id);
     redo_buffer->m_timer = m_timer;
     redo_buffer->m_wait_time = m_wait_time + 2000;

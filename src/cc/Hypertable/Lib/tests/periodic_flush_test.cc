@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
   try {
     init_with_policy<DefaultClientPolicy>(argc, argv);
 
-    ClientPtr client = make_shared<Hypertable::Client>();
+    ClientPtr client = std::make_shared<Hypertable::Client>();
     NamespacePtr ns = client->open_namespace("/");
     HqlInterpreterPtr hql(client->create_hql_interpreter());
 

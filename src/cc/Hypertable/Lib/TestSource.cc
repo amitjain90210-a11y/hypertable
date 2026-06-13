@@ -25,7 +25,7 @@
 #include <cstring>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/shared_array.hpp>
+#include <memory>
 
 #include "Common/DynamicBuffer.h"
 
@@ -38,7 +38,7 @@ using namespace Hypertable;
 
 bool TestSource::next(ByteString &key, ByteString &value) {
   string line;
-  boost::shared_array<char> line_ptr;
+  std::unique_ptr<char[]> line_ptr;
   char *base, *ptr, *last;
   char *rowkey;
   char *column;

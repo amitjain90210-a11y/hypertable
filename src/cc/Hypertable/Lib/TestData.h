@@ -22,7 +22,7 @@
 #ifndef HYPERTABLE_TESTDATA_H
 #define HYPERTABLE_TESTDATA_H
 
-#include <boost/shared_array.hpp>
+#include <memory>
 
 #include "Common/FileUtils.h"
 #include "Common/Logger.h"
@@ -30,7 +30,7 @@
 
 namespace Hypertable {
 
-  typedef boost::shared_array<const char> CharPtr;
+  typedef std::unique_ptr<const char[]> CharPtr;
 
   class TestData {
   public:

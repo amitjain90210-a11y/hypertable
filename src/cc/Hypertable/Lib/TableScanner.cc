@@ -38,10 +38,10 @@ TableScanner::TableScanner(Comm *comm, Table *table,
   : m_callback(this), m_cur_cells(0), m_cur_cells_index(0), m_cur_cells_size(0),
     m_error(Error::OK), m_eos(false) {
 
-  m_queue = make_shared<TableScannerQueue>();
+  m_queue = std::make_shared<TableScannerQueue>();
   ApplicationQueueInterfacePtr app_queue = m_queue;
   m_scanner =
-    make_shared<TableScannerAsync>(comm, app_queue, table, range_locator, 
+    std::make_shared<TableScannerAsync>(comm, app_queue, table, range_locator, 
                                    scan_spec, timeout_ms, &m_callback);
 }
 

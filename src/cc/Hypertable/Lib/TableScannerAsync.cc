@@ -421,7 +421,7 @@ void TableScannerAsync::init(Comm *comm, ApplicationQueueInterfacePtr &app_queue
     if (scan_spec.row_intervals.empty()) {
       if (scan_spec.cell_intervals.empty()) {
         ri_scanner =
-          make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
+          std::make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
                                             scan_spec, timeout_ms, !current_set,
                                             this, scanner_id++);
 
@@ -436,7 +436,7 @@ void TableScannerAsync::init(Comm *comm, ApplicationQueueInterfacePtr &app_queue
           interval_scan_spec.cell_intervals.push_back(
               scan_spec.cell_intervals[i]);
           ri_scanner =
-            make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
+            std::make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
                                               interval_scan_spec, timeout_ms,
                                               !current_set, this, scanner_id++);
           current_set = true;
@@ -455,7 +455,7 @@ void TableScannerAsync::init(Comm *comm, ApplicationQueueInterfacePtr &app_queue
           interval_scan_spec.scan_and_filter_rows = false;
           interval_scan_spec.row_intervals.push_back(ri);
           ri_scanner =
-            make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
+            std::make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
                                               interval_scan_spec, timeout_ms,
                                               !current_set, this, scanner_id++);
           current_set = true;
@@ -467,7 +467,7 @@ void TableScannerAsync::init(Comm *comm, ApplicationQueueInterfacePtr &app_queue
       }
       if (rowset_scan_spec.row_intervals.size()) {
         ri_scanner =
-          make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
+          std::make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
                                             rowset_scan_spec, timeout_ms, 
                                             !current_set, this, scanner_id++);
         current_set = true;
@@ -481,7 +481,7 @@ void TableScannerAsync::init(Comm *comm, ApplicationQueueInterfacePtr &app_queue
         scan_spec.base_copy(interval_scan_spec);
         interval_scan_spec.row_intervals.push_back(scan_spec.row_intervals[i]);
         ri_scanner =
-          make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
+          std::make_shared<IntervalScannerAsync>(comm, app_queue, table, range_locator,
                                             interval_scan_spec, timeout_ms, 
                                             !current_set, this, scanner_id++);
         current_set = true;
@@ -518,12 +518,10 @@ TableScannerAsync::~TableScannerAsync() {
 }
 
 void TableScannerAsync::cancel() {
-  unique_lock<mutex> lock(m_cancel_mutex);
   m_cancelled = true;
 }
 
 bool TableScannerAsync::is_cancelled() {
-  unique_lock<mutex> lock(m_cancel_mutex);
   return m_cancelled;
 }
 
@@ -563,10 +561,11 @@ void TableScannerAsync::handle_error(int scanner_id, int error, const string &er
         abort = !(m_interval_scanners[scanner_id]->is_destroyed_scanner(is_create));
         next = !m_interval_scanners[scanner_id]->has_outstanding_requests();
         break;
+      case(Error::REQUEST_TIMEOUT):
       case(Error::RANGESERVER_RANGE_NOT_FOUND):
       case(Error::COMM_NOT_CONNECTED):
       case(Error::COMM_BROKEN_CONNECTION):
-        abort = !(m_interval_scanners[scanner_id]->retry_or_abort(false, true, 
+        abort = !(m_interval_scanners[scanner_id]->retry_or_abort(false, true,
                     is_create, &next, error));
         break;
 
@@ -582,7 +581,7 @@ void TableScannerAsync::handle_error(int scanner_id, int error, const string &er
   if (m_error != Error::OK || cancelled) {
     maybe_callback_error(scanner_id, next);
     if (next && scanner_id == m_current_scanner)
-      move_to_next_interval_scanner(scanner_id);
+      move_to_next_interval_scanner(scanner_id, lock);
     return;
   }
   else if (abort) {
@@ -592,10 +591,10 @@ void TableScannerAsync::handle_error(int scanner_id, int error, const string &er
     HT_ERROR_OUT << e << HT_END;
     maybe_callback_error(scanner_id, next);
     if (next && scanner_id == m_current_scanner)
-      move_to_next_interval_scanner(scanner_id);
+      move_to_next_interval_scanner(scanner_id, lock);
   }
   else if (next && scanner_id == m_current_scanner) {
-    move_to_next_interval_scanner(scanner_id);
+    move_to_next_interval_scanner(scanner_id, lock);
   }
 }
 
@@ -616,7 +615,7 @@ void TableScannerAsync::handle_timeout(int scanner_id, const string &error_msg, 
   m_error = Error::REQUEST_TIMEOUT;
   maybe_callback_error(scanner_id, next);
   if (next && scanner_id == m_current_scanner)
-    move_to_next_interval_scanner(scanner_id);
+    move_to_next_interval_scanner(scanner_id, lock);
 
 }
 
@@ -642,11 +641,11 @@ void TableScannerAsync::handle_result(int scanner_id, EventPtr &event, bool is_c
         // scanner was cancelled and is over
         if (next && m_outstanding==1) {
           do_callback = true;
-          cells = make_shared<ScanCells>();
+          cells = std::make_shared<ScanCells>();
         }
         else
           do_callback = false;
-        maybe_callback_ok(scanner_id, next, do_callback, cells);
+        maybe_callback_ok(scanner_id, next, do_callback, cells, lock);
       }
       else
         maybe_callback_error(scanner_id, next);
@@ -654,11 +653,11 @@ void TableScannerAsync::handle_result(int scanner_id, EventPtr &event, bool is_c
     else {
       // send results to interval scanner
       next = m_interval_scanners[scanner_id]->handle_result(&do_callback, cells, event, is_create);
-      maybe_callback_ok(scanner_id, next, do_callback, cells);
+      maybe_callback_ok(scanner_id, next, do_callback, cells, lock);
     }
 
     if (next)
-      move_to_next_interval_scanner(current_scanner);
+      move_to_next_interval_scanner(current_scanner, lock);
   }
   catch (Exception &e) {
     HT_ERROR_OUT << e << HT_END;
@@ -688,13 +687,15 @@ void TableScannerAsync::maybe_callback_error(int scanner_id, bool next) {
   m_cb->scan_error(this, m_error, m_error_msg, eos);
 
   if (eos) {
+    m_final_done = true;
     m_cb->deregister_scanner(this);
     m_cb->decrement_outstanding();
     m_cond.notify_all();
   }
 }
 
-void TableScannerAsync::maybe_callback_ok(int scanner_id, bool next, bool do_callback, ScanCellsPtr &cells) {
+void TableScannerAsync::maybe_callback_ok(int scanner_id, bool next, bool do_callback,
+                                           ScanCellsPtr &cells, unique_lock<mutex> &lock) {
   bool eos = false;
   // ok to update m_outstanding since caller has locked mutex
   if (next) {
@@ -705,18 +706,23 @@ void TableScannerAsync::maybe_callback_ok(int scanner_id, bool next, bool do_cal
     m_interval_scanners[scanner_id] = 0;
   }
 
-  if (m_outstanding == 0) {
+  if (m_outstanding == 0)
     eos = true;
-  }
 
   if (do_callback) {
     if (eos)
       cells->set_eos();
     HT_ASSERT(cells != 0);
+    m_active_callbacks++;
+    lock.unlock();
     m_cb->scan_ok(this, cells);
+    lock.lock();
+    if (--m_active_callbacks == 0)
+      m_cond.notify_all();
   }
 
-  if (m_outstanding==0) {
+  if (m_outstanding == 0 && !m_final_done) {
+    m_final_done = true;
     m_cb->deregister_scanner(this);
     m_cb->decrement_outstanding();
     m_cond.notify_all();
@@ -725,14 +731,15 @@ void TableScannerAsync::maybe_callback_ok(int scanner_id, bool next, bool do_cal
 
 void TableScannerAsync::wait_for_completion() {
   unique_lock<mutex> lock(m_mutex);
-  m_cond.wait(lock, [this](){ return m_outstanding == 0; });
+  m_cond.wait(lock, [this](){ return m_final_done && m_active_callbacks == 0; });
 }
 
 String TableScannerAsync::get_table_name() const {
   return m_table->get_name();
 }
 
-void TableScannerAsync::move_to_next_interval_scanner(int current_scanner) {
+void TableScannerAsync::move_to_next_interval_scanner(int current_scanner,
+                                                       unique_lock<mutex> &lock) {
   bool next = true;
   bool cancelled = is_cancelled();
   bool do_callback;
@@ -754,25 +761,25 @@ void TableScannerAsync::move_to_next_interval_scanner(int current_scanner) {
 
       // this is the last outstanding scanner and the scan was cancelled
       // or failed with an error
-      if (next 
-          && m_outstanding==1 
+      if (next
+          && m_outstanding==1
           && ((cancelled && m_error == Error::OK)
             || m_error != Error::OK)) {
         do_callback = true;
-        cells = make_shared<ScanCells>();
+        cells = std::make_shared<ScanCells>();
       }
-      maybe_callback_ok(m_current_scanner, next, do_callback, cells);
+      maybe_callback_ok(m_current_scanner, next, do_callback, cells, lock);
     }
   }
 
   // if we skipped ALL outstanding scanners then make sure the "eos" marker
   // is sent to the caller, and m_outstanding is decremented
-  if (next 
+  if (next
       && m_outstanding == 1
-      && current_scanner == ((int)m_interval_scanners.size() - 1) 
+      && current_scanner == ((int)m_interval_scanners.size() - 1)
       && !cells) {
-    cells = make_shared<ScanCells>();
-    maybe_callback_ok(m_current_scanner, true, true, cells);
+    cells = std::make_shared<ScanCells>();
+    maybe_callback_ok(m_current_scanner, true, true, cells, lock);
     m_current_scanner = (int)m_interval_scanners.size() - 1;
   }
 }

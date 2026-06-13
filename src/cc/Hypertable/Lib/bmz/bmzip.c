@@ -236,7 +236,8 @@ do_pack(const void *in, size_t in_len, size_t buf_len,
     DIE("error compressing input (error %d)", ret);
   }
   write_bmz_header(1, in_len, bmz_checksum(out, out_len), options);
-  write(1, out, out_len);
+  if (write(1, out, out_len) != (ssize_t)out_len)
+    DIE("error writing output (%lu bytes)", (Lu)out_len);
 }
 
 static void
@@ -283,7 +284,8 @@ do_unpack(const void *in, size_t in_len, size_t buf_len) {
     WARN("size mismatch (expecting %llu, got %llu)",
          (Llu)orig_size, (Llu)outlen);
 
-  write(1, out, outlen);
+  if (write(1, out, outlen) != (ssize_t)outlen)
+    DIE("error writing output (%lu bytes)", (Lu)outlen);
 }
 
 static void

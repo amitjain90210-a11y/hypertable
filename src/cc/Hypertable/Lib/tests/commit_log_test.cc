@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     init_with_policies<Policies>(argc, argv);
 
     Comm *comm = Comm::instance();
-    ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>(comm);
+    ConnectionManagerPtr conn_mgr = std::make_shared<ConnectionManager>(comm);
     int timeout = has("fs-timeout") ? get_i32("fs-timeout") : 180000;
 
     /**
@@ -160,7 +160,7 @@ namespace {
     write_entries(log, 20, &sum_written, 0);
     delete log;
 
-    log_reader_ptr = make_shared<CommitLogReader>(fs, fname);
+    log_reader_ptr = std::make_shared<CommitLogReader>(fs, fname);
     read_entries(log_reader_ptr.get(), &sum_read);
 
     /**
@@ -187,13 +187,13 @@ namespace {
 
     // Open "b", read it, and link it into "a"
     fname = log_dir + "/b";
-    log_reader_ptr = make_shared<CommitLogReader>(fs, fname);
+    log_reader_ptr = std::make_shared<CommitLogReader>(fs, fname);
     read_entries(log_reader_ptr.get(), &sum_read);
     write_entries(log, 20, &sum_written, log_reader_ptr.get());
 
     // Open "d", read it, and link it into "a"
     fname = log_dir + "/d";
-    log_reader_ptr = make_shared<CommitLogReader>(fs, fname);
+    log_reader_ptr = std::make_shared<CommitLogReader>(fs, fname);
     read_entries(log_reader_ptr.get(), &sum_read);
     write_entries(log, 20, &sum_written, log_reader_ptr.get());
 
@@ -201,7 +201,7 @@ namespace {
 
     sum_read = 0;
     fname = log_dir + "/a";
-    log_reader_ptr = make_shared<CommitLogReader>(fs, fname);
+    log_reader_ptr = std::make_shared<CommitLogReader>(fs, fname);
     read_entries(log_reader_ptr.get(), &sum_read);
 
     HT_ASSERT(sum_read == sum_written);

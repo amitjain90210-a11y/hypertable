@@ -41,7 +41,7 @@
  *  only needs to be called once, mostly for sanity checks
  */
 HT_EXTERN(int)
-bmz_init();
+bmz_init(void);
 
 /** Perform bmz compression
  *

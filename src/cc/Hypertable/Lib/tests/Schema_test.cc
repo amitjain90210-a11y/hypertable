@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  schema = make_shared<Schema>();
+  schema = std::make_shared<Schema>();
   AccessGroupOptions ag_defaults;
   ag_defaults.set_blocksize(65000);
   schema->set_access_group_defaults(ag_defaults);
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
   str = schema->render_xml(true);
   FileUtils::write(harness.get_log_file_descriptor(), str);
 
-  SchemaPtr orig_schema = make_shared<Schema>(*schema);
+  SchemaPtr orig_schema = std::make_shared<Schema>(*schema);
   cf_spec->set_option_max_versions(2);
   HT_ASSERT(schema->clear_generation_if_changed(*orig_schema));
   str = schema->render_xml(true);

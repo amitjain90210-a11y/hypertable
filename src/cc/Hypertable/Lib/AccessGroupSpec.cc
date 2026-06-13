@@ -97,7 +97,7 @@ namespace {
 
     try {
       init_schema_options_desc();
-      PropertiesPtr props = make_shared<Properties>();
+      PropertiesPtr props = std::make_shared<Properties>();
       vector<std::string> args;
       boost::split(args, compressor, boost::is_any_of(" \t"));
       HT_TRY("parsing compressor spec",
@@ -116,7 +116,7 @@ namespace {
 
     try {
       init_schema_options_desc();
-      PropertiesPtr props = make_shared<Properties>();
+      PropertiesPtr props = std::make_shared<Properties>();
       vector<std::string> args;
 
       boost::split(args, bloomfilter, boost::is_any_of(" \t"));

@@ -1442,7 +1442,7 @@ input_overrun:
 }
 
 int
-bmz_init() {
+bmz_init(void) {
   int ret = lzo_init();
   return ret == LZO_E_OK ? BMZ_E_OK : BMZ_E_ERROR;
 }

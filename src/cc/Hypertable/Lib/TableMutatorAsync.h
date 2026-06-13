@@ -296,6 +296,7 @@ namespace Hypertable {
     bool m_cancelled {};
     bool m_mutated {};      // needs mutex
     bool m_use_index {};
+    bool m_auto_refresh {};  // cached from Table::auto_refresh() at init time
 
   };
 

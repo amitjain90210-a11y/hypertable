@@ -35,7 +35,7 @@ void Hypertable::legacy_decode(const uint8_t **bufp, size_t *remainp, BalancePla
   size_t length = Serialization::decode_i32(bufp, remainp);
   plan->moves.reserve(length);
   for (size_t i=0; i<length; i++) {
-    RangeMoveSpecPtr move_spec = make_shared<RangeMoveSpec>();
+    RangeMoveSpecPtr move_spec = std::make_shared<RangeMoveSpec>();
     legacy_decode(bufp, remainp, move_spec.get());
     plan->moves.push_back(move_spec);
   }

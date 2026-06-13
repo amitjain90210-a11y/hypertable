@@ -131,7 +131,7 @@ RangeLocator::RangeLocator(PropertiesPtr &cfg, ConnectionManagerPtr &conn_mgr,
   boost::trim_if(m_toplevel_dir, boost::is_any_of("/"));
   m_toplevel_dir = String("/") + m_toplevel_dir;
 
-  m_cache = make_shared<LocationCache>(cache_size);
+  m_cache = std::make_shared<LocationCache>(cache_size);
   // register hyperspace session callback
   m_hyperspace_session_callback.m_rangelocator = this;
   m_hyperspace->add_callback(&m_hyperspace_session_callback);
@@ -165,7 +165,7 @@ void RangeLocator::initialize() {
     return;
   HT_ASSERT(m_hyperspace_connected);
 
-  m_root_handler = make_shared<RootFileHandler>(this);
+  m_root_handler = std::make_shared<RootFileHandler>(this);
 
   m_root_file_handle = m_hyperspace->open(m_toplevel_dir + "/root",
                                           OPEN_FLAG_READ, m_root_handler);
@@ -233,7 +233,6 @@ RangeLocator::find_loop(const TableIdentifier *table, const char *row_key,
     RangeLocationInfo *rane_loc_infop, Timer &timer, bool hard) {
   int error;
   uint32_t wait_time = 1000;
-  uint32_t total_wait_time = 0;
 
   error = find(table, row_key, rane_loc_infop, timer, hard);
 
@@ -252,7 +251,6 @@ RangeLocator::find_loop(const TableIdentifier *table, const char *row_key,
 
     // wait a bit
     this_thread::sleep_for(chrono::milliseconds(wait_time));
-    total_wait_time += wait_time;
     wait_time = (wait_time * 3) / 2;
 
     // try again

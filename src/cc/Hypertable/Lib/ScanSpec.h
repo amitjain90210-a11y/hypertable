@@ -31,8 +31,6 @@
 #include <Common/PageArenaAllocator.h>
 #include <Common/Serializable.h>
 
-#include <boost/noncopyable.hpp>
-
 #include <vector>
 
 namespace Hypertable {
@@ -315,8 +313,10 @@ namespace Lib {
    * Helper class for building a ScanSpec.  This class manages the allocation
    * of all string members.
    */
-  class ScanSpecBuilder : boost::noncopyable {
+  class ScanSpecBuilder {
   public:
+    ScanSpecBuilder(const ScanSpecBuilder&) = delete;
+    ScanSpecBuilder& operator=(const ScanSpecBuilder&) = delete;
 
     /// Constructor.
     /// @param page_size Page size for memory arena

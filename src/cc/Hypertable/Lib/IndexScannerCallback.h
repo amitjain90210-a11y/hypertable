@@ -145,8 +145,8 @@ namespace Hypertable {
     }
 
     virtual ~IndexScannerCallback() {
-      std::lock_guard<std::mutex> lock1(m_scanner_mutex);
-      std::lock_guard<std::mutex> lock2(m_mutex);
+      std::lock_guard<std::mutex> lock1(m_mutex);
+      std::lock_guard<std::mutex> lock2(m_scanner_mutex);
       m_scanners.clear();
       sspecs_clear();
       if (m_tmp_table) {

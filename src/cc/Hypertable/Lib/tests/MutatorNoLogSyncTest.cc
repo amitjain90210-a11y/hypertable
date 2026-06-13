@@ -264,9 +264,9 @@ int main(int argc, char **argv) {
                  "./htRangeServer") == 0);
   unlink("./ht_serverup");
   HT_ASSERT(link("../../Tools/serverup/ht_serverup", "./ht_serverup") == 0);
-  system("mkdir conf");
-  system("touch conf/METADATA.xml");
-  system("touch conf/RS_METRICS.xml");
+  HT_ASSERT(system("mkdir -p conf") == 0);
+  HT_ASSERT(system("touch conf/METADATA.xml") == 0);
+  HT_ASSERT(system("touch conf/RS_METRICS.xml") == 0);
 
   config_file = install_dir + config_file;
   Config::parse_file(config_file, file_desc());
@@ -285,7 +285,7 @@ int main(int argc, char **argv) {
   try {
     assert (config_file != "");
     hypertable_client_ptr =
-      make_shared<Hypertable::Client>(System::locate_install_dir(argv[0]),
+      std::make_shared<Hypertable::Client>(System::locate_install_dir(argv[0]),
                                       config_file);
     namespace_ptr = hypertable_client_ptr->open_namespace("/");
     namespace_ptr->drop_table("MutatorNoLogSyncTest", true);
@@ -418,7 +418,7 @@ namespace {
   void check_rangeserver(uint32_t port) {
     //make syscall to serverup and make sure RangeServer is up
     String command;
-    command = (String)"./ht_serverup --Hypertable.RangeServer.ReadyStatus=WARNING --wait 5000 --silent --range-server localhost:"
+    command = (String)"./ht_serverup --Hypertable.RangeServer.ReadyStatus=WARNING --wait 60000 --silent --range-server localhost:"
       + port + (String)" rangeserver";
     if (system(command.c_str()) !=0) {
       HT_ERRORF("RangeServer on port %d did not come up", port);

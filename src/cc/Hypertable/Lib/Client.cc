@@ -65,7 +65,7 @@ Client::Client(const string &install_dir, const string &config_file,
   if (!properties)
     init_with_policy<DefaultCommPolicy>(0, 0);
 
-  m_props = make_shared<Properties>(config_file, file_desc());
+  m_props = std::make_shared<Properties>(config_file, file_desc());
   initialize();
 }
 
@@ -204,14 +204,14 @@ void Client::initialize() {
   m_toplevel_dir = String("/") + m_toplevel_dir;
 
   m_comm = Comm::instance();
-  m_conn_manager = make_shared<ConnectionManager>(m_comm);
+  m_conn_manager = std::make_shared<ConnectionManager>(m_comm);
 
   if (m_timeout_ms == 0)
     m_timeout_ms = m_props->get_i32("Hypertable.Request.Timeout");
 
   m_hyperspace_reconnect = m_props->get_bool("Hyperspace.Session.Reconnect");
 
-  m_hyperspace = make_shared<Hyperspace::Session>(m_comm, m_props);
+  m_hyperspace = std::make_shared<Hyperspace::Session>(m_comm, m_props);
 
   Timer timer(m_timeout_ms, true);
 
@@ -232,13 +232,13 @@ void Client::initialize() {
   // Initialize cluster ID from Hyperspace, enabling ClusterId::get()
   ClusterId cluster_id(m_hyperspace);
 
-  m_namemap = make_shared<NameIdMapper>(m_hyperspace, m_toplevel_dir);
+  m_namemap = std::make_shared<NameIdMapper>(m_hyperspace, m_toplevel_dir);
 
   m_app_queue =
-    make_shared<ApplicationQueue>(m_props->get_i32("Hypertable.Client.Workers"));
+    std::make_shared<ApplicationQueue>(m_props->get_i32("Hypertable.Client.Workers"));
 
   m_master_client =
-    make_shared<Lib::Master::Client>(m_conn_manager, m_hyperspace, m_toplevel_dir,
+    std::make_shared<Lib::Master::Client>(m_conn_manager, m_hyperspace, m_toplevel_dir,
                             m_timeout_ms, m_app_queue,
                             DispatchHandlerPtr(), ConnectionInitializerPtr());
 
@@ -246,16 +246,16 @@ void Client::initialize() {
     HT_THROW(Error::REQUEST_TIMEOUT, "Waiting for Master connection");
 
   m_range_locator =
-    make_shared<RangeLocator>(m_props, m_conn_manager,
+    std::make_shared<RangeLocator>(m_props, m_conn_manager,
                               m_hyperspace, m_timeout_ms);
 
   m_table_cache =
-    make_shared<TableCache>(m_props, m_range_locator, m_conn_manager,
+    std::make_shared<TableCache>(m_props, m_range_locator, m_conn_manager,
                             m_hyperspace, m_app_queue, m_namemap,
                             m_timeout_ms);
 
   m_namespace_cache =
-    make_shared<NamespaceCache>(m_props, m_range_locator, m_conn_manager, m_hyperspace,
+    std::make_shared<NamespaceCache>(m_props, m_range_locator, m_conn_manager, m_hyperspace,
                                 m_app_queue, m_namemap, m_master_client,
                                 m_table_cache, m_timeout_ms, this);
 }

@@ -35,7 +35,7 @@ TableMutatorShared::TableMutatorShared(PropertiesPtr &props, Comm *comm,
   m_last_flush_ts = chrono::steady_clock::now();
 
   if (m_flush_interval) {
-    m_tick_handler = make_shared<TableMutatorIntervalHandler>(comm, app_queue.get(), this);
+    m_tick_handler = std::make_shared<TableMutatorIntervalHandler>(comm, app_queue.get(), this);
     m_tick_handler->start();
   }
 }

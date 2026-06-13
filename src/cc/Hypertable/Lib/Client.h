@@ -71,7 +71,12 @@ namespace Hypertable {
      * @param default_timeout_ms default method call timeout in milliseconds
      */
     Client(const std::string &install_dir = String(), uint32_t default_timeout_ms=0);
-    ~Client() {}
+    ~Client() {
+      if (m_app_queue) {
+        m_app_queue->shutdown();
+        m_app_queue->join();
+      }
+    }
 
     /**
      * Creates a namespace

@@ -129,7 +129,7 @@ bool Future::get(ResultPtr &result, uint32_t timeout_ms, bool &timed_out) {
 }
 
 void Future::scan_ok(TableScannerAsync *scanner, ScanCellsPtr &cells) {
-  ResultPtr result = make_shared<Result>(scanner, cells);
+  ResultPtr result = std::make_shared<Result>(scanner, cells);
   enqueue(result);
 }
 
@@ -149,17 +149,17 @@ void Future::enqueue(ResultPtr &result) {
 
 void Future::scan_error(TableScannerAsync *scanner, int error, const string &error_msg,
                         bool eos) {
-  ResultPtr result = make_shared<Result>(scanner, error, error_msg);
+  ResultPtr result = std::make_shared<Result>(scanner, error, error_msg);
   enqueue(result);
 }
 
 void Future::update_ok(TableMutatorAsync *mutator) {
-  ResultPtr result = make_shared<Result>(mutator);
+  ResultPtr result = std::make_shared<Result>(mutator);
   enqueue(result);
 }
 
 void Future::update_error(TableMutatorAsync *mutator, int error, FailedMutations &failures) {
-  ResultPtr result = make_shared<Result>(mutator, error, failures);
+  ResultPtr result = std::make_shared<Result>(mutator, error, failures);
   enqueue(result);
 }
 

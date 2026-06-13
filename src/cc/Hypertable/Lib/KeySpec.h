@@ -22,8 +22,6 @@
 #ifndef HYPERTABLE_KEYSPEC_H
 #define HYPERTABLE_KEYSPEC_H
 
-#include <boost/noncopyable.hpp>
-
 #include <vector>
 
 #include "Common/String.h"
@@ -139,8 +137,10 @@ namespace Hypertable {
    * Helper class for building a KeySpec.  This class manages the allocation
    * of all string members.
    */
-  class KeySpecBuilder : boost::noncopyable {
+  class KeySpecBuilder {
   public:
+    KeySpecBuilder(const KeySpecBuilder&) = delete;
+    KeySpecBuilder& operator=(const KeySpecBuilder&) = delete;
     void set_row(const std::string &row) {
       m_strings.push_back(row);
       m_key_spec.row = m_strings.back().c_str();

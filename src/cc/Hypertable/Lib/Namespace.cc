@@ -174,7 +174,7 @@ TablePtr Namespace::open_table(const string &table_name, int32_t flags) {
 TablePtr Namespace::_open_table(const string &full_name, int32_t flags) {
   TablePtr t;
   if (flags & Table::OPEN_FLAG_BYPASS_TABLE_CACHE)
-    t = make_shared<Table>(m_props, m_range_locator, m_conn_manager, m_hyperspace,
+    t = std::make_shared<Table>(m_props, m_range_locator, m_conn_manager, m_hyperspace,
                            m_app_queue, m_namemap, full_name, flags, m_timeout_ms);
   else
     t=m_table_cache->get_unlocked(full_name, flags);

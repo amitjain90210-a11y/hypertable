@@ -30,6 +30,8 @@
 #include <Common/System.h>
 #include <Common/Usage.h>
 
+#include <memory>
+
 using namespace Hypertable;
 
 namespace {
@@ -56,7 +58,7 @@ int main(int argc, char **argv) {
   DynamicBuffer input(0);
   DynamicBuffer output1(0);
   DynamicBuffer output2(0);
-  BlockCompressionCodec *compressor;
+  std::unique_ptr<BlockCompressionCodec> compressor;
 
   BlockHeaderCommitLog header(MAGIC, 0, 0);
 
@@ -65,7 +67,7 @@ int main(int argc, char **argv) {
 
   System::initialize(System::locate_install_dir(argv[0]));
 
-  compressor = CompressorFactory::create_block_codec(argv[1]);
+  compressor.reset(CompressorFactory::create_block_codec(argv[1]));
 
   if (!compressor)
     return 1;

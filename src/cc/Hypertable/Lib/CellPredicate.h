@@ -31,7 +31,6 @@
 
 #include <re2/re2.h>
 
-#include <boost/shared_ptr.hpp>
 
 #include <bitset>
 #include <memory>
@@ -86,8 +85,8 @@ namespace Hypertable {
       uint32_t qualifier_len;
       uint32_t value_len;
       uint32_t operation;
-      boost::shared_ptr<RE2> value_regex;
-      boost::shared_ptr<RE2> qualifier_regex;
+      std::shared_ptr<RE2> value_regex;
+      std::shared_ptr<RE2> qualifier_regex;
       std::shared_ptr<char> buffer;
       size_t id;
     };

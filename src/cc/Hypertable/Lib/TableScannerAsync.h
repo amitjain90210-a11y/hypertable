@@ -35,6 +35,7 @@
 
 #include <AsyncComm/DispatchHandlerSynchronizer.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <vector>
@@ -143,11 +144,11 @@ namespace Hypertable {
     void init(Comm *comm, ApplicationQueueInterfacePtr &app_queue, Table *table,
             RangeLocatorPtr &range_locator, const ScanSpec &scan_spec, 
             uint32_t timeout_ms, ResultCallback *cb);
-    void maybe_callback_ok(int scanner_id, bool next, 
-            bool do_callback, ScanCellsPtr &cells);
+    void maybe_callback_ok(int scanner_id, bool next,
+            bool do_callback, ScanCellsPtr &cells, std::unique_lock<std::mutex> &lock);
     void maybe_callback_error(int scanner_id, bool next);
     void wait_for_completion();
-    void move_to_next_interval_scanner(int current_scanner);
+    void move_to_next_interval_scanner(int current_scanner, std::unique_lock<std::mutex> &lock);
     bool use_index(Table *table, const ScanSpec &primary_spec, 
                    ScanSpecBuilder &index_spec,
                    std::vector<CellPredicate> &cell_predicates,
@@ -164,14 +165,15 @@ namespace Hypertable {
     ProfileDataScanner m_profile_data;
     int                 m_current_scanner;
     std::mutex m_mutex;
-    std::mutex m_cancel_mutex;
     std::condition_variable m_cond;
     int                 m_outstanding;
     int                 m_error;
     std::string              m_error_msg;
     Table              *m_table;
-    bool                m_cancelled;
+    std::atomic<bool>   m_cancelled;
     bool                m_use_index;
+    bool                m_final_done {};
+    int                 m_active_callbacks {};
   };
 
   /// Smart pointer to TableScannerAsync

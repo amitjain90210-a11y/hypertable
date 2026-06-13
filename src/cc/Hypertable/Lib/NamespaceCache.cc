@@ -52,7 +52,7 @@ NamespacePtr NamespaceCache::get(const string &name) {
     HT_THROW(Error::NAMESPACE_DOES_NOT_EXIST, name);
 
   NamespacePtr ns =
-    make_shared<Namespace>(name, id, m_props, m_conn_manager, m_hyperspace,
+    std::make_shared<Namespace>(name, id, m_props, m_conn_manager, m_hyperspace,
                            m_app_queue, m_namemap, m_master_client,
                            m_range_locator, m_table_cache, m_timeout_ms,
                            m_client);

@@ -99,6 +99,7 @@ namespace {
       exit(EXIT_FAILURE);
     }
 
+    delete[] escape_buf;
   }
 
 }

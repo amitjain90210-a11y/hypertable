@@ -84,15 +84,16 @@ bool
 LoadDataEscape::unescape(const char *in_buf, size_t in_len,
                          const char **out_bufp, size_t *out_lenp) {
   bool transformed = false;
-  const char *in_ptr = in_buf;
-  const char *in_end = in_buf + (in_len - 1);
-  const char *last_xfer = in_buf;
 
   if (in_len < 2) {
     *out_bufp = in_buf;
     *out_lenp = in_len;
     return false;
   }
+
+  const char *in_ptr = in_buf;
+  const char *in_end = in_buf + (in_len - 1);
+  const char *last_xfer = in_buf;
 
   while (in_ptr < in_end) {
     if (*in_ptr == '\\' &&

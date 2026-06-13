@@ -87,13 +87,14 @@ TableMutatorAsync::TableMutatorAsync(std::mutex &mutex, std::condition_variable 
 void TableMutatorAsync::initialize(PropertiesPtr &props) {
   HT_ASSERT(m_timeout_ms);
   m_table->get(m_table_identifier, m_schema);
+  m_auto_refresh = m_table->auto_refresh();
 
   m_max_memory = props->get_i64("Hypertable.Mutator.ScatterBuffer.FlushLimit.Aggregate");
 
   uint32_t buffer_id = ++m_next_buffer_id;
-  m_current_buffer = make_shared<TableMutatorAsyncScatterBuffer>(m_comm, m_app_queue, 
-          this, &m_table_identifier, m_schema, m_range_locator, 
-          m_table->auto_refresh(), m_timeout_ms, buffer_id);
+  m_current_buffer = std::make_shared<TableMutatorAsyncScatterBuffer>(m_comm, m_app_queue,
+          this, &m_table_identifier, m_schema, m_range_locator,
+          m_auto_refresh, m_timeout_ms, buffer_id);
 
   // if there are indices then initialize the index mutators
   initialize_indices(props);
@@ -133,20 +134,20 @@ void TableMutatorAsync::initialize_indices(PropertiesPtr &props)
 
   m_use_index = true;
 
-  m_imc = make_shared<IndexMutatorCallback>(this, m_cb, m_max_memory);
+  m_imc = std::make_shared<IndexMutatorCallback>(this, m_cb, m_max_memory);
   m_cb = &(*m_imc);
 
   // create new index mutator
   if (m_table->has_index_table())
     m_index_mutator =
-      make_shared<TableMutatorAsync>(props, m_comm, m_app_queue, 
+      std::make_shared<TableMutatorAsync>(props, m_comm, m_app_queue, 
                                      m_table->get_index_table().get(), 
                                      m_range_locator, m_timeout_ms, m_cb,
                                      m_flags);
   // create new qualifier index mutator
   if (m_table->has_qualifier_index_table())
     m_qualifier_index_mutator =
-      make_shared<TableMutatorAsync>(props, m_comm, m_app_queue,
+      std::make_shared<TableMutatorAsync>(props, m_comm, m_app_queue,
                                      m_table->get_qualifier_index_table().get(), 
                                      m_range_locator, m_timeout_ms, m_cb,
                                      m_flags);
@@ -457,12 +458,20 @@ bool TableMutatorAsync::is_cancelled() {
 }
 
 bool TableMutatorAsync::needs_flush() {
-  lock_guard<mutex> lock(m_member_mutex);
-  if (m_current_buffer->full() || m_memory_used > m_max_memory)
-    return true;
-  if (m_use_index)
-    return m_imc->needs_flush();
-  return false;
+  // Snapshot m_current_buffer under m_member_mutex, then call full() outside
+  // the lock to avoid: m_member_mutex -> ScatterBuffer::m_mutex (full path)
+  // vs ScatterBuffer::m_mutex -> Reactor::m_mutex -> m_queue_mutex ->
+  // m_member_mutex cycle detected by TSan.
+  std::shared_ptr<TableMutatorAsyncScatterBuffer> buffer;
+  {
+    lock_guard<mutex> lock(m_member_mutex);
+    buffer = m_current_buffer;
+    if (m_memory_used > m_max_memory)
+      return true;
+    if (m_use_index)
+      return m_imc->needs_flush();
+  }
+  return buffer->full();
 }
 
 void TableMutatorAsync::flush(bool sync) {
@@ -509,22 +518,33 @@ void TableMutatorAsync::flush_with_tablequeue(TableMutator *mutator, bool sync) 
     flags = m_flags | Table::MUTATOR_FLAG_NO_LOG_SYNC;
 
   try {
+    std::shared_ptr<TableMutatorAsyncScatterBuffer> buffer_to_send;
     {
       lock_guard<mutex> lock(m_mutex);
-      lock_guard<mutex> member_lock(m_member_mutex);
-      if (m_current_buffer->memory_used() > 0) {
-        m_current_buffer->send(flags);
-        uint32_t buffer_id = ++m_next_buffer_id;
-        if (m_outstanding_buffers.size() == 0 && m_cb)
-          m_cb->increment_outstanding();
-        m_outstanding_buffers[m_current_buffer->get_id()] = m_current_buffer;
-        m_current_buffer = make_shared<TableMutatorAsyncScatterBuffer>(m_comm, 
-                m_app_queue, this, &m_table_identifier, m_schema, 
-                m_range_locator, m_table->auto_refresh(), m_timeout_ms, 
-                buffer_id);
-        m_memory_used = 0;
+      bool do_increment = false;
+      {
+        lock_guard<mutex> member_lock(m_member_mutex);
+        if (m_current_buffer->memory_used() > 0) {
+          // Save buffer ref before replacing; send() called outside m_mutex to
+          // avoid lock-order-inversion: m_mutex -> Reactor::m_mutex (send path)
+          // vs Reactor::m_mutex -> m_mutex (ReactorRunner dispatch path).
+          buffer_to_send = m_current_buffer;
+          uint32_t buffer_id = ++m_next_buffer_id;
+          if (m_outstanding_buffers.size() == 0 && m_cb)
+            do_increment = true;
+          m_outstanding_buffers[m_current_buffer->get_id()] = m_current_buffer;
+          m_current_buffer = std::make_shared<TableMutatorAsyncScatterBuffer>(m_comm,
+                  m_app_queue, this, &m_table_identifier, m_schema,
+                  m_range_locator, m_auto_refresh, m_timeout_ms,
+                  buffer_id);
+          m_memory_used = 0;
+        }
       }
+      if (do_increment)
+        m_cb->increment_outstanding();
     }
+    if (buffer_to_send)
+      buffer_to_send->send(flags);
 
     // sync any unsynced RS
     if (sync)

@@ -38,6 +38,7 @@
 #include <Common/Timer.h>
 #include <Common/Properties.h>
 
+#include <atomic>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -175,7 +176,7 @@ namespace Hypertable {
     LocationCachePtr       m_cache;
     uint64_t               m_root_file_handle;
     Hyperspace::HandleCallbackPtr m_root_handler;
-    bool                   m_root_stale;
+    std::atomic<bool>      m_root_stale;
     RangeLocationInfo      m_root_range_info;
     Lib::RangeServer::Client m_range_server;
     uint8_t                m_startrow_cid;

@@ -59,7 +59,7 @@ TablePtr TableCache::get_unlocked(const string &table_name, int32_t flags) {
   }
 
   TablePtr table = 
-    make_shared<Table>(m_props, m_range_locator, m_conn_manager, 
+    std::make_shared<Table>(m_props, m_range_locator, m_conn_manager, 
                        m_hyperspace, m_app_queue, m_namemap, table_name, 
                        flags, m_timeout_ms);
 
@@ -85,7 +85,7 @@ bool TableCache::get_schema(const string &table_name, SchemaPtr &output_schema) 
 
   if (it == m_table_map.end())
     return false;
-  output_schema = make_shared<Schema>(*(it->second->schema()));
+  output_schema = std::make_shared<Schema>(*(it->second->schema()));
   return true;
 }
 

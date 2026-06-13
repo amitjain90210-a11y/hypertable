@@ -29,6 +29,10 @@
 
 using namespace Hypertable;
 
+static inline int cell_int_val(const Cell& cell) {
+  int v; memcpy(&v, cell.value, sizeof(v)); return v;
+}
+
 static int argc;
 static char **argv;
 static Client *ht_client;
@@ -402,7 +406,7 @@ test_column_predicate(void)
       reinterpret_cast<const char*>(&search_int), sizeof(search_int)),
     [](const Cell& cell) {
       return cell.value_len == sizeof(int) &&
-              (*reinterpret_cast<const int*>(cell.value) % 100) == 99;
+              (cell_int_val(cell) % 100) == 99;
   });
 
   assert_scan(
@@ -430,7 +434,7 @@ test_column_predicate(void)
     [](const Cell& cell) {
       return (atoi(cell.row_key) % 100) == 99 &&
               cell.value_len == sizeof(int) &&
-              (*reinterpret_cast<const int*>(cell.value) % 100) == 99;
+              (cell_int_val(cell) % 100) == 99;
   });
 
   assert_scan(
@@ -458,7 +462,7 @@ test_column_predicate(void)
       reinterpret_cast<const char*>(&search_int), sizeof(search_int)),
     [](const Cell& cell) {
       return cell.value_len == sizeof(int) &&
-              *reinterpret_cast<const int*>(cell.value) == 99;
+              cell_int_val(cell) == 99;
   });
 
   assert_scan(
@@ -485,7 +489,7 @@ test_column_predicate(void)
       reinterpret_cast<const char*>(&search_int), sizeof(search_int)),
     [](const Cell& cell) {
       return cell.value_len == sizeof(int) &&
-              (*reinterpret_cast<const int*>(cell.value) % 100) == 99;
+              (cell_int_val(cell) % 100) == 99;
   });
 
   assert_scan(
@@ -511,7 +515,7 @@ test_column_predicate(void)
       reinterpret_cast<const char*>(&search_int), sizeof(search_int)),
     [](const Cell& cell) {
       return cell.value_len == sizeof(int) &&
-              (*reinterpret_cast<const int*>(cell.value) % 100) == 99;
+              (cell_int_val(cell) % 100) == 99;
   });
 
   assert_scan(
@@ -536,7 +540,7 @@ test_column_predicate(void)
       "v", "zero1000", ColumnPredicate::QUALIFIER_EXACT_MATCH, 0, 0),
     [](const Cell& cell) {
       return cell.value_len == sizeof(int) &&
-              (*reinterpret_cast<const int*>(cell.value) % 1000) == 0;
+              (cell_int_val(cell) % 1000) == 0;
   });
 
   // preffix qualifier match
@@ -549,8 +553,8 @@ test_column_predicate(void)
       "v", "zero", ColumnPredicate::QUALIFIER_PREFIX_MATCH, 0, 0),
     [](const Cell& cell) {
       return cell.value_len == sizeof(int) &&
-            ((*reinterpret_cast<const int*>(cell.value) % 1000) == 0 ||
-              (*reinterpret_cast<const int*>(cell.value) % 3333) == 0);
+            ((cell_int_val(cell) % 1000) == 0 ||
+              (cell_int_val(cell) % 3333) == 0);
   });
 
   // preffix regex match
@@ -563,7 +567,7 @@ test_column_predicate(void)
       "v", "^ze..1.*", ColumnPredicate::QUALIFIER_REGEX_MATCH, 0, 0),
     [](const Cell& cell) {
       return cell.value_len == sizeof(int) &&
-            (*reinterpret_cast<const int*>(cell.value) % 1000) == 0;
+            (cell_int_val(cell) % 1000) == 0;
   });
 
   // preffix regex match, escaped
@@ -619,7 +623,7 @@ test_column_predicate(void)
       [](const Cell& cell) {
         return (atoi(cell.row_key) % 100) == 99 &&
                 cell.value_len == sizeof(int) &&
-                (*reinterpret_cast<const int*>(cell.value) % 100) == 99;
+                (cell_int_val(cell) % 100) == 99;
     });
 
     assert_scan(
@@ -655,7 +659,7 @@ test_column_predicate(void)
       [](const Cell& cell) {
         return (atoi(cell.row_key) % 100) == 99 &&
                 cell.value_len == sizeof(int) &&
-                (*reinterpret_cast<const int*>(cell.value) % 100) == 99;
+                (cell_int_val(cell) % 100) == 99;
     });
 
     assert_scan(
@@ -686,7 +690,7 @@ test_column_predicate(void)
         "v", "zero1000", ColumnPredicate::QUALIFIER_EXACT_MATCH, 0, 0),
       [](const Cell& cell) {
         return cell.value_len == sizeof(int) &&
-                (*reinterpret_cast<const int*>(cell.value) % 1000) == 0;
+                (cell_int_val(cell) % 1000) == 0;
     });
   }
 
@@ -706,7 +710,7 @@ test_column_predicate(void)
         "v", "zero1000", ColumnPredicate::QUALIFIER_EXACT_MATCH, 0, 0),
       [](const Cell& cell) {
         return cell.value_len == sizeof(int) &&
-                (*reinterpret_cast<const int*>(cell.value) % 1000) == 0;
+                (cell_int_val(cell) % 1000) == 0;
     });
   }
 }

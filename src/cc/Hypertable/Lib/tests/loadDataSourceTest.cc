@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     }
 
     close(2);
-    dup(fd);
+    HT_ASSERT(dup(fd) == 2);
 
     key_columns.clear();
     String dat_fn = testnames[i] + ".dat";

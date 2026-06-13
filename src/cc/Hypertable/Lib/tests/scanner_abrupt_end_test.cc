@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   ReactorFactory::initialize(2);
 
   try {
-    hypertable_client_ptr = make_shared<Hypertable::Client>(System::locate_install_dir(argv[0]), "./hypertable.cfg");
+    hypertable_client_ptr = std::make_shared<Hypertable::Client>(System::locate_install_dir(argv[0]), "./hypertable.cfg");
     namespace_ptr = hypertable_client_ptr->open_namespace("/");
     table_ptr = namespace_ptr->open_table("LoadTest");
     scanner.reset(table_ptr->create_scanner(scan_spec.get()));

@@ -5,6 +5,7 @@
 #include <Common/Random.h>
 
 #include <iostream>
+#include <vector>
 
 #include <Hypertable/Lib/StatsRangeServer.h>
 
@@ -14,7 +15,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   Config::init(argc, argv);
-  PropertiesPtr props = make_shared<Properties>();
+  PropertiesPtr props = std::make_shared<Properties>();
   String dirs = "/,/tmp";
   StatsRangeServerPtr stats1, stats2;
   char idbuf[32];
@@ -23,7 +24,7 @@ int main(int argc, char *argv[]) {
 
   props->set("Hypertable.RangeServer.Monitoring.DataDirectories", dirs);
 
-  stats1 = make_shared<StatsRangeServer>(props);
+  stats1 = std::make_shared<StatsRangeServer>(props);
   stats1->set_location("rs1");
 
   stats1->timestamp = Random::number64();
@@ -85,17 +86,17 @@ int main(int argc, char *argv[]) {
   
   
   size_t len = stats1->encoded_length();
-  
-  uint8_t *buf = new uint8_t[ len ];
-  uint8_t *ptr = buf;
+
+  std::vector<uint8_t> buf(len);
+  uint8_t *ptr = buf.data();
 
   stats1->encode(&ptr);
 
-  HT_ASSERT((size_t)(ptr-buf) == len);
+  HT_ASSERT((size_t)(ptr - buf.data()) == len);
 
-  stats2 = make_shared<StatsRangeServer>();
+  stats2 = std::make_shared<StatsRangeServer>();
 
-  const uint8_t *ptr2 = buf;
+  const uint8_t *ptr2 = buf.data();
   stats2->decode(&ptr2, &len);
 
   HT_ASSERT(len == 0);

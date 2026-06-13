@@ -28,6 +28,7 @@
 
 #include <AsyncComm/DispatchHandler.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 
@@ -107,7 +108,7 @@ namespace Hypertable {
     std::condition_variable cond;
 
     /// Set to <i>false</i> to deactivate and prevent further timer interrupts
-    bool active;
+    std::atomic<bool> active;
 
     /// Indicates if final timer interrupt has completed
     bool complete;
