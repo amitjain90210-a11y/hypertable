@@ -1,14 +1,12 @@
-HOW TO INSTALL
-==============
+![Project Logo](doc/markdown/images/tesseract.jpg)
 
-You can either download an appropriate binary package for your
-platform or build from source. Binary packages can be obtained from
-[here](http://hypertable.com/download).
+HYPERTABLE
+==========
 
-See [this wiki
-page](http://code.google.com/p/hypertable/wiki/UpAndRunningWithBinaryPackages)
-for getting started with hypertable binary packages.
-
+Hypertable is an open source, high performance, scalable database modeled after
+Google's Bigtable. It is designed to run on top of a distributed filesystem such
+as Apache Hadoop HDFS. See [documentation](doc/index.md) for installation
+instructions, reference manuals, and guides.
 
 HOW TO BUILD FROM SOURCE
 ========================
@@ -132,10 +130,17 @@ having to disable prelinking and selinux like on Fedora/Redhat.
 HOW TO RUN REGRESSION TESTS
 ===========================
 
-1.  Make sure software is built and installed according to
+1.  Make sure software is built according to
     "HOW TO BUILD FROM SOURCE"
 
-2.  Run the regression tests
+2.  [optional] To run the tests under sanitizers, configure the build with one
+    of the following:
+
+        cmake -DSANITIZE=asan -DCMAKE_BUILD_TYPE=RelWithDebInfo ~/src/hypertable
+        cmake -DSANITIZE=tsan -DCMAKE_BUILD_TYPE=RelWithDebInfo ~/src/hypertable
+        cmake -DSANITIZE=ubsan -DCMAKE_BUILD_TYPE=RelWithDebInfo ~/src/hypertable
+
+3.  Run the regression tests
 
         cd ~/build/hypertable
         make alltests
